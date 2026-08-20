@@ -24,9 +24,13 @@ export interface Character {
     bannerTier: number;
     ac: number;
     initiativeBonus: number;
+    baseInitiative?: number;
     weapon: string;
+    armor?: string;
     shield: string;
     mount: string;
+    mountInjured?: boolean;
+    mountInitiativeMod?: number;
     mountQuality: 'Common' | 'High-Grade' | 'Superb';
     weaponQuality: 'Common' | 'High-Grade' | 'Superb';
     armorQuality: 'Common' | 'High-Grade' | 'Superb';

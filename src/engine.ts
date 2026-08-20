@@ -6,6 +6,23 @@ import { Relationship } from "./domain/relationship/Relationship";
 import { CommanderAIService, CombatContext, CommanderProfile, CombatTactic } from "./domain/npc_ai/CommanderAIService";
 import { VisibilityService } from "./domain/visibility/VisibilityService";
 import { MarketService, MarketPriceResult } from "./domain/commerce/services/MarketService";
+import { CombatStatsCalculator, CombatStatsResult } from "./domain/items/CombatStatsCalculator";
+
+/**
+ * Calculates derived character Armor Class (AC) and Initiative bonus using canonical CombatStatsCalculator rules.
+ */
+export function calculateCharacterCombatStats(character: { stats: Partial<Character['stats']> }): CombatStatsResult {
+  return CombatStatsCalculator.calculateStats(character);
+}
+
+/**
+ * Recalculates and updates derived AC and Initiative in CampaignState character stats based on equipped armor, shield, and mount.
+ */
+export function recalculateCharacterStats(state: CampaignState): void {
+  const derived = calculateCharacterCombatStats(state.character);
+  state.character.stats.ac = derived.ac;
+  state.character.stats.initiativeBonus = derived.initiativeBonus;
+}
 
 /**
  * Translates target calendar month name (e.g. "Greening", "Frostwane") to 1..12 month index for MarketService.

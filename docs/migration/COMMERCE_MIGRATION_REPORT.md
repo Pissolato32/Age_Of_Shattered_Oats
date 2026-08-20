@@ -68,3 +68,8 @@
 
 ## 12. Migration Matrix Update
 - Status for `commerce` updated to `MIGRATED & INTEGRATED` in `docs/migration/MIGRATION_MATRIX.md`.
+
+---
+
+## 13. Known Functional Limitations
+- **Provisional Stock & Capacity Defaults**: `stock = 0` and `marketCapacity = 150` are provisional defaults used by `calculateMaterialPrice()`. Because `CampaignState` currently lacks an authoritative, persistent city market inventory slice per commodity, the saturation modifier defaults to `1.1` (scarcity bonus). This is a known functional limitation tracked for future persistent economic model expansion.

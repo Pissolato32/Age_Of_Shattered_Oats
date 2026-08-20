@@ -19,7 +19,7 @@ This document is the **Central Canonical Migration Control Matrix** for consolid
 | **`adventure`** | DOMAIN / APP | **ALREADY PRESENT** | A — Direct Reuse | Low | `src/domain/adventure/AdventureEngine.ts` (Commit `f05d668`) | Target commit `f05d668` |
 | **`commerce`** | DOMAIN SERVICE | **MIGRATED & INTEGRATED** | B — Minimal Adaptation | Low | `calculateMaterialPrice()` in `src/engine.ts` | [COMMERCE_MIGRATION_REPORT.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/COMMERCE_MIGRATION_REPORT.md) |
 | **`core/TimeService`** | DOMAIN | **PENDING** | A — Direct Reuse | Low | `TimeService.ts` calendar translator utility | [FOURTH_DOMAIN_SELECTION_AUDIT.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/FOURTH_DOMAIN_SELECTION_AUDIT.md) |
-| **`items`** | INFRA / SERVICE | **PENDING** | Selective Extraction | Medium | `CombatStatsCalculator.ts` pure utility | Pending audit |
+| **`items`** | DOMAIN SERVICE | **MIGRATED & INTEGRATED** | B — Minimal Adaptation | Low | `calculateCharacterCombatStats()` in `src/engine.ts` | [ITEMS_MIGRATION_REPORT.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/ITEMS_MIGRATION_REPORT.md) |
 | **`kingdom`** | INFRA / CQRS | **PENDING** | Selective Extraction | High | Pure production formulas | Pending audit |
 | **`military`** | INFRA / CQRS | **PENDING** | Selective Extraction | High | Pure mount/ship catalog data | Pending audit |
 | **`crime`** | APP / CQRS | **PENDING** | Selective Extraction | Medium | Ransom/escape difficulty calculators | Pending audit |
