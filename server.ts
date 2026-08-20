@@ -142,7 +142,16 @@ DIRETRIZES ESTRITAS DE ISOLAMENTO DE CONTEÚDO EXTERNO:
         const isEspionagem = p.includes("espia") || p.includes("sussurro") || p.includes("espião") || p.includes("segredo") || p.includes("informação");
         const isConselho = p.includes("conselho") || p.includes("voto") || p.includes("disputa") || p.includes("reunião");
 
-        if (isInfo) {
+        const isExploracao = p.includes("floresta") || p.includes("passear") || p.includes("caminhar") || p.includes("viajar") || p.includes("explorar") || p.includes("bosque") || p.includes("estrada") || p.includes("vila") || p.includes("sair") || p.includes("patrulha");
+
+        if (isExploracao) {
+          return `Ao ouvirem vossa intenção de deixar a fortaleza de ${landmark} para caminhar pela floresta gélida, o Marechal Ren coloca a mão no cabo da espada e adverte com tom sério: 'Senhor, a geada cobriu os trilhos e batedores relataram rastros de desertores e lobos esfomeados nas árvores. É imprudência marchar sem escolta enquanto as fronteiras estão tensas.'
+
+O vento sopra forte na borda dos bosques. Como deseja proceder?
+1. Marchar sozinho aceitando o risco de emboscada.
+2. Levar uma guarda pessoal de 5 infantarias armadas.
+3. Ordenar que batedores limpem o caminho antes de cruzar os portões.`;
+        } else if (isInfo) {
           return `Como soberano em ${landmark}, vossos ledgers heráldicos e conselheiros aguardam ordens imediatas. Vossas opções estratégicas são:
 
 1. Recrutar infantaria ou tropas feudais para reforçar a guarnição (Custo: 3 SD por soldado).

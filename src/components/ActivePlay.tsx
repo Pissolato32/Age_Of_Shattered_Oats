@@ -179,30 +179,28 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
           "x-gemini-api-key": clientApiKey
         },
         body: JSON.stringify({
-          systemPrompt: `Você é o Mestre Narrador de 'Age of Shattered Oaths'. Sua função é traduzir a verdade mecânica do jogo em tom de crônica de ferro gélida, realista e sensorial.
+          systemPrompt: `Você é o Mestre Narrador e os Conselheiros (como o Marechal de Armas Ren e os Intendentes) de 'Age of Shattered Oaths'. Sua função é dar vida e fluidez dramática ao mundo medieval em tom de Crônica de Ferro.
 
-REGRA DE ROTEAMENTO: PERGUNTA META VS. AÇÃO EM PERSONAGEM:
+DIRETRIZES DE FLUIDEZ DRAMÁTICA E INTERAÇÃO DE NPCS:
+1. REAÇÃO DE CONSENTIMENTO E INTERAÇÃO DE NPCS:
+   - Sempre que o jogador tomar uma ação livre, exploratória ou incomum (ex: passear na floresta, sair sozinho, desafiar o conselho), insira reações vivas dos conselheiros ou marechais.
+   - Conselheiros podem questionar a decisão, alertar sobre perigos reais (desertores, emboscadas, falta de provisões) e sugerir alternativas (como levar uma escolta ou enviar batedores).
 
-1. AÇÃO EM PERSONAGEM (ex: "Eu recruto 10 soldados", "Vou até a vila"):
-   -> Narre a consequência mecânica em tom de crônica de ferro gélida e sensorial.
+2. AVANÇO DRAMÁTICO E PERGUNTA DE AÇÃO:
+   - NUNCA termine com um encerramento genérico ou passivo.
+   - Avance a história para a próxima cena (descreva a reação do ambiente, o local de chegada ou um evento iminente).
+   - Encerre SEMPRE com um gancho reativo e 2 ou 3 escolhas dramáticas ou pergunta direta para o jogador decidir o próximo passo.
 
-2. PERGUNTA META SOBRE O ESTADO OU OPÇÕES (ex: "O que posso fazer?", "Quais opções eu tenho?", "O que está disponível?"):
-   -> PROIBIDO responder apenas com atmosfera ou poesia sem agência real.
-   -> Apresente no máximo 1 frase atmosférica de abertura e liste um menu de 3 a 5 opções concretas derivadas do estado real do feudo (recursos, exército, vilas, conselho, construções):
-      "Como soberano de ${state.character.location.landmark}, vossas opções atuais são:
-       1. [Ação militar ou recrutamento possível com custos reais]
-       2. [Construção ou melhoria de fortificação/oficina]
-       3. [Coleta de impostos ou comércio de provisões]
-       4. [Ação diplomática, conselho ou patrulha de fronteira]
-       5. [Ordem livre customizada]"
+3. PERGUNTA META SOBRE OPÇÕES:
+   - Se o jogador perguntar "O que posso fazer?" ou "Quais minhas prioridades?", ofereça 3 a 5 opções estratégicas reais baseadas no feudo.
 
 DIRETRIZES DE SILÊNCIO MECÂNICO:
-- Transforme estatísticas numéricas frias em impactos sensoriais físicos nas opções.
-- Use Português do Brasil, de forma concisa e direta.`,
-          userPrompt: `Localização: ${state.character.location.landmark} (${state.character.location.region}).
-          Clima atual: ${state.weeklyLedger.weather}.
-          Ação do jogador: ${actionDesc}.
-          Resultado Determinístico da Engine: ${mechanicalOutcome}.`,
+- Escreva em tom realista, sombrio e visceral (Crônica de Ferro em Português do Brasil).
+- Mantenha a continuidade narrativa usando o contexto anterior.`,
+          userPrompt: `HISTÓRICO RECENTE DA CENA:\n${narrativeHistory.slice(-4).join("\n")}\n\nLocalização: ${state.character.location.landmark} (${state.character.location.region}).
+Clima atual: ${state.weeklyLedger.weather}.
+Sua ação atual: ${actionDesc}.
+Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
           webFlavorText,
           clientApiKey
         })
@@ -221,7 +219,9 @@ DIRETRIZES DE SILÊNCIO MECÂNICO:
       console.error("AI narration error, falling back:", e);
       const p = (actionDesc || "").toLowerCase();
       let fallbackText = `Os conselheiros de ${state.character.location.landmark} registraram vossa ordem nos ledgers da fortaleza. As decisões tomadas ecoam pelas salas de guerra e os batedores cumprem os deveres sob o céu cinzento do inverno.`;
-      if (p.includes("fazer") || p.includes("opções") || p.includes("opcoes") || p.includes("posso") || p.includes("onde estou") || p.includes("ajuda") || p.includes("comandos") || p.includes("instruções") || p.includes("prioridade") || p.includes("urgencia") || p.includes("urgência") || p.includes("qual") || p.includes("devo") || p.includes("proxima")) {
+      if (p.includes("floresta") || p.includes("passear") || p.includes("caminhar") || p.includes("viajar") || p.includes("explorar") || p.includes("bosque") || p.includes("estrada") || p.includes("vila") || p.includes("sair") || p.includes("patrulha")) {
+        fallbackText = `Ao ouvirem vossa intenção de deixar a fortaleza de ${state.character.location.landmark} para caminhar pela floresta gélida, o Marechal Ren coloca a mão no cabo da espada e adverte com tom sério: 'Senhor, a geada cobriu os trilhos e batedores relataram rastros de desertores e lobos esfomeados nas árvores. É imprudência marchar sem escolta enquanto as fronteiras estão tensas.'\n\nO vento sopra forte na borda dos bosques. Como deseja proceder?\n1. Marchar sozinho aceitando o risco de emboscada.\n2. Levar uma guarda pessoal de 5 infantarias armadas.\n3. Ordenar que batedores limpem o caminho antes de cruzar os portões.`;
+      } else if (p.includes("fazer") || p.includes("opções") || p.includes("opcoes") || p.includes("posso") || p.includes("onde estou") || p.includes("ajuda") || p.includes("comandos") || p.includes("instruções") || p.includes("prioridade") || p.includes("urgencia") || p.includes("urgência") || p.includes("qual") || p.includes("devo") || p.includes("proxima")) {
         fallbackText = `Como soberano em ${state.character.location.landmark}, vossos ledgers heráldicos e conselheiros aguardam ordens imediatas. Vossas opções estratégicas são:\n\n1. Recrutar infantaria ou tropas feudais para reforçar a guarnição (Custo: 3 SD por soldado).\n2. Construir fortificações, paliçadas ou oficinas de forja no feudo.\n3. Coletar tributos da população ou negociar caravanas de mantimentos.\n4. Enviar patrulhas e batedores para vigiar as estradas e fronteiras da região.\n5. Inserir qualquer ação diplomática, ordem customizada ou pergunta livre no terminal.`;
       }
       const fallback = `[MESTRE] ${fallbackText}`;
