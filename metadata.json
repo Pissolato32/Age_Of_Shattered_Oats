@@ -1,0 +1,6 @@
+{
+  "name": "Age of Shattered Oaths",
+  "description": "Deterministic campaign simulation engine and text adventure game for the Age of Shattered Oaths (v4.7). Features full local persistence, weekly ledgers, regional tracking, mass combat resolution, and atmospheric AI narrative generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
