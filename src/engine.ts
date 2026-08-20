@@ -13,6 +13,22 @@ import { FoodService } from "./domain/kingdom/services/FoodService";
 import { LaborService } from "./domain/kingdom/services/LaborService";
 import { TreasuryService, ExpenseOutcome } from "./domain/kingdom/services/TreasuryService";
 import { ConstructionService, ConstructionRefundResult, ResourcePatchQuality } from "./domain/kingdom/services/ConstructionService";
+import { PayrollService, UpkeepCosts, DesertionResult } from "./domain/military/services/PayrollService";
+
+/**
+ * Calculates total military wages for army units and garrison using canonical PayrollService rules.
+ */
+export function calculateMilitaryWages(units: { size: number }[], garrison: number): { armyWages: number; garrisonWages: number; totalWages: number } {
+  const unitSizes = units.map(u => u.size);
+  return PayrollService.calculateMilitaryWages(unitSizes, garrison);
+}
+
+/**
+ * Resolves troop desertion checks for unpaid wage streaks using canonical PayrollService rules and globalRNG.
+ */
+export function resolveTroopDesertion(unpaidWeeks: number, prng = globalRNG): DesertionResult {
+  return PayrollService.resolveDesertion(unpaidWeeks, prng);
+}
 
 /**
  * Calculates the 50% resource refund for a cancelled construction project using canonical ConstructionService rules.
@@ -939,18 +955,25 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   // 3. Consumption (PHASE 2)
   let totalWages = 0;
   let totalMilitaryUnitsSize = 0;
+  const activeTroopUnits: { size: number; morale: number }[] = [];
 
   s.army.units.forEach((u) => {
     if (u.morale <= 0) return;
     if (u.type !== "Skeletons" && u.type !== "Skeleton Archers" && !isNecro) {
-      totalWages += u.size * 0.1;
+      activeTroopUnits.push(u);
       totalMilitaryUnitsSize += u.size;
     }
   });
 
   if (!isNecro) {
-    totalWages += s.holdings.garrison * 0.05;
     totalMilitaryUnitsSize += s.holdings.garrison;
+
+    // Use PayrollService for canonical military wage calculations
+    const wageCalculation = PayrollService.calculateMilitaryWages(
+      activeTroopUnits.map(u => u.size),
+      s.holdings.garrison
+    );
+    totalWages = wageCalculation.totalWages;
 
     // Use FoodService for military food consumption calculation
     const totalFoodConsumption = FoodService.calculateMilitaryConsumption(totalMilitaryUnitsSize);
@@ -983,10 +1006,23 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     if (!treasuryOutcome.defaulted) {
       s.weeklyLedger.silverdew = treasuryOutcome.expensesDeducted; // remaining SD
       turnResult.militaryChanges.wagesPaid = totalWages;
+      const payrollState = { units: s.army.units, unpaidTicks: s.weeklyLedger.unpaidWagesTicks };
+      PayrollService.applyPaymentOutcome(payrollState, true);
+      s.weeklyLedger.unpaidWagesTicks = 0;
     } else {
       s.weeklyLedger.silverdew = 0;
       turnResult.militaryChanges.moralePenalty += 2;
-      s.army.units.forEach(u => u.morale = Math.max(1, u.morale - 2));
+      const payrollState = { units: s.army.units, unpaidTicks: s.weeklyLedger.unpaidWagesTicks };
+      PayrollService.applyPaymentOutcome(payrollState, false);
+      s.weeklyLedger.unpaidWagesTicks = payrollState.unpaidTicks;
+
+      // Resolve unpaid wage streak desertions via PayrollService and globalRNG
+      const desertionCheck = PayrollService.resolveDesertion(s.weeklyLedger.unpaidWagesTicks, globalRNG);
+      if (desertionCheck.deserted && desertionCheck.deserterCount > 0) {
+        const actualDeserters = PayrollService.applyDesertionToUnits(s.army.units, desertionCheck.deserterCount);
+        turnResult.militaryChanges.desertions += actualDeserters;
+        turnResult.eventLog.push(`Salários Atrasados: ${actualDeserters} soldados desertaram por falta de pagamento.`);
+      }
     }
   }
 
