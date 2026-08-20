@@ -24,13 +24,13 @@ export class CombatStatsCalculator {
     shieldCatalog: Record<string, ShieldItemSpec> = SHIELD_SPECS
   ): number {
     let baseAC = 2; // Cloth / unarmored default
-    const armorId = char.stats?.armor?.toLowerCase();
+    const armorId = char.stats?.armor ? char.stats.armor.trim().toLowerCase().replace(/\s+/g, '_') : undefined;
     if (armorId && armorCatalog[armorId]) {
       baseAC = armorCatalog[armorId].armorClass;
     }
 
     let shieldACMod = 0;
-    const shieldId = char.stats?.shield?.toLowerCase();
+    const shieldId = char.stats?.shield ? char.stats.shield.trim().toLowerCase().replace(/\s+/g, '_') : undefined;
     if (shieldId && shieldCatalog[shieldId]) {
       shieldACMod = shieldCatalog[shieldId].armorClassMod;
     }
@@ -52,7 +52,7 @@ export class CombatStatsCalculator {
   ): number {
     let initiative = typeof char.stats?.baseInitiative === 'number' ? char.stats.baseInitiative : 0;
 
-    const armorId = char.stats?.armor?.toLowerCase();
+    const armorId = char.stats?.armor ? char.stats.armor.trim().toLowerCase().replace(/\s+/g, '_') : undefined;
     if (armorId && armorCatalog[armorId]) {
       initiative += armorCatalog[armorId].initiativeMod;
     } else {
@@ -60,12 +60,12 @@ export class CombatStatsCalculator {
       initiative += 1;
     }
 
-    const shieldId = char.stats?.shield?.toLowerCase();
+    const shieldId = char.stats?.shield ? char.stats.shield.trim().toLowerCase().replace(/\s+/g, '_') : undefined;
     if (shieldId && shieldCatalog[shieldId]) {
       initiative += shieldCatalog[shieldId].initiativeMod;
     }
 
-    const mountId = char.stats?.mount?.toLowerCase();
+    const mountId = char.stats?.mount ? char.stats.mount.trim().toLowerCase().replace(/\s+/g, '_') : undefined;
     if (mountId && mountCatalog[mountId]) {
       initiative += mountCatalog[mountId].initiativeMod;
       if (char.stats?.mountInjured === true) {

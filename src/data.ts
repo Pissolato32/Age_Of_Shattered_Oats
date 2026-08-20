@@ -56,6 +56,7 @@ export const ARMOR_SPECS: Record<string, ArmorItemSpec> = {
 
 export const SHIELD_SPECS: Record<string, ShieldItemSpec> = {
   standard_shield: { id: "standard_shield", name: "Standard Shield", armorClassMod: 1, initiativeMod: 0, costSd: 5 },
+  standard: { id: "standard", name: "Standard Shield", armorClassMod: 1, initiativeMod: 0, costSd: 5 },
   shield: { id: "shield", name: "Standard Shield", armorClassMod: 1, initiativeMod: 0, costSd: 5 },
   heater_shield: { id: "heater_shield", name: "Heater / Kite Shield", armorClassMod: 1, initiativeMod: 0, costSd: 10 },
   tower_shield: { id: "tower_shield", name: "Tower Shield", armorClassMod: 1, initiativeMod: -1, costSd: 20 }
