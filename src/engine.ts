@@ -3,6 +3,7 @@ import { INITIAL_HOUSES, REGIONS, MONTHS } from "./data";
 import { globalRNG } from "./core/RandomService";
 import { globalEventStore } from "./core/EventStore";
 import { Relationship } from "./domain/relationship/Relationship";
+import { CommanderAIService, CombatContext, CommanderProfile, CombatTactic } from "./domain/npc_ai/CommanderAIService";
 
 /**
  * Adjusts a noble house's opinion score using canonical Relationship domain rules (-3..+3 bounds).
@@ -29,6 +30,101 @@ export function setHouseOpinion(house: NobleHouse, targetOpinion: number, source
     relationshipType: house.status || "Neutra"
   });
   house.opinion = rel.opinion;
+}
+
+/**
+ * Derives a deterministic effective commander profile for an NPC unit if custom settings are omitted.
+ */
+export function getEffectiveCommanderProfile(
+  enemyUnit: ArmyUnit,
+  customProfile?: Partial<CommanderProfile>
+): CommanderProfile {
+  let temperament: CommanderProfile['temperament'] = 'Disciplined';
+  let priority: CommanderProfile['priority'] = 'Victory';
+  let fear: CommanderProfile['fear'] = 'Encirclement';
+
+  const nameLower = (enemyUnit.name || '').toLowerCase();
+  if (nameLower.includes('levy') || nameLower.includes('skeleton')) {
+    temperament = 'Wary';
+    priority = 'Survival';
+    fear = 'Loss';
+  } else if (nameLower.includes('swords') || nameLower.includes('free company')) {
+    temperament = 'Aggressive';
+    priority = 'Glory';
+    fear = 'Fire';
+  } else if (nameLower.includes('guard') || nameLower.includes('retinue')) {
+    temperament = 'Disciplined';
+    priority = 'Orders';
+    fear = 'Encirclement';
+  }
+
+  return {
+    temperament: customProfile?.temperament || temperament,
+    priority: customProfile?.priority || priority,
+    fear: customProfile?.fear || fear,
+  };
+}
+
+/**
+ * Builds a deterministic CombatContext from target ArmyUnit properties.
+ * morale: unit.morale (1..10) is scaled to 0..100 for context evaluation.
+ * hpPercent: (size / maxSize) * 100 bounded between 0 and 100.
+ */
+export function buildCombatContext(
+  enemyUnit: ArmyUnit,
+  playerUnit: ArmyUnit,
+  options?: { terrainAdvantage?: boolean; fearTriggered?: boolean; isAllyRetreating?: boolean }
+): CombatContext {
+  const maxSize = enemyUnit.maxSize || 50;
+  const hpPercent = maxSize > 0 ? Math.min(100, Math.max(0, Math.round((enemyUnit.size / maxSize) * 100))) : 100;
+  const moraleScaled = Math.min(100, Math.max(0, Math.round((enemyUnit.morale ?? 5) * 10)));
+
+  return {
+    hpPercent,
+    morale: moraleScaled,
+    isOutnumbered: playerUnit.size > enemyUnit.size,
+    isHalfStrength: enemyUnit.size <= Math.floor(maxSize / 2),
+    isAllyRetreating: options?.isAllyRetreating ?? false,
+    terrainAdvantage: options?.terrainAdvantage ?? false,
+    fearTriggered: options?.fearTriggered ?? false,
+  };
+}
+
+/**
+ * Maps legacy CombatTactic to target engine combat action.
+ * 'Charge' -> 'Charge'
+ * 'Attack' -> 'Keep Attacking'
+ * 'Defend', 'Traps', 'Rearguard', 'Retreat' -> 'Defend'
+ */
+export function mapTacticToEngineAction(tactic: CombatTactic): 'Keep Attacking' | 'Defend' | 'Charge' {
+  switch (tactic) {
+    case 'Charge':
+      return 'Charge';
+    case 'Attack':
+      return 'Keep Attacking';
+    case 'Defend':
+    case 'Traps':
+    case 'Rearguard':
+    case 'Retreat':
+    default:
+      return 'Defend';
+  }
+}
+
+/**
+ * Resolves an NPC combat tactical action deterministically using CommanderAIService.
+ */
+export function resolveNpcCombatAction(
+  enemyUnit: ArmyUnit,
+  playerUnit: ArmyUnit,
+  customProfile?: Partial<CommanderProfile>,
+  options?: { terrainAdvantage?: boolean; fearTriggered?: boolean; isAllyRetreating?: boolean }
+): 'Keep Attacking' | 'Defend' | 'Charge' {
+  const context = buildCombatContext(enemyUnit, playerUnit, options);
+  const profile = getEffectiveCommanderProfile(enemyUnit, customProfile);
+  const aiService = new CommanderAIService();
+  const tactic = aiService.selectCombatTactic(context, profile);
+  return mapTacticToEngineAction(tactic);
 }
 
 // Generate a blank initial campaign state

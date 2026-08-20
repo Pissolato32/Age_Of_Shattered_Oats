@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CampaignState, ArmyUnit } from "../types";
-import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion } from "../engine";
+import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction } from "../engine";
 import { Shield, Sparkles, BookOpen, Clock, Compass, Coins, Users, Hammer, Flame, Copy, Save, FileText, ChevronRight } from "lucide-react";
 import { LedgerViewer } from "./LedgerViewer";
 import { CodexSearchModal } from "./CodexSearchModal";
@@ -412,9 +412,8 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     const p = { ...playerUnit };
     const e = { ...enemyUnit };
 
-    // AI randomly chooses action
-    const actions: Array<'Keep Attacking' | 'Defend' | 'Charge'> = ['Keep Attacking', 'Defend', 'Charge'];
-    const aiAction = globalRNG.pick(actions);
+    // AI determines action using CommanderAIService via Engine
+    const aiAction = resolveNpcCombatAction(e, p);
 
     const result = simulateCombatRound(p, e, action, aiAction);
     
