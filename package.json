@@ -9,7 +9,7 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "npx tsx tests/GoldenScenarios.test.ts && npx tsx tests/domain/RelationshipAndMemory.test.ts && npx tsx tests/integration/RelationshipTargetIntegration.test.ts && npx tsx src/tools/ReplayValidator.ts",
+    "test": "npx tsx tests/GoldenScenarios.test.ts && npx tsx tests/domain/RelationshipAndMemory.test.ts && npx tsx tests/integration/RelationshipTargetIntegration.test.ts && npx tsx tests/integration/RelationshipEngineIntegration.test.ts && npx tsx src/tools/ReplayValidator.ts",
     "stress": "npx tsx src/tools/StressTestRunner.ts",
     "stress:short": "npx tsx src/tools/StressTestRunner.ts --ticks 10000",
     "stress:medium": "npx tsx src/tools/StressTestRunner.ts --ticks 50000",

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CampaignState, ArmyUnit } from "../types";
-import { resolveWeeklyTurn, exportStateToText, simulateCombatRound } from "../engine";
+import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion } from "../engine";
 import { Shield, Sparkles, BookOpen, Clock, Compass, Coins, Users, Hammer, Flame, Copy, Save, FileText, ChevronRight } from "lucide-react";
 import { LedgerViewer } from "./LedgerViewer";
 import { CodexSearchModal } from "./CodexSearchModal";
@@ -579,7 +579,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     let mechanicalOutcome = "";
     if (type === 'sage') {
       s.worldLedger.nobleHouses.forEach(h => {
-        if (globalRNG.next() < 0.5) h.opinion = Math.min(3, h.opinion + 1);
+        if (globalRNG.next() < 0.5) adjustHouseOpinion(h, 1);
       });
       s.character.reputation += 1;
       mechanicalOutcome = "Ritual de Defumação com Sálvia: A fumaça herborista purifica as desconfianças do salão. +1 Reputação mundial, e a opinião de algumas Grandes Casas aumentou em +1.";
@@ -664,13 +664,13 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       mechanicalOutcome = "Berrante de Clã soado. Unidade heráldica restaurada. A opinião das Casas da mesma região aumenta em +1.";
       s.worldLedger.nobleHouses.forEach(h => {
         if (h.region === s.character.location.region) {
-          h.opinion = Math.min(3, h.opinion + 1);
+          adjustHouseOpinion(h, 1);
         }
       });
     } else if (horn.type === 'Oath') {
       mechanicalOutcome = "Berrante de Juramento soado. Voz de prata ressoando lealdade. Opinião de todas as Casas Nobles do ledger aumenta em +1.";
       s.worldLedger.nobleHouses.forEach(h => {
-        h.opinion = Math.min(3, h.opinion + 1);
+        adjustHouseOpinion(h, 1);
       });
     } else if (horn.type === 'Mourning') {
       mechanicalOutcome = "Berrante de Lamento soado. Postura reverente respeitada por vassalos. O Lorde ganha +1 de Reputação.";
@@ -700,7 +700,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     }
 
     s.weeklyLedger.silverdew -= 150;
-    targetHouse.opinion = Math.min(3, targetHouse.opinion + 2);
+    adjustHouseOpinion(targetHouse, 2);
     
     const names = ["Lady Elysia", "Lady Beatrix", "Lady Sibylla", "Lady Rowan", "Lady Gwendolyn", "Lady Yvaine", "Lady Morgaine"];
     const chosenSpouseName = globalRNG.pick(names);
@@ -1033,7 +1033,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       if (compromiseRoll < threshold) {
         const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses);
         if (randomHouse) {
-          randomHouse.opinion = Math.max(-3, randomHouse.opinion - 1);
+          adjustHouseOpinion(randomHouse, -1);
           outcomeLog = `SUSSURROS ESCASSOS (Espiões Expostos): Seus batedores conseguiram extrair poucos sussurros (+${progressGain}%), mas deixaram rastros na região. A Casa ${randomHouse.name} interceptou mensagens cifradas e sua opinião com você caiu para ${randomHouse.opinion}.`;
         } else {
           outcomeLog = `SUSSURROS ESCASSOS (Rede Tensa): Conseguiram pouco progresso (+${progressGain}%) mas tiveram que queimar refúgios temporários para evitar a captura pelas patrulhas locais.`;
@@ -1049,7 +1049,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       if (rollConsequence === 0) {
         const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses);
         if (randomHouse) {
-          randomHouse.opinion = Math.max(-3, randomHouse.opinion - 2);
+          adjustHouseOpinion(randomHouse, -2);
         }
         s.character.reputation = Math.max(0, s.character.reputation - 1);
         outcomeLog = `DETECÇÃO E EXPOSIÇÃO! Seus espiões foram capturados e enforcados publicamente na fortaleza. Sua rede local ruiu. Perdido -1 de Reputação e a Casa mais próxima ganhou ressentimento de intriga.`;
@@ -1152,7 +1152,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       if (compromiseRoll < 0.3) {
         const h = globalRNG.pick(s.worldLedger.nobleHouses);
         if (h) {
-          h.opinion = Math.max(-3, h.opinion - 1);
+          adjustHouseOpinion(h, -1);
           logMsg = `FALHA CRÍTICA NA CONSPIRAÇÃO (D20: ${d20} + ${spyMasterBonus} vs DC ${dc}): Seus agentes foram vistos nos arquivos da Catedral Real! Progresso caiu em -10% e a Casa ${h.name} suspeita do seu interesse heráldico (Opinião caiu para ${h.opinion}).`;
         } else {
           logMsg = `FALHA CRÍTICA NA CONSPIRAÇÃO (D20: ${d20} + ${spyMasterBonus} vs DC ${dc}): Seus conspiradores se desentenderam. Progresso retrocedeu em -10% e fofocas reais aumentaram sua exposição semanal em +12%.`;
@@ -1348,7 +1348,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
         const houseIdx = s.worldLedger.nobleHouses.findIndex(h => h.name === siegeTargetHouse);
         if (houseIdx !== -1) {
           s.worldLedger.nobleHouses[houseIdx].status = "Subjugada";
-          s.worldLedger.nobleHouses[houseIdx].opinion = -3; // they hate being taken but are vassalized
+          setHouseOpinion(s.worldLedger.nobleHouses[houseIdx], -3); // they hate being taken but are vassalized
         }
 
         setState(s);
@@ -1379,7 +1379,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
         const houseIdx = s.worldLedger.nobleHouses.findIndex(h => h.name === siegeTargetHouse);
         if (houseIdx !== -1) {
           s.worldLedger.nobleHouses[houseIdx].status = "Destruída";
-          s.worldLedger.nobleHouses[houseIdx].opinion = -3;
+          setHouseOpinion(s.worldLedger.nobleHouses[houseIdx], -3);
         }
 
         assaultMsg = "ASSALTO VITORIOSO: Suas divisões escalaram as muralhas sob fogo de flechas e conquistaram a fortaleza à força! O inimigo foi aniquilado, mas suas perdas foram severas (-15 soldados). +100 SD e +3 de Reputação.";

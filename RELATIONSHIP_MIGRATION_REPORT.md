@@ -56,3 +56,18 @@
 
 ## 10. Remaining concerns
 - None. The Relationship domain migration is fully isolated, deterministic, and clean.
+
+---
+
+## 11. Engine Integration
+- **Engine Integration Point**: `src/engine.ts` exports `adjustHouseOpinion(house, delta, sourceId)` and `setHouseOpinion(house, targetOpinion, sourceId)`, encapsulating canonical `Relationship` domain rules.
+- **Relationship Methods Used**: `new Relationship(...)` constructor and `rel.adjustOpinion(delta)` for clamping `-3..+3`.
+- **Opinion Mutations Consolidated**: All 11 inline opinion mutations in `src/engine.ts` (weekly drift & exposure events) and `src/components/ActivePlay.tsx` (smudging rituals, horns, marriage, espionage, lineage exposure, siege surrender/assault) were refactored to delegate to `adjustHouseOpinion` and `setHouseOpinion`.
+- **ActivePlay Changes**: Removed all direct authoritative `h.opinion = ...` UI-level mutations. UI components now invoke Engine-owned domain functions (`adjustHouseOpinion`/`setHouseOpinion`).
+- **MemoryLog Status**: `MemoryLog` is migrated and fully tested in `src/domain/relationship/MemoryLog.ts`. Per architectural directive, no unvalidated `memories` array was added to `CampaignState`; `MemoryLog` remains an available pure domain utility.
+- **Tests Added**: Created `tests/integration/RelationshipEngineIntegration.test.ts` proving Engine-level execution, opinion bounds enforcement (-3..+3), and deterministic replay across weekly turns.
+- **Validation Results**:
+  - `npm test`: **PASSED (100%)** (GoldenScenarios, RelationshipAndMemory, RelationshipTargetIntegration, RelationshipEngineIntegration, ReplayValidator).
+  - `npm run build`: **PASSED (0 errors)**.
+  - `npm run replay:validate`: **PASSED (10/10 snapshots deterministic)**.
+

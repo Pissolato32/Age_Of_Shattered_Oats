@@ -2,6 +2,34 @@ import { CampaignState, Character, WeeklyLedger, ArmyUnit, Holdings, ResourcePat
 import { INITIAL_HOUSES, REGIONS, MONTHS } from "./data";
 import { globalRNG } from "./core/RandomService";
 import { globalEventStore } from "./core/EventStore";
+import { Relationship } from "./domain/relationship/Relationship";
+
+/**
+ * Adjusts a noble house's opinion score using canonical Relationship domain rules (-3..+3 bounds).
+ */
+export function adjustHouseOpinion(house: NobleHouse, delta: number, sourceId: string = "Player"): void {
+  const rel = new Relationship({
+    sourceId,
+    targetId: house.name,
+    opinion: house.opinion,
+    relationshipType: house.status || "Neutra"
+  });
+  rel.adjustOpinion(delta);
+  house.opinion = rel.opinion;
+}
+
+/**
+ * Sets a noble house's opinion score directly, enforcing canonical Relationship domain bounds (-3..+3).
+ */
+export function setHouseOpinion(house: NobleHouse, targetOpinion: number, sourceId: string = "Player"): void {
+  const rel = new Relationship({
+    sourceId,
+    targetId: house.name,
+    opinion: targetOpinion,
+    relationshipType: house.status || "Neutra"
+  });
+  house.opinion = rel.opinion;
+}
 
 // Generate a blank initial campaign state
 export function createInitialState(archetype: any, region: string): CampaignState {
@@ -610,7 +638,7 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
         // Random chance of exposure per week (based on exposureChance)
         if (globalRNG.next() < s.falseLineage.exposureChance) {
           s.falseLineage.isExposed = true;
-          s.worldLedger.nobleHouses.forEach(h => h.opinion = -3);
+          s.worldLedger.nobleHouses.forEach(h => setHouseOpinion(h, -3));
           s.character.reputation = 0;
           s.army.units.forEach(u => {
             u.morale = Math.max(1, u.morale - 2);
@@ -621,7 +649,7 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
       } else {
         // Exposed because can't pay
         s.falseLineage.isExposed = true;
-        s.worldLedger.nobleHouses.forEach(h => h.opinion = -3);
+        s.worldLedger.nobleHouses.forEach(h => setHouseOpinion(h, -3));
         s.character.reputation = 0;
         s.army.units.forEach(u => {
           u.morale = Math.max(1, u.morale - 2);
@@ -667,8 +695,8 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   // 4. Random events
   s.worldLedger.nobleHouses.forEach((house) => {
     const drift = globalRNG.nextInt(1, 6);
-    if (drift === 1) house.opinion = Math.max(-3, house.opinion - 1);
-    else if (drift === 6) house.opinion = Math.min(3, house.opinion + 1);
+    if (drift === 1) adjustHouseOpinion(house, -1);
+    else if (drift === 6) adjustHouseOpinion(house, 1);
   });
 
   if (globalRNG.next() < 0.02) {
