@@ -8,6 +8,7 @@ interface CacheEntry {
 }
 
 const cacheStore = new Map<string, CacheEntry>();
+let deterministicCounter = 0;
 const DEFAULT_TTL_MS = 30 * 60 * 1000; // 30 minutos
 
 function normalizeKey(query: string): string {
@@ -23,7 +24,7 @@ function normalizeKey(query: string): string {
  */
 export function getCachedWebFlavor(query: string, ttlMs = DEFAULT_TTL_MS): { result: WebFlavorResult; isCacheHit: boolean } {
   const key = normalizeKey(query);
-  const now = globalRNG.nextInt(0, Number.MAX_SAFE_INTEGER);
+  const now = ++deterministicCounter;
 
   // 1. Verificar Cache HIT
   if (cacheStore.has(key)) {
