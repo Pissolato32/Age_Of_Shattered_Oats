@@ -14,6 +14,20 @@ import { LaborService } from "./domain/kingdom/services/LaborService";
 import { TreasuryService, ExpenseOutcome } from "./domain/kingdom/services/TreasuryService";
 import { ConstructionService, ConstructionRefundResult, ResourcePatchQuality } from "./domain/kingdom/services/ConstructionService";
 import { PayrollService, UpkeepCosts, DesertionResult } from "./domain/military/services/PayrollService";
+import { BreedingService } from "./domain/military/services/BreedingService";
+
+/**
+ * Calculates mount breeding success rates based on primary region suitability and holding tier limits using canonical BreedingService rules.
+ */
+export function calculateMountBreedingSuccessRate(
+  baseSuccessRate: number,
+  primaryRegion: string | undefined,
+  mountId: string,
+  location: string,
+  holdingTier: number
+): number {
+  return BreedingService.calculateSuccessRate(baseSuccessRate, primaryRegion, mountId, location, holdingTier);
+}
 
 /**
  * Calculates total military wages for army units and garrison using canonical PayrollService rules.
