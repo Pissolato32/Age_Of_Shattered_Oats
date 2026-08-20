@@ -144,7 +144,36 @@ DIRETRIZES ESTRITAS DE ISOLAMENTO DE CONTEÚDO EXTERNO:
 
         const isExploracao = p.includes("floresta") || p.includes("passear") || p.includes("caminhar") || p.includes("viajar") || p.includes("explorar") || p.includes("bosque") || p.includes("estrada") || p.includes("vila") || p.includes("sair") || p.includes("patrulha");
 
-        if (isExploracao) {
+        const isChoice2 = p.includes("2") || p.includes("opção 2") || p.includes("opcao 2") || p.includes("escolho 2");
+        const isChoice1 = p.includes("1") || p.includes("opção 1") || p.includes("opcao 1") || p.includes("escolho 1");
+        const isChoice3 = p.includes("3") || p.includes("opção 3") || p.includes("opcao 3") || p.includes("escolho 3");
+
+        if (isChoice2) {
+          return `Você convoca 5 infantarias armadas da guarnição. Com as espadas embainhadas e escudos de madeira bruta, a patrulha avança sob a geada densa da floresta.
+
+Após meia hora de marcha, a tropa encontra cinzas quentes de uma fogueira clandestina e vestígios de um cervo abatido. Marcas de botas e sangue fresco seguem em direção a uma ravina à esquerda.
+
+Como deseja comandar a tropa?
+1. Enviar 2 guardas para flanquear a ravina com arcos a postos.
+2. Avançar em formação de parede de escudos pelo caminho principal.
+3. Exigir rendição em voz alta aos homens ocultos na ravina.`;
+        } else if (isChoice1) {
+          return `Você avança sozinho, deixando os portões de ${landmark} para trás. O silêncio dos pinheiros é quebrado apenas pelo ranger da geada sob suas botas.
+
+De repente, dois homens em trapos de ex-soldados surgem de trás de uma rocha, empunhando machados enferrujados com olhares desesperados.
+
+Como você reage?
+1. Desembainhar a espada e confrontar os desertores.
+2. Oferecer moedas de prata (5 SD) para que prestem juramento de lealdade.
+3. Recuar taticamente em direção aos portões da fortaleza.`;
+        } else if (isChoice3) {
+          return `Você ordena que os batedores avancem 100 passos na frente. Pouco tempo depois, o eco de um assobio de alerta ressoa entre as árvores. Os batedores retornam informando que avistaram uma patrulha inimiga disfarçada de mercadores.
+
+Como deseja proceder?
+1. Preparar uma emboscada silenciosa nas árvores altas.
+2. Interceptar a caravana e exigir inspeção de carga.
+3. Retornar ao castelo para convocar a cavalaria.`;
+        } else if (isExploracao) {
           return `Ao ouvirem vossa intenção de deixar a fortaleza de ${landmark} para caminhar pela floresta gélida, o Marechal Ren coloca a mão no cabo da espada e adverte com tom sério: 'Senhor, a geada cobriu os trilhos e batedores relataram rastros de desertores e lobos esfomeados nas árvores. É imprudência marchar sem escolta enquanto as fronteiras estão tensas.'
 
 O vento sopra forte na borda dos bosques. Como deseja proceder?

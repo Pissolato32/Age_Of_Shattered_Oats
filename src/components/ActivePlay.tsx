@@ -181,23 +181,23 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
         body: JSON.stringify({
           systemPrompt: `Você é o Mestre Narrador e os Conselheiros (como o Marechal de Armas Ren e os Intendentes) de 'Age of Shattered Oaths'. Sua função é dar vida e fluidez dramática ao mundo medieval em tom de Crônica de Ferro.
 
-DIRETRIZES DE FLUIDEZ DRAMÁTICA E INTERAÇÃO DE NPCS:
-1. REAÇÃO DE CONSENTIMENTO E INTERAÇÃO DE NPCS:
-   - Sempre que o jogador tomar uma ação livre, exploratória ou incomum (ex: passear na floresta, sair sozinho, desafiar o conselho), insira reações vivas dos conselheiros ou marechais.
-   - Conselheiros podem questionar a decisão, alertar sobre perigos reais (desertores, emboscadas, falta de provisões) e sugerir alternativas (como levar uma escolta ou enviar batedores).
+DIRETRIZ DE FLUXO INFINITO DE CENA (EVENT CHAIN LOOP):
+1. CONTINUIDADE E SELEÇÃO DE OPÇÕES (ex: o jogador digita "1", "2", "3" ou toma uma decisão):
+   - Entenda qual opção o jogador escolheu no histórico recente de mensagens.
+   - Narre a consequência imediata e visceral dessa escolha (ex: marchar com a guarda de 5 homens na floresta, ser surpreendido por desertores, encontrar cinzas de acampamento).
 
-2. AVANÇO DRAMÁTICO E PERGUNTA DE AÇÃO:
-   - NUNCA termine com um encerramento genérico ou passivo.
-   - Avance a história para a próxima cena (descreva a reação do ambiente, o local de chegada ou um evento iminente).
-   - Encerre SEMPRE com um gancho reativo e 2 ou 3 escolhas dramáticas ou pergunta direta para o jogador decidir o próximo passo.
+2. PRÓXIMO PASSO E NOVAS ESCOLHAS DRAMÁTICAS:
+   - NUNCA termine com um encerramento passivo ou "ordem registrada nos ledgers".
+   - Faça a cena evoluir para o PRÓXIMO EVENTO/DESAFIO imediato.
+   - Apresente SEMPRE 2 ou 3 NOVAS ESCOLHAS CONCRETAS numeradas (1, 2, 3) ou pergunta reativa para o jogador responder a seguir.
 
-3. PERGUNTA META SOBRE OPÇÕES:
-   - Se o jogador perguntar "O que posso fazer?" ou "Quais minhas prioridades?", ofereça 3 a 5 opções estratégicas reais baseadas no feudo.
+3. CONVERSA E EVENTOS INFINITOS:
+   - Permita que o jogador explore, tome decisões livres, converse com conselheiros ou continue enfrentando os eventos em um fluxo contínuo e infinito de narrativa.
 
 DIRETRIZES DE SILÊNCIO MECÂNICO:
 - Escreva em tom realista, sombrio e visceral (Crônica de Ferro em Português do Brasil).
 - Mantenha a continuidade narrativa usando o contexto anterior.`,
-          userPrompt: `HISTÓRICO RECENTE DA CENA:\n${narrativeHistory.slice(-4).join("\n")}\n\nLocalização: ${state.character.location.landmark} (${state.character.location.region}).
+          userPrompt: `HISTÓRICO RECENTE DA CENA:\n${narrativeHistory.slice(-6).join("\n")}\n\nLocalização: ${state.character.location.landmark} (${state.character.location.region}).
 Clima atual: ${state.weeklyLedger.weather}.
 Sua ação atual: ${actionDesc}.
 Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
@@ -219,7 +219,13 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       console.error("AI narration error, falling back:", e);
       const p = (actionDesc || "").toLowerCase();
       let fallbackText = `Os conselheiros de ${state.character.location.landmark} registraram vossa ordem nos ledgers da fortaleza. As decisões tomadas ecoam pelas salas de guerra e os batedores cumprem os deveres sob o céu cinzento do inverno.`;
-      if (p.includes("floresta") || p.includes("passear") || p.includes("caminhar") || p.includes("viajar") || p.includes("explorar") || p.includes("bosque") || p.includes("estrada") || p.includes("vila") || p.includes("sair") || p.includes("patrulha")) {
+      if (p === "2" || p.includes("opcao 2") || p.includes("opção 2") || p.includes("escolha 2") || p.includes("2.")) {
+        fallbackText = `Você convoca 5 infantarias armadas da guarnição. Com as espadas embainhadas e escudos de madeira bruta, a patrulha avança sob a geada densa da floresta.\n\nApós meia hora de marcha, a tropa encontra cinzas quentes de uma fogueira clandestina e vestígios de um cervo abatido. Marcas de botas e sangue fresco seguem em direção a uma ravina à esquerda.\n\nComo deseja comandar a tropa?\n1. Enviar 2 guardas para flanquear a ravina com arcos a postos.\n2. Avançar em formação de parede de escudos pelo caminho principal.\n3. Exigir rendição em voz alta aos homens ocultos na ravina.`;
+      } else if (p === "1" || p.includes("opcao 1") || p.includes("opção 1") || p.includes("escolha 1") || p.includes("1.")) {
+        fallbackText = `Você avança sozinho, deixando os portões de ${state.character.location.landmark} para trás. O silêncio dos pinheiros é quebrado apenas pelo ranger da geada sob suas botas.\n\nDe repente, dois homens em trapos de ex-soldados surgem de trás de uma rocha, empunhando machados enferrujados com olhares desesperados.\n\nComo você reage?\n1. Desembainhar a espada e confrontar os desertores.\n2. Oferecer moedas de prata (5 SD) para que prestem juramento de lealdade.\n3. Recuar taticamente em direção aos portões da fortaleza.`;
+      } else if (p === "3" || p.includes("opcao 3") || p.includes("opção 3") || p.includes("escolha 3") || p.includes("3.")) {
+        fallbackText = `Você ordena que os batedores avancem 100 passos na frente. Pouco tempo depois, o eco de um assobio de alerta ressoa entre as árvores. Os batedores retornam informando que avistaram uma patrulha inimiga disfarçada de mercadores.\n\nComo deseja proceder?\n1. Preparar uma emboscada silenciosa nas árvores altas.\n2. Interceptar a caravana e exigir inspeção de carga.\n3. Retornar ao castelo para convocar a cavalaria.`;
+      } else if (p.includes("floresta") || p.includes("passear") || p.includes("caminhar") || p.includes("viajar") || p.includes("explorar") || p.includes("bosque") || p.includes("estrada") || p.includes("vila") || p.includes("sair") || p.includes("patrulha")) {
         fallbackText = `Ao ouvirem vossa intenção de deixar a fortaleza de ${state.character.location.landmark} para caminhar pela floresta gélida, o Marechal Ren coloca a mão no cabo da espada e adverte com tom sério: 'Senhor, a geada cobriu os trilhos e batedores relataram rastros de desertores e lobos esfomeados nas árvores. É imprudência marchar sem escolta enquanto as fronteiras estão tensas.'\n\nO vento sopra forte na borda dos bosques. Como deseja proceder?\n1. Marchar sozinho aceitando o risco de emboscada.\n2. Levar uma guarda pessoal de 5 infantarias armadas.\n3. Ordenar que batedores limpem o caminho antes de cruzar os portões.`;
       } else if (p.includes("fazer") || p.includes("opções") || p.includes("opcoes") || p.includes("posso") || p.includes("onde estou") || p.includes("ajuda") || p.includes("comandos") || p.includes("instruções") || p.includes("prioridade") || p.includes("urgencia") || p.includes("urgência") || p.includes("qual") || p.includes("devo") || p.includes("proxima")) {
         fallbackText = `Como soberano em ${state.character.location.landmark}, vossos ledgers heráldicos e conselheiros aguardam ordens imediatas. Vossas opções estratégicas são:\n\n1. Recrutar infantaria ou tropas feudais para reforçar a guarnição (Custo: 3 SD por soldado).\n2. Construir fortificações, paliçadas ou oficinas de forja no feudo.\n3. Coletar tributos da população ou negociar caravanas de mantimentos.\n4. Enviar patrulhas e batedores para vigiar as estradas e fronteiras da região.\n5. Inserir qualquer ação diplomática, ordem customizada ou pergunta livre no terminal.`;
