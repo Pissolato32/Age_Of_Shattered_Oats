@@ -219,7 +219,12 @@ DIRETRIZES DE SILÊNCIO MECÂNICO:
       }
     } catch (e) {
       console.error("AI narration error, falling back:", e);
-      const fallback = `[MESTRE] ${mechanicalOutcome}`;
+      const p = (actionDesc || "").toLowerCase();
+      let fallbackText = `Os conselheiros de ${state.character.location.landmark} registraram vossa ordem nos ledgers da fortaleza. As decisões tomadas ecoam pelas salas de guerra e os batedores cumprem os deveres sob o céu cinzento do inverno.`;
+      if (p.includes("fazer") || p.includes("opções") || p.includes("opcoes") || p.includes("posso") || p.includes("onde estou") || p.includes("ajuda") || p.includes("comandos") || p.includes("instruções") || p.includes("prioridade") || p.includes("urgencia") || p.includes("urgência") || p.includes("qual") || p.includes("devo") || p.includes("proxima")) {
+        fallbackText = `Como soberano em ${state.character.location.landmark}, vossos ledgers heráldicos e conselheiros aguardam ordens imediatas. Vossas opções estratégicas são:\n\n1. Recrutar infantaria ou tropas feudais para reforçar a guarnição (Custo: 3 SD por soldado).\n2. Construir fortificações, paliçadas ou oficinas de forja no feudo.\n3. Coletar tributos da população ou negociar caravanas de mantimentos.\n4. Enviar patrulhas e batedores para vigiar as estradas e fronteiras da região.\n5. Inserir qualquer ação diplomática, ordem customizada ou pergunta livre no terminal.`;
+      }
+      const fallback = `[MESTRE] ${fallbackText}`;
       setCurrentNarrative(fallback);
       setNarrativeHistory(prev => {
         const updated = [...prev, fallback];
