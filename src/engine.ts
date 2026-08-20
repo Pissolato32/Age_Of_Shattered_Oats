@@ -8,6 +8,36 @@ import { VisibilityService } from "./domain/visibility/VisibilityService";
 import { MarketService, MarketPriceResult } from "./domain/commerce/services/MarketService";
 import { CombatStatsCalculator, CombatStatsResult } from "./domain/items/CombatStatsCalculator";
 import { SuccessionService, Relative } from "./domain/kingdom/services/SuccessionService";
+import { ProductionService, HoldingEconomy, EconomyTickResult } from "./domain/kingdom/services/ProductionService";
+import { FoodService } from "./domain/kingdom/services/FoodService";
+import { LaborService } from "./domain/kingdom/services/LaborService";
+import { TreasuryService, ExpenseOutcome } from "./domain/kingdom/services/TreasuryService";
+
+/**
+ * Calculates weekly economic production (SD & FSU) for a holding using canonical ProductionService rules.
+ */
+export function calculateWeeklyProduction(holding: HoldingEconomy, isWinter: boolean): EconomyTickResult {
+  return ProductionService.calculateWeeklyProduction(holding, isWinter);
+}
+
+/**
+ * Calculates food consumption requirements for civilian population and military forces using FoodService rules.
+ */
+export function calculateFoodConsumption(population: number, militarySize: number): { civilianFsu: number; militaryFsu: number; totalFsu: number } {
+  const civilianFsu = FoodService.calculateCivilianConsumption(population);
+  const militaryFsu = FoodService.calculateMilitaryConsumption(militarySize);
+  return { civilianFsu, militaryFsu, totalFsu: civilianFsu + militaryFsu };
+}
+
+/**
+ * Calculates total labor pool and available labor capacity using LaborService rules.
+ */
+export function calculateLaborCapacity(population: number, patches: { laborAllocated?: number }[]): { totalPool: number; allocated: number; available: number } {
+  const totalPool = LaborService.calculateLaborPool(population);
+  const allocated = LaborService.calculateAllocatedLabor(patches);
+  const available = LaborService.calculateAvailableLabor(population, patches);
+  return { totalPool, allocated, available };
+}
 
 /**
  * Calculates derived character Armor Class (AC) and Initiative bonus using canonical CombatStatsCalculator rules.
@@ -864,13 +894,15 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   let patchIron = 0;
   let patchStone = 0;
 
+  const isWinter = w.season === "Inverno";
   s.holdings.resourcePatches.forEach((p) => {
     const yieldW = p.yieldPerDay * 7 * w.foragingMod;
     const incomeW = p.incomePerDay * 7;
     patchIncome += incomeW;
 
-    if (p.type === "Grain Field") patchFood += yieldW;
-    else if (p.type === "Timber Camp") patchTimber += yieldW;
+    if (p.type === "Grain Field") {
+      patchFood += isWinter ? yieldW * 0.5 : yieldW;
+    } else if (p.type === "Timber Camp") patchTimber += yieldW;
     else if (p.type === "Iron Mine") patchIron += yieldW;
     else if (p.type === "Stone Quarry") patchStone += yieldW;
   });
@@ -891,25 +923,32 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
 
   // 3. Consumption (PHASE 2)
   let totalWages = 0;
-  let totalFoodConsumption = 0;
+  let totalMilitaryUnitsSize = 0;
 
   s.army.units.forEach((u) => {
     if (u.morale <= 0) return;
     if (u.type !== "Skeletons" && u.type !== "Skeleton Archers" && !isNecro) {
       totalWages += u.size * 0.1;
-      totalFoodConsumption += u.size * 0.01;
+      totalMilitaryUnitsSize += u.size;
     }
   });
 
   if (!isNecro) {
     totalWages += s.holdings.garrison * 0.05;
-    totalFoodConsumption += s.holdings.garrison * 0.01;
+    totalMilitaryUnitsSize += s.holdings.garrison;
 
-    if (s.weeklyLedger.food >= totalFoodConsumption) {
-      s.weeklyLedger.food -= totalFoodConsumption;
+    // Use FoodService for military food consumption calculation
+    const totalFoodConsumption = FoodService.calculateMilitaryConsumption(totalMilitaryUnitsSize);
+
+    const foodOutcome = FoodService.applyFoodConsumption(
+      { treasuryFsu: s.weeklyLedger.food, famineTicks: s.weeklyLedger.famineTicks },
+      totalFoodConsumption
+    );
+
+    if (!foodOutcome.famineStarted) {
+      s.weeklyLedger.food = foodOutcome.consumed;
       turnResult.foodChanges -= totalFoodConsumption;
     } else {
-      const diff = totalFoodConsumption - s.weeklyLedger.food;
       s.weeklyLedger.food = 0;
       turnResult.militaryChanges.moralePenalty += 1; // Fome gera penalidade
       s.army.units.forEach(u => {
@@ -921,10 +960,16 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
       });
     }
 
-    if (s.weeklyLedger.silverdew >= totalWages) {
-      s.weeklyLedger.silverdew -= totalWages;
+    const treasuryOutcome = TreasuryService.deductExpenses(
+      { treasurySd: s.weeklyLedger.silverdew },
+      totalWages
+    );
+
+    if (!treasuryOutcome.defaulted) {
+      s.weeklyLedger.silverdew = treasuryOutcome.expensesDeducted; // remaining SD
       turnResult.militaryChanges.wagesPaid = totalWages;
     } else {
+      s.weeklyLedger.silverdew = 0;
       turnResult.militaryChanges.moralePenalty += 2;
       s.army.units.forEach(u => u.morale = Math.max(1, u.morale - 2));
     }
