@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CampaignState, ArmyUnit } from "../types";
-import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction } from "../engine";
+import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction, getVisibleWorldSecrets } from "../engine";
 import { Shield, Sparkles, BookOpen, Clock, Compass, Coins, Users, Hammer, Flame, Copy, Save, FileText, ChevronRight } from "lucide-react";
 import { LedgerViewer } from "./LedgerViewer";
 import { CodexSearchModal } from "./CodexSearchModal";
@@ -2414,7 +2414,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
                 <div className="space-y-2">
                   <span className="text-[9px] text-amber-500 font-bold block uppercase">// ESCRITÓRIO DE CONSPIRAÇÕES & SEGREDOS</span>
                   <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                    {state.worldSecrets?.map((sec) => (
+                    {getVisibleWorldSecrets(state).map((sec) => (
                       <div key={sec.id} className="p-2 bg-[#121215] border border-neutral-900 rounded space-y-2">
                         <div className="flex justify-between items-center border-b border-neutral-900 pb-1">
                           <span className="font-bold text-white text-[10px]">{sec.title}</span>

@@ -368,6 +368,8 @@ export interface CampaignState {
     compromisedChance?: number;
     corrupted?: boolean;
     obsoleteInWeeks?: number;
+    originLocation?: string;
+    originTurn?: number;
   }>;
   advisors?: {
     counselorName: string;

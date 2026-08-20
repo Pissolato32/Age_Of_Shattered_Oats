@@ -4,6 +4,60 @@ import { globalRNG } from "./core/RandomService";
 import { globalEventStore } from "./core/EventStore";
 import { Relationship } from "./domain/relationship/Relationship";
 import { CommanderAIService, CombatContext, CommanderProfile, CombatTactic } from "./domain/npc_ai/CommanderAIService";
+import { VisibilityService } from "./domain/visibility/VisibilityService";
+
+/**
+ * Calculates absolute week-tick from CampaignState currentDate (base year 342).
+ */
+export function getAbsoluteCampaignTurn(year: number, week?: number): number {
+  const baseYear = 342;
+  const safeWeek = week !== undefined && week !== null ? Math.max(1, week) : 1;
+  return Math.max(1, (year - baseYear) * 52 + safeWeek);
+}
+
+/**
+ * Normalizes landmark or region names to standard VisibilityService hubs ('valenfort' | 'blackmoor' | 'harvel' | 'capital').
+ */
+export function normalizeLocationToHub(locationName?: string): string {
+  if (!locationName) return "valenfort";
+  const loc = locationName.toLowerCase();
+  if (loc.includes("valenfort") || loc.includes("stormcrest")) return "valenfort";
+  if (loc.includes("blackmoor") || loc.includes("bogthrone")) return "blackmoor";
+  if (loc.includes("harvel") || loc.includes("ironridge") || loc.includes("south")) return "harvel";
+  if (loc.includes("capital") || loc.includes("royal") || loc.includes("central")) return "capital";
+  return loc;
+}
+
+/**
+ * Asserts whether a campaign event or rumor at eventLocation is visible to an observer.
+ */
+export function isEventVisibleToObserver(
+  observerLocation: string,
+  eventLocation: string,
+  currentTurn: number,
+  eventTurn: number
+): boolean {
+  const visService = new VisibilityService();
+  const normObserver = normalizeLocationToHub(observerLocation);
+  const normEvent = normalizeLocationToHub(eventLocation);
+  return visService.canObserverSeeEvent(normObserver, normEvent, currentTurn, eventTurn);
+}
+
+/**
+ * Returns worldSecrets filtered by fog-of-war spatial visibility rules for the current campaign state.
+ */
+export function getVisibleWorldSecrets(state: CampaignState): Array<any> {
+  if (!state.worldSecrets) return [];
+  const currentTurn = getAbsoluteCampaignTurn(state.worldLedger.currentDate.year, state.worldLedger.currentDate.week);
+  const playerLoc = state.character.location.currentLandmark || state.character.location.region || "Valenfort Citadel";
+
+  return state.worldSecrets.filter(sec => {
+    // If secret is already revealed or has no origin location, it is immediately visible
+    if (sec.revealed || !sec.originLocation) return true;
+    const eventTurn = sec.originTurn !== undefined ? sec.originTurn : 1;
+    return isEventVisibleToObserver(playerLoc, sec.originLocation, currentTurn, eventTurn);
+  });
+}
 
 /**
  * Adjusts a noble house's opinion score using canonical Relationship domain rules (-3..+3 bounds).
@@ -345,7 +399,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         difficultyClass: 18,
         criticality: 'Critical',
         compromisedChance: 0.25,
-        obsoleteInWeeks: 12
+        obsoleteInWeeks: 12,
+        originLocation: 'Harvel Pass',
+        originTurn: 1
       },
       {
         id: 'secret_2',
@@ -358,7 +414,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         difficultyClass: 14,
         criticality: 'High',
         compromisedChance: 0.15,
-        obsoleteInWeeks: 8
+        obsoleteInWeeks: 8,
+        originLocation: 'Blackmoor Keep',
+        originTurn: 1
       },
       {
         id: 'secret_3',
@@ -371,7 +429,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         difficultyClass: 10,
         criticality: 'Medium',
         compromisedChance: 0.08,
-        obsoleteInWeeks: 6
+        obsoleteInWeeks: 6,
+        originLocation: 'Valenfort Citadel',
+        originTurn: 1
       }
     ],
     discoveredArtifacts: [
