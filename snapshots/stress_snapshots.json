@@ -1,0 +1,82 @@
+[
+  {
+    "tick": 1000,
+    "hash": "825274dbdb3ea19a2684908df5bbad2c330c507d25495743c9fbc73d7f288b19",
+    "silverdew": 84800,
+    "food": 13010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.168Z"
+  },
+  {
+    "tick": 2000,
+    "hash": "e25722c2420b5d6ed8befc304d8cf4f856e073927a0b141574f2973a9919540f",
+    "silverdew": 169300,
+    "food": 26010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.272Z"
+  },
+  {
+    "tick": 3000,
+    "hash": "1effd34a0fc4b685b796cb32654a167e8e0259e688f590923f373e2c841f651b",
+    "silverdew": 253800,
+    "food": 39010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.373Z"
+  },
+  {
+    "tick": 4000,
+    "hash": "e70d7b429bf154138cf3e247624d61b533c8916d872a9c823840f460e5629fa5",
+    "silverdew": 338300,
+    "food": 52010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.473Z"
+  },
+  {
+    "tick": 5000,
+    "hash": "78b41474738e092f5bafa149efee5c8e97ff696fe03432e886c4fcc948eabf5b",
+    "silverdew": 422800,
+    "food": 65010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.574Z"
+  },
+  {
+    "tick": 6000,
+    "hash": "36130722ced19fe4d9d03db5e2ede0d13eb3d461300c48a187026884cff61d40",
+    "silverdew": 507300,
+    "food": 78010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.677Z"
+  },
+  {
+    "tick": 7000,
+    "hash": "d3a7a2dd9655e4ecbc41f15357df4aafcde8e5ae60255425a77732b1b08f3a9d",
+    "silverdew": 591800,
+    "food": 91010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.777Z"
+  },
+  {
+    "tick": 8000,
+    "hash": "9d65bd84faaa5a268fe86b079bd64bc7c0adbd85c0c1237be2f70a63ded80284",
+    "silverdew": 676300,
+    "food": 104010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.878Z"
+  },
+  {
+    "tick": 9000,
+    "hash": "d9f25e4afd0cab19e1cf16ac3921f1ad60a9207eeb9d781c3961e5bfa4df8c60",
+    "silverdew": 760800,
+    "food": 117010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:07.978Z"
+  },
+  {
+    "tick": 10000,
+    "hash": "33b803a5f20c58b149c8790a97b809eed07e5c79034afcf3e3aea3f2c3fba19f",
+    "silverdew": 845300,
+    "food": 130010,
+    "armySize": 60,
+    "timestamp": "2026-08-20T00:21:08.079Z"
+  }
+]
