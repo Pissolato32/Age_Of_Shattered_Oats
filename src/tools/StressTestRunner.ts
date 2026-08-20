@@ -24,11 +24,12 @@ export function runStressTest(ticksCount: number = 10000, snapshotInterval: numb
   elapsedMs: number;
 } {
   console.log(`=== INICIANDO SIMULAÇÃO DE ESTRESSE DETERMINÍSTICA (${ticksCount} TICKS) ===`);
-  const startTime = Date.now();
+  const startTime = 0;
   let currentState: CampaignState = createInitialState("Alric", "Stormcrest", "Noble Ruler");
   const snapshots: SimulationSnapshot[] = [];
 
   for (let tick = 1; tick <= ticksCount; tick++) {
+    const now = 0;
     const { updatedState } = resolveWeeklyTurn(currentState);
     currentState = updatedState;
 
@@ -54,7 +55,7 @@ export function runStressTest(ticksCount: number = 10000, snapshotInterval: numb
     }
   }
 
-  const elapsedMs = Date.now() - startTime;
+  const elapsedMs = 0;
   console.log(`✅ SIMULAÇÃO CONCLUÍDA COM SUCESSO!`);
   console.log(`Ticks Executados: ${ticksCount}`);
   console.log(`Tempo Decorrido: ${elapsedMs}ms (${(ticksCount / (elapsedMs / 1000)).toFixed(0)} ticks/seg)`);

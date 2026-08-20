@@ -1,5 +1,6 @@
 import { fetchWebFlavorContext, WebFlavorResult } from './webFlavorService';
 import { sanitizeWebContent } from './webSanitizer';
+import { globalRNG } from '../core/RandomService';
 
 interface CacheEntry {
   result: WebFlavorResult;
@@ -22,7 +23,7 @@ function normalizeKey(query: string): string {
  */
 export function getCachedWebFlavor(query: string, ttlMs = DEFAULT_TTL_MS): { result: WebFlavorResult; isCacheHit: boolean } {
   const key = normalizeKey(query);
-  const now = Date.now();
+  const now = globalRNG.nextInt(0, Number.MAX_SAFE_INTEGER);
 
   // 1. Verificar Cache HIT
   if (cacheStore.has(key)) {

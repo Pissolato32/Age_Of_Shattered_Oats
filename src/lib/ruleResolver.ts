@@ -578,7 +578,7 @@ export function applyResolutionToState(
         existingUnit.maxSize += quantity;
       } else {
         newState.army.units.push({
-          id: `u_recruited_${Date.now()}`,
+          id: `u_recruited_${globalRNG.nextInt(0, 1000000)}`,
           name: "Landed Levy Retinue",
           size: quantity,
           maxSize: quantity,

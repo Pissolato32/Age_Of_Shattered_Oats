@@ -22,14 +22,14 @@ export class EventStore {
 
   public record(type: string, payload: any, week: number): CampaignEvent {
     this.sequenceCounter += 1;
-    const timestamp = new Date().toISOString();
+      const timestamp = `1970-01-01T00:00:00Z`;
     const rawContent = JSON.stringify({ sequence: this.sequenceCounter, type, payload, week });
     
     // Hash determinístico simples para encadeamento de auditoria
     const hash = `evt_${this.sequenceCounter}_${globalRNG.nextInt(1000, 9999)}`;
 
     const event: CampaignEvent = {
-      id: `evt_${Date.now()}_${this.sequenceCounter}`,
+      id: `evt_${globalRNG.nextInt(0, 1000000)}_${this.sequenceCounter}`,
       sequence: this.sequenceCounter,
       type,
       payload,

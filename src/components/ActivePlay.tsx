@@ -294,7 +294,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       s.character.controlUsed = (s.character.controlUsed || 0) + 10;
       // Add skeletons to army
       s.army.units.push({
-        id: `skeleton_${Date.now()}`,
+        id: `skeleton_${globalRNG.nextInt(0, 1000000)}`,
         name: `Infanteria Morta-Viva ${s.army.units.length + 1}`,
         size: 10,
         maxSize: 10,
@@ -313,7 +313,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
         levyUnit.size = Math.min(levyUnit.maxSize, levyUnit.size + 15);
       } else {
         s.army.units.push({
-          id: `levy_${Date.now()}`,
+          id: `levy_${globalRNG.nextInt(0, 1000000)}`,
           name: "Landed Levy",
           size: 15,
           maxSize: 60,
@@ -414,12 +414,12 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
 
     // AI randomly chooses action
     const actions: Array<'Keep Attacking' | 'Defend' | 'Charge'> = ['Keep Attacking', 'Defend', 'Charge'];
-    const aiAction = actions[Math.floor(Math.random() * 3)];
+    const aiAction = globalRNG.pick(actions);
 
     const result = simulateCombatRound(p, e, action, aiAction);
     
     // 25% chance of enemy commander blowing their signature horn: O Chifre de Grifo de Grey
-    const enemyBlowsHorn = Math.random() < 0.25;
+    const enemyBlowsHorn = globalRNG.next() < 0.25;
     if (enemyBlowsHorn && e.size > 0 && p.size > 0) {
       e.morale = Math.min(10, e.morale + 1);
       p.size = Math.max(0, p.size - 2);
@@ -579,7 +579,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     let mechanicalOutcome = "";
     if (type === 'sage') {
       s.worldLedger.nobleHouses.forEach(h => {
-        if (Math.random() < 0.5) h.opinion = Math.min(3, h.opinion + 1);
+        if (globalRNG.next() < 0.5) h.opinion = Math.min(3, h.opinion + 1);
       });
       s.character.reputation += 1;
       mechanicalOutcome = "Ritual de Defumação com Sálvia: A fumaça herborista purifica as desconfianças do salão. +1 Reputação mundial, e a opinião de algumas Grandes Casas aumentou em +1.";
@@ -624,7 +624,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     const label = type === 'Hunting' ? 'Caça' : type === 'Battle' ? 'Batalha' : type === 'War' ? 'Guerra' : type === 'Clan' ? 'Clã' : type === 'Oath' ? 'Juramento' : 'Lamento';
 
     const newHorn = {
-      id: `horn_${Date.now()}`,
+      id: `horn_${globalRNG.nextInt(0, 1000000)}`,
       name: `Berrante de ${label}`,
       type,
       sound,
@@ -703,12 +703,12 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     targetHouse.opinion = Math.min(3, targetHouse.opinion + 2);
     
     const names = ["Lady Elysia", "Lady Beatrix", "Lady Sibylla", "Lady Rowan", "Lady Gwendolyn", "Lady Yvaine", "Lady Morgaine"];
-    const chosenSpouseName = names[Math.floor(Math.random() * names.length)];
+    const chosenSpouseName = globalRNG.pick(names);
     
     s.family.spouse = {
       name: `${chosenSpouseName} da Casa ${targetHouse.name.replace("House ", "")}`,
       house: targetHouse.name,
-      age: 18 + Math.floor(Math.random() * 8),
+      age: 18 + globalRNG.nextInt(0, 7),
       affection: 5
     };
 
@@ -731,7 +731,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
 
     const s = { ...state };
     const successChance = 0.35 + (s.family.spouse.affection * 0.04);
-    const rolls = Math.random();
+    const rolls = globalRNG.next();
 
     let mechanicalOutcome = "";
     if (rolls < successChance) {
@@ -897,7 +897,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     }
 
     // Pick a random unrevealed region
-    const targetReg = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    const targetReg = globalRNG.pick(unrevealed);
     const updatedRevealed = [...currentRevealed, targetReg];
 
     s.weeklyLedger.silverdew -= 30;
@@ -932,7 +932,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
 
     // Roll d20 vs DC 11 (standard tactical scouting)
     const dc = 11;
-    const d20 = Math.floor(Math.random() * 20) + 1;
+    const d20 = globalRNG.nextInt(1, 20);
     const rollTotal = d20 + spyMasterBonus;
 
     if (rollTotal >= dc) {
@@ -948,7 +948,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     } else {
       // EMBUSH / COLLATERAL DAMAGE!
       setCombatEnemyScouted(false);
-      const lostSoldiers = Math.floor(Math.random() * 6) + 5;
+      const lostSoldiers = globalRNG.nextInt(5, 10);
       if (s.army.units.length > 0) {
         s.army.units[0].size = Math.max(2, s.army.units[0].size - lostSoldiers);
         s.army.units[0].morale = Math.max(1, s.army.units[0].morale - 1);
@@ -990,7 +990,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     s.weeklyLedger.silverdew -= baseCost;
 
     // 2. Roll a d20
-    const d20 = Math.floor(Math.random() * 20) + 1;
+    const d20 = globalRNG.nextInt(1, 20);
     const dc = targetSec.difficultyClass || 14;
     const rollTotal = d20 + spyMasterBonus;
 
@@ -1001,7 +1001,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     // 3. Outcomes
     if (rollTotal >= dc + 5) {
       // CRITICAL SUCCESS
-      const progressGain = Math.min(100 - targetSec.investigationProgress, Math.floor(Math.random() * 21) + 45); // +45% to +65%
+      const progressGain = Math.min(100 - targetSec.investigationProgress, globalRNG.nextInt(45, 65)); // +45% to +65%
       targetSec.investigationProgress += progressGain;
       if (targetSec.investigationProgress >= 100) {
         targetSec.revealed = true;
@@ -1011,7 +1011,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       outcomeLog = `Seu Mestre dos Sussurros (${spyMasterName}) orquestrou um golpe brilhante nas sombras. Progresso aumentado em +${progressGain}%. Seus batedores permanecem indetectados e recolheram relatórios intactos.`;
     } else if (rollTotal >= dc) {
       // SUCCESS
-      const progressGain = Math.min(100 - targetSec.investigationProgress, Math.floor(Math.random() * 16) + 25); // +25% to +40%
+      const progressGain = Math.min(100 - targetSec.investigationProgress, globalRNG.nextInt(25, 40)); // +25% to +40%
       targetSec.investigationProgress += progressGain;
       if (targetSec.investigationProgress >= 100) {
         targetSec.revealed = true;
@@ -1021,17 +1021,17 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       outcomeLog = `Informações foram adquiridas com êxito. Progresso aumentado em +${progressGain}%.`;
     } else if (rollTotal >= dc - 4) {
       // PARTIAL FAILURE
-      const progressGain = Math.floor(Math.random() * 10) + 5; // +5% to +15%
+      const progressGain = globalRNG.nextInt(5, 15); // +5% to +15%
       targetSec.investigationProgress = Math.min(100, targetSec.investigationProgress + progressGain);
       if (targetSec.investigationProgress >= 100) {
         targetSec.revealed = true;
         targetSec.investigationProgress = 100;
       }
       
-      const compromiseRoll = Math.random();
+      const compromiseRoll = globalRNG.next();
       const threshold = targetSec.compromisedChance || 0.15;
       if (compromiseRoll < threshold) {
-        const randomHouse = s.worldLedger.nobleHouses[Math.floor(Math.random() * s.worldLedger.nobleHouses.length)];
+        const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses);
         if (randomHouse) {
           randomHouse.opinion = Math.max(-3, randomHouse.opinion - 1);
           outcomeLog = `SUSSURROS ESCASSOS (Espiões Expostos): Seus batedores conseguiram extrair poucos sussurros (+${progressGain}%), mas deixaram rastros na região. A Casa ${randomHouse.name} interceptou mensagens cifradas e sua opinião com você caiu para ${randomHouse.opinion}.`;
@@ -1045,9 +1045,9 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     } else {
       // CRITICAL FAILURE
       outcomeTitle = `FALHA CRÍTICA (D20: ${d20} + ${spyMasterBonus} vs DC ${dc})`;
-      const rollConsequence = Math.floor(Math.random() * 3);
+      const rollConsequence = globalRNG.nextInt(0, 2);
       if (rollConsequence === 0) {
-        const randomHouse = s.worldLedger.nobleHouses[Math.floor(Math.random() * s.worldLedger.nobleHouses.length)];
+        const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses);
         if (randomHouse) {
           randomHouse.opinion = Math.max(-3, randomHouse.opinion - 2);
         }
@@ -1125,13 +1125,13 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     };
     const spyMasterBonus = spyMasterBonuses[spyMasterName] || 2;
 
-    const d20 = Math.floor(Math.random() * 20) + 1;
+    const d20 = globalRNG.nextInt(1, 20);
     const dc = 15;
     const rollTotal = d20 + spyMasterBonus;
 
     let logMsg = "";
     if (rollTotal >= dc) {
-      const p = Math.min(100 - s.falseLineage.forgeryProgress, Math.floor(Math.random() * 11) + 20); // +20% to +30%
+      const p = Math.min(100 - s.falseLineage.forgeryProgress, globalRNG.nextInt(20, 30)); // +20% to +30%
       s.falseLineage.forgeryProgress += p;
       if (s.falseLineage.forgeryProgress >= 100) {
         s.falseLineage.forgeryProgress = 100;
@@ -1148,9 +1148,9 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       s.falseLineage.forgeryProgress = Math.max(0, s.falseLineage.forgeryProgress - 10);
       s.falseLineage.exposureChance = Math.min(0.6, s.falseLineage.exposureChance + 0.12);
       
-      const compromiseRoll = Math.random();
+      const compromiseRoll = globalRNG.next();
       if (compromiseRoll < 0.3) {
-        const h = s.worldLedger.nobleHouses[Math.floor(Math.random() * s.worldLedger.nobleHouses.length)];
+        const h = globalRNG.pick(s.worldLedger.nobleHouses);
         if (h) {
           h.opinion = Math.max(-3, h.opinion - 1);
           logMsg = `FALHA CRÍTICA NA CONSPIRAÇÃO (D20: ${d20} + ${spyMasterBonus} vs DC ${dc}): Seus agentes foram vistos nos arquivos da Catedral Real! Progresso caiu em -10% e a Casa ${h.name} suspeita do seu interesse heráldico (Opinião caiu para ${h.opinion}).`;

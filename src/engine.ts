@@ -1,8 +1,12 @@
 import { CampaignState, Character, WeeklyLedger, ArmyUnit, Holdings, ResourcePatch, NobleHouse, TurnResult } from "./types";
 import { INITIAL_HOUSES, REGIONS, MONTHS } from "./data";
+import { globalRNG } from "./core/RandomService";
+import { globalEventStore } from "./core/EventStore";
 
 // Generate a blank initial campaign state
 export function createInitialState(archetype: any, region: string): CampaignState {
+  // Reset RNG to deterministic seed for each new campaign
+  globalRNG.setSeed(424242);
   const isNecro = archetype === "Necromancer";
   
   return {
@@ -67,7 +71,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
     army: {
       units: [
         isNecro 
-          ? { id: "u_necro_1", name: "Skeleton Guards", size: 10, maxSize: 10, tier: 1, ac: 3, weapon: "Fists", mount: "None", morale: 6, type: "Skeletons" }
+          ? { id: `levy_${globalRNG.nextInt(0, 1000000)}`, name: "Skeleton Guards", size: 10, maxSize: 10, tier: 1, ac: 3, weapon: "Fists", mount: "None", morale: 6, type: "Skeletons" }
           : { id: "u_1", name: "Landed Levy", size: 60, maxSize: 60, tier: 1, ac: 3, weapon: "Spears", mount: "None", morale: 4, type: "Levy" }
       ],
       garrisonSize: isNecro ? 0 : 40
@@ -152,7 +156,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         requirements: ['Obter rotas de comércio com holdings fluviais', 'Eleição pelo Conselho do Rio', 'Firmar cartas de fealdade com lordes mercantes']
       },
       {
-        id: 'northwind',
+        id: `horn_${globalRNG.nextInt(0, 1000000)}`,
         name: 'Crown of the North Wind (Gelo)',
         region: 'Northern Snowlands',
         unlocked: false,
@@ -161,7 +165,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         requirements: ['Sobreviver ao frio profundo de uma Nevasca no Norte', 'Abater uma fera ou urso da neve']
       },
       {
-        id: 'greendrake',
+        id: `skeleton_${globalRNG.nextInt(0, 1000000)}`,
         name: 'Crown of the Green Drake (Florestas)',
         region: 'Eastern Forests',
         unlocked: false,
@@ -258,9 +262,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
       }
     ],
     advisors: {
-      counselorName: ["Mara", "Gwen", "Elysia", "Vanya", "Lorea", "Sybilla", "Alys", "Isolde"][Math.floor(Math.random() * 8)],
-      stewardName: ["Barth", "Lorn", "Garrick", "Tymon", "Brogan", "Cormac", "Harlan", "Theron"][Math.floor(Math.random() * 8)],
-      spyMasterName: ["Ren", "Sylas", "Kaelen", "Lyra", "Fiona", "Valia", "Morwen", "Rook"][Math.floor(Math.random() * 8)]
+      counselorName: globalRNG.pick(["Mara", "Gwen", "Elysia", "Vanya", "Lorea", "Sybilla", "Alys", "Isolde"]),
+      stewardName: globalRNG.pick(["Barth", "Lorn", "Garrick", "Tymon", "Brogan", "Cormac", "Harlan", "Theron"]),
+      spyMasterName: globalRNG.pick(["Ren", "Sylas", "Kaelen", "Lyra", "Fiona", "Valia", "Morwen", "Rook"])
     },
     revealedRegions: [region || "Central Plains"],
     tribalRelations: [
@@ -388,7 +392,7 @@ export function rollWeather(region: string, season: string, isWarmYear: boolean)
     return { weather: "Inverno Suave (Ano Quente - Sem Neve)", travelMod: 1.0, foragingMod: 1.0 };
   }
 
-  const roll = Math.floor(Math.random() * 6) + 1;
+  const roll = globalRNG.nextInt(1, 6);
   const regLower = region.toLowerCase();
 
   if (regLower.includes("snow") || regLower.includes("north")) {
@@ -482,12 +486,12 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     s.family.pregnancyWeekRemaining -= 1;
     if (s.family.pregnancyWeekRemaining <= 0) {
       s.family.pregnancyWeekRemaining = undefined;
-      const isBoy = Math.random() < 0.5;
+      const isBoy = globalRNG.next() < 0.5;
       const boys = ["Aethelwulf", "Robert", "Cedric", "Gawain", "Eldred", "Boran", "Valerius", "Karr", "Edmund"];
       const girls = ["Yvaine", "Morgaine", "Aveline", "Elysia", "Sallie", "Rowena", "Gwen", "Sybilla", "Beatrix"];
       const childName = isBoy 
-        ? boys[Math.floor(Math.random() * boys.length)]
-        : girls[Math.floor(Math.random() * girls.length)];
+        ? globalRNG.pick(boys)
+        : globalRNG.pick(girls);
       const hasHeir = s.family.children.some(c => c.isHeir && c.alive);
       const newChild = {
         name: childName,
@@ -604,7 +608,7 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
         turnResult.eventLog.push(`SUSSURROS DA LINHAGEM: Foram pagos -${s.falseLineage.weeklyUpkeep} SD em propinas e silêncio para manter a mentira de sua linhagem real ativa.`);
         
         // Random chance of exposure per week (based on exposureChance)
-        if (Math.random() < s.falseLineage.exposureChance) {
+        if (globalRNG.next() < s.falseLineage.exposureChance) {
           s.falseLineage.isExposed = true;
           s.worldLedger.nobleHouses.forEach(h => h.opinion = -3);
           s.character.reputation = 0;
@@ -636,9 +640,9 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
       if (!sec.revealed && sec.obsoleteInWeeks !== undefined) {
         sec.obsoleteInWeeks -= 1;
         if (sec.obsoleteInWeeks <= 0) {
-          sec.obsoleteInWeeks = Math.floor(Math.random() * 6) + 6; // random weeks 6 to 11
+          sec.obsoleteInWeeks = globalRNG.nextInt(6, 11);
           sec.investigationProgress = 0;
-          sec.difficultyClass = (sec.difficultyClass || 14) + (Math.random() > 0.5 ? 1 : -1);
+          sec.difficultyClass = (sec.difficultyClass || 14) + (globalRNG.next() > 0.5 ? 1 : -1);
           sec.difficultyClass = Math.max(10, Math.min(22, sec.difficultyClass));
           
           if (sec.id === 'secret_1') {
@@ -662,19 +666,19 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
 
   // 4. Random events
   s.worldLedger.nobleHouses.forEach((house) => {
-    const drift = Math.floor(Math.random() * 6) + 1;
+    const drift = globalRNG.nextInt(1, 6);
     if (drift === 1) house.opinion = Math.max(-3, house.opinion - 1);
     else if (drift === 6) house.opinion = Math.min(3, house.opinion + 1);
   });
 
-  if (Math.random() < 0.02) {
-    const eventRoll = Math.floor(Math.random() * 3);
+  if (globalRNG.next() < 0.02) {
+    const eventRoll = globalRNG.nextInt(0, 2);
     if (eventRoll === 0 && !s.worldLedger.rareEventStatus.warmYear.active) {
       s.worldLedger.rareEventStatus.warmYear.active = true;
       turnResult.eventLog.push("RUMOR: Ano Quente iminente.");
     } else if (eventRoll === 1 && !s.worldLedger.rareEventStatus.youngPretender.active) {
       s.worldLedger.rareEventStatus.youngPretender.active = true;
-      s.worldLedger.rareEventStatus.youngPretender.region = REGIONS[Math.floor(Math.random() * REGIONS.length)];
+      s.worldLedger.rareEventStatus.youngPretender.region = globalRNG.pick(REGIONS);
       turnResult.eventLog.push("RUMOR: Jovem pretendente ao trono surgiu.");
     }
   }
@@ -788,7 +792,7 @@ export function importStateFromText(textBlock: string): CampaignState {
         const sizeVal = (u.size !== undefined && u.size !== null) ? u.size : 30;
         const maxSizeVal = (u.maxSize !== undefined && u.maxSize !== null) ? u.maxSize : sizeVal;
         return {
-          id: u.id || `unit_${idx}_${Date.now()}`,
+          id: `u_recruited_${globalRNG.nextInt(0, 1000000)}`,
           name: u.name || "Guarda Desconhecida",
           size: sizeVal,
           maxSize: maxSizeVal,
@@ -838,6 +842,12 @@ export function importStateFromText(textBlock: string): CampaignState {
     const narrativeHistory = parsedState.narrativeHistory || defaultState.narrativeHistory;
 
     const mergedState: CampaignState = {
+      id: `evt_${globalRNG.nextInt(0, 1000000)}`,
+      sequence: 0,
+      type: "CAMPAIGN_INIT",
+      payload: {},
+      timestamp: `1970-01-01T00:00:00Z`,
+      week: 1,
       ...defaultState,
       character,
       weeklyLedger,
@@ -923,7 +933,7 @@ export function simulateCombatRound(
     let kills = 0;
     const rolls: number[] = [];
     for (let i = 0; i < dice; i++) {
-      const r = Math.floor(Math.random() * 6) + 1;
+      const r = globalRNG.nextInt(1, 6);
       rolls.push(r);
       if (r >= targetAC) {
         kills += 1;
