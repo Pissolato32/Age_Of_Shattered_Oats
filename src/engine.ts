@@ -12,6 +12,21 @@ import { ProductionService, HoldingEconomy, EconomyTickResult } from "./domain/k
 import { FoodService } from "./domain/kingdom/services/FoodService";
 import { LaborService } from "./domain/kingdom/services/LaborService";
 import { TreasuryService, ExpenseOutcome } from "./domain/kingdom/services/TreasuryService";
+import { ConstructionService, ConstructionRefundResult, ResourcePatchQuality } from "./domain/kingdom/services/ConstructionService";
+
+/**
+ * Calculates the 50% resource refund for a cancelled construction project using canonical ConstructionService rules.
+ */
+export function calculateConstructionRefund(costSd: number, costTimber: number, costStone: number): ConstructionRefundResult {
+  return ConstructionService.calculateRefund(costSd, costTimber, costStone);
+}
+
+/**
+ * Resolves resource patch quality upon construction completion using canonical ConstructionService rules and globalRNG.
+ */
+export function resolveResourcePatchQuality(prng = globalRNG): ResourcePatchQuality {
+  return ConstructionService.resolvePatchQuality(prng);
+}
 
 /**
  * Calculates weekly economic production (SD & FSU) for a holding using canonical ProductionService rules.
