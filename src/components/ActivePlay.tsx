@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CampaignState, ArmyUnit } from "../types";
-import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction, getVisibleWorldSecrets } from "../engine";
+import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction, getVisibleWorldSecrets, calculateMaterialPrice } from "../engine";
 import { Shield, Sparkles, BookOpen, Clock, Compass, Coins, Users, Hammer, Flame, Copy, Save, FileText, ChevronRight } from "lucide-react";
 import { LedgerViewer } from "./LedgerViewer";
 import { CodexSearchModal } from "./CodexSearchModal";
@@ -1846,31 +1846,40 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
           )}
 
           {/* TRADE SUBMENU */}
-          {menuMode === 'trade' && (
-            <div>
-              <h4 className="text-[10px] text-amber-500 mb-2 uppercase font-bold tracking-wider">// CARAVANA DE SUPRIMENTOS</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <button 
-                  onClick={() => handleLaunchCaravan("Madeira Brutal", 150, 40)}
-                  className="p-2 border border-[#2D2D30] bg-[#151518] text-xs text-white hover:border-[#F2A900] transition text-left"
-                >
-                  &gt; Rota Madeira (Gasto: 40 SD | Retorno: 150 SD)
-                </button>
-                <button 
-                  onClick={() => handleLaunchCaravan("Armas de Ferro", 300, 80)}
-                  className="p-2 border border-[#2D2D30] bg-[#151518] text-xs text-white hover:border-[#F2A900] transition text-left"
-                >
-                  &gt; Rota Armas (Gasto: 80 SD | Retorno: 300 SD)
-                </button>
-                <button 
-                  onClick={() => setMenuMode('main')}
-                  className="p-1.5 border border-[#2D2D30] bg-neutral-900 text-xs text-[#888] hover:text-white transition col-span-1 md:col-span-2 text-center"
-                >
-                  Voltar ao menu anterior
-                </button>
+          {menuMode === 'trade' && (() => {
+            const region = state.character.location.region || "Central Plains";
+            const month = state.worldLedger.currentDate.month || "Greening";
+            const timberMarket = calculateMaterialPrice(5, 'timber', region, month);
+            const weaponsMarket = calculateMaterialPrice(15, 'weapons', region, month);
+            const timberReturn = Math.max(45, Math.round(40 * (timberMarket.finalPrice / 5) * 1.5));
+            const weaponsReturn = Math.max(90, Math.round(80 * (weaponsMarket.finalPrice / 15) * 1.5));
+
+            return (
+              <div>
+                <h4 className="text-[10px] text-amber-500 mb-2 uppercase font-bold tracking-wider">// CARAVANA DE SUPRIMENTOS ({region.toUpperCase()} • {month.toUpperCase()})</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => handleLaunchCaravan("Madeira Brutal", timberReturn, 40)}
+                    className="p-2 border border-[#2D2D30] bg-[#151518] text-xs text-white hover:border-[#F2A900] transition text-left"
+                  >
+                    &gt; Rota Madeira (Gasto: 40 SD | Preço Local: {timberMarket.finalPrice} SD | Retorno: {timberReturn} SD)
+                  </button>
+                  <button 
+                    onClick={() => handleLaunchCaravan("Armas de Ferro", weaponsReturn, 80)}
+                    className="p-2 border border-[#2D2D30] bg-[#151518] text-xs text-white hover:border-[#F2A900] transition text-left"
+                  >
+                    &gt; Rota Armas (Gasto: 80 SD | Preço Local: {weaponsMarket.finalPrice} SD | Retorno: {weaponsReturn} SD)
+                  </button>
+                  <button 
+                    onClick={() => setMenuMode('main')}
+                    className="p-1.5 border border-[#2D2D30] bg-neutral-900 text-xs text-[#888] hover:text-white transition col-span-1 md:col-span-2 text-center"
+                  >
+                    Voltar ao menu anterior
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* COMBAT SYSTEM SUBMENU */}
           {menuMode === 'combat' && playerUnit && enemyUnit && (

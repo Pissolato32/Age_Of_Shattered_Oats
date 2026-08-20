@@ -5,6 +5,49 @@ import { globalEventStore } from "./core/EventStore";
 import { Relationship } from "./domain/relationship/Relationship";
 import { CommanderAIService, CombatContext, CommanderProfile, CombatTactic } from "./domain/npc_ai/CommanderAIService";
 import { VisibilityService } from "./domain/visibility/VisibilityService";
+import { MarketService, MarketPriceResult } from "./domain/commerce/services/MarketService";
+
+/**
+ * Translates target calendar month name (e.g. "Greening", "Frostwane") to 1..12 month index for MarketService.
+ */
+export function getMonthNumberFromName(monthName: string): number {
+  if (!monthName) return 1;
+  const clean = monthName.trim().replace(/\s+/g, '_');
+  const index = MONTHS.indexOf(clean);
+  if (index >= 0) {
+    return index + 1;
+  }
+  const lower = clean.toLowerCase();
+  if (lower.includes("frostwane")) return 1;
+  if (lower.includes("deepfrost")) return 2;
+  if (lower.includes("thawrise")) return 3;
+  if (lower.includes("greening")) return 4;
+  if (lower.includes("highsun_1") || lower === "highsun") return 5;
+  if (lower.includes("highsun_2")) return 6;
+  if (lower.includes("harvestfall_1") || lower === "harvestfall") return 7;
+  if (lower.includes("harvestfall_2")) return 8;
+  if (lower.includes("ashfall_1") || lower === "ashfall") return 9;
+  if (lower.includes("ashfall_2")) return 10;
+  if (lower.includes("longdark_1") || lower === "longdark") return 11;
+  if (lower.includes("longdark_2")) return 12;
+  return 1;
+}
+
+/**
+ * Calculates dynamic material/commodity market prices using canonical MarketService rules.
+ */
+export function calculateMaterialPrice(
+  basePrice: number,
+  materialId: string,
+  regionId: string,
+  monthName: string,
+  stock = 0,
+  marketCapacity = 150
+): MarketPriceResult {
+  const service = new MarketService();
+  const monthNumber = getMonthNumberFromName(monthName);
+  return service.calculatePrice(basePrice, materialId, regionId, monthNumber, stock, marketCapacity);
+}
 
 /**
  * Calculates absolute week-tick from CampaignState currentDate (base year 342).
