@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CampaignState, ArmyUnit } from "../types";
-import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction, getVisibleWorldSecrets, calculateMaterialPrice } from "../engine";
+import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction, getVisibleWorldSecrets, calculateMaterialPrice, resolveDynasticSuccession } from "../engine";
 import { Shield, Sparkles, BookOpen, Clock, Compass, Coins, Users, Hammer, Flame, Copy, Save, FileText, ChevronRight } from "lucide-react";
 import { LedgerViewer } from "./LedgerViewer";
 import { CodexSearchModal } from "./CodexSearchModal";
@@ -1172,57 +1172,25 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
   const handleAbdicateOrDie = (mode: 'abdicate' | 'death') => {
     const s = { ...state };
     
-    // Check for living heirs
-    const livingHeirs = s.family.children.filter(c => c.alive);
-    if (livingHeirs.length === 0) {
-      alert("FIM DA LINHAGEM! Sua Casa não possui herdeiros vivos para assumir as rédeas do feudo. A dinastia Stormcrest ruiu sob as cinzas do tempo.");
+    const result = resolveDynasticSuccession(s, mode);
+    if (!result.success) {
+      alert("FIM DA LINHAGEM! Sua Casa não possui herdeiros vivos para assumir as rédeas do feudo. A dinastia ruiu sob as cinzas do tempo.");
       return;
     }
 
-    // Select eldest heir or designated heir
-    const primaryHeir = livingHeirs.find(c => c.isHeir) || livingHeirs[0];
-    
-    // Record history log
-    const oldLordName = s.character.name;
-    const oldLordAge = s.character.age;
-    
-    // Update player character to the heir
-    s.character.name = primaryHeir.name;
-    s.character.age = Math.max(16, primaryHeir.age); // assume majority or regency age
-    s.character.gender = primaryHeir.gender;
-    s.character.reputation = Math.max(0, Math.floor(s.character.reputation / 2)); // transition decay
-    s.character.backstory = `Assumiu o controle da Casa ${s.character.house} aos ${s.character.age} anos, após a ${mode === 'abdicate' ? 'abdicação voluntária' : 'morte no campo'} de seu antecessor, ${oldLordName}.`;
-    
-    // Remove the heir from children array (as they are now the lord)
-    s.family.children = s.family.children.filter(c => c.name !== primaryHeir.name);
-    
-    // Appoint a new heir if there is any child left
-    if (s.family.children.length > 0) {
-      s.family.children[0].isHeir = true;
-    }
-
-    // Record world event
-    s.worldLedger.majorEvents.push({
-      date: `W${s.weeklyLedger.week}, M${s.weeklyLedger.month}`,
-      event: `Sucessão Dinástica: ${primaryHeir.name} assume a Casa ${s.character.house}`,
-      region: s.character.location.region,
-      involved: `${oldLordName} -> ${primaryHeir.name}`,
-      resolved: "Yes"
-    });
-
     s.worldLedger.notableDeaths.push({
-      name: oldLordName,
-      title: `Ex-Lord of the Keep (Idade: ${oldLordAge})`,
+      name: result.oldLordName,
+      title: `Ex-Lord of the Keep`,
       date: `Week ${s.weeklyLedger.week}, Month ${s.weeklyLedger.month}`,
       cause: mode === 'abdicate' ? 'Exílio voluntário e meditação' : 'Morte natural decorrente de velhice na corte',
-      successor: primaryHeir.name
+      successor: result.primaryHeirName || s.character.name
     });
 
     setState(s);
     setMenuMode('main');
     
     generateNarrativeWithAI(
-      `Conduzir a solenidade dinástica onde ${oldLordName} ${mode === 'abdicate' ? 'abdica do trono em favor de' : 'falece na corte e repassa o selo de ferro para'} seu legítimo herdeiro, ${primaryHeir.name}.`,
+      `Conduzir a solenidade dinástica onde ${result.oldLordName} ${mode === 'abdicate' ? 'abdica do trono em favor de' : 'falece na corte e repassa o selo de ferro para'} seu legítimo herdeiro, ${result.primaryHeirName}.`,
       `Sucessão Dinástica: O novo líder da Casa ${s.character.house} é ${s.character.name} (Idade: ${s.character.age} anos). A reputação heráldica da linhagem agora é de nível ${s.character.reputation}.`
     );
   };

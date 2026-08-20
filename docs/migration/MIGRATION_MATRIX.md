@@ -20,7 +20,7 @@ This document is the **Central Canonical Migration Control Matrix** for consolid
 | **`commerce`** | DOMAIN SERVICE | **MIGRATED & INTEGRATED** | B — Minimal Adaptation | Low | `calculateMaterialPrice()` in `src/engine.ts` | [COMMERCE_MIGRATION_REPORT.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/COMMERCE_MIGRATION_REPORT.md) |
 | **`core/TimeService`** | DOMAIN | **PENDING** | A — Direct Reuse | Low | `TimeService.ts` calendar translator utility | [FOURTH_DOMAIN_SELECTION_AUDIT.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/FOURTH_DOMAIN_SELECTION_AUDIT.md) |
 | **`items`** | DOMAIN SERVICE | **MIGRATED & INTEGRATED** | B — Minimal Adaptation | Low | `calculateCharacterCombatStats()` in `src/engine.ts` | [ITEMS_MIGRATION_REPORT.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/ITEMS_MIGRATION_REPORT.md) |
-| **`kingdom`** | INFRA / CQRS | **PENDING** | Selective Extraction | High | Pure production formulas | Pending audit |
+| **`kingdom/succession`** | DOMAIN SERVICE | **MIGRATED & INTEGRATED** | A — Direct Reuse | Low | `resolveDynasticSuccession()` in `src/engine.ts` | [SUCCESSION_MIGRATION_REPORT.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/SUCCESSION_MIGRATION_REPORT.md) |
 | **`military`** | INFRA / CQRS | **PENDING** | Selective Extraction | High | Pure mount/ship catalog data | Pending audit |
 | **`crime`** | APP / CQRS | **PENDING** | Selective Extraction | Medium | Ransom/escape difficulty calculators | Pending audit |
 | **`holdings`** | DOMAIN / MODEL | **PENDING** | Selective Extraction | Low | `Holding` models | Pending audit |

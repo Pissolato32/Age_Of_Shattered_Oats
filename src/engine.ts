@@ -7,6 +7,7 @@ import { CommanderAIService, CombatContext, CommanderProfile, CombatTactic } fro
 import { VisibilityService } from "./domain/visibility/VisibilityService";
 import { MarketService, MarketPriceResult } from "./domain/commerce/services/MarketService";
 import { CombatStatsCalculator, CombatStatsResult } from "./domain/items/CombatStatsCalculator";
+import { SuccessionService, Relative } from "./domain/kingdom/services/SuccessionService";
 
 /**
  * Calculates derived character Armor Class (AC) and Initiative bonus using canonical CombatStatsCalculator rules.
@@ -22,6 +23,91 @@ export function recalculateCharacterStats(state: CampaignState): void {
   const derived = calculateCharacterCombatStats(state.character);
   state.character.stats.ac = derived.ac;
   state.character.stats.initiativeBonus = derived.initiativeBonus;
+}
+
+/**
+ * Calculates ordered succession list for a set of relatives using canonical SuccessionService rules.
+ */
+export function calculateSuccessionOrder(relatives: Relative[]): Relative[] {
+  return SuccessionService.getSuccessionOrder(relatives);
+}
+
+/**
+ * Resolves dynastic succession when a ruler abdicates or dies, promoting the highest-ranked heir to ruler according to primogeniture.
+ */
+export function resolveDynasticSuccession(
+  state: CampaignState,
+  mode: 'abdicate' | 'death'
+): { success: boolean; oldLordName: string; primaryHeirName?: string; reason?: string } {
+  const livingChildren = (state.family?.children || []).filter(c => c.alive);
+  if (livingChildren.length === 0) {
+    return {
+      success: false,
+      oldLordName: state.character.name,
+      reason: "No living heirs available in family line."
+    };
+  }
+
+  // Convert target FamilyChild[] to domain Relative[]
+  const relatives: Relative[] = livingChildren.map(c => ({
+    id: c.name,
+    name: c.name,
+    relation: 'child',
+    age: c.age,
+    isLegitimate: true,
+    gender: c.gender
+  }));
+
+  // Determine heir using pure SuccessionService primogeniture algorithm
+  const sortedRelatives = calculateSuccessionOrder(relatives);
+  const primaryRelative = sortedRelatives[0];
+
+  const primaryHeir = livingChildren.find(c => c.name === primaryRelative.name) || livingChildren[0];
+  const oldLordName = state.character.name;
+
+  // Apply character updates cleanly
+  state.character.name = primaryHeir.name;
+  state.character.age = Math.max(16, primaryHeir.age);
+  state.character.gender = (primaryHeir.gender as 'Male' | 'Female') || state.character.gender;
+  state.character.reputation = Math.max(0, Math.floor(state.character.reputation / 2));
+  state.character.backstory = `Assumiu o controle da Casa ${state.character.house} aos ${state.character.age} anos, após a ${mode === 'abdicate' ? 'abdicação voluntária' : 'morte no campo'} de seu antecessor, ${oldLordName}.`;
+
+  // Remove promoted heir from children array
+  state.family.children = state.family.children.filter(c => c.name !== primaryHeir.name);
+
+  // Appoint new primary heir if any children remain using SuccessionService
+  if (state.family.children.length > 0) {
+    const remainingRelatives: Relative[] = state.family.children.filter(c => c.alive).map(c => ({
+      id: c.name,
+      name: c.name,
+      relation: 'child',
+      age: c.age,
+      isLegitimate: true,
+      gender: c.gender
+    }));
+    const nextSorted = calculateSuccessionOrder(remainingRelatives);
+    if (nextSorted.length > 0) {
+      const nextHeirName = nextSorted[0].name;
+      state.family.children.forEach(c => {
+        c.isHeir = (c.name === nextHeirName);
+      });
+    }
+  }
+
+  // Record world event in ledger
+  state.worldLedger.majorEvents.push({
+    date: `W${state.weeklyLedger.week}, M${state.weeklyLedger.month}`,
+    event: `Sucessão Dinástica: ${primaryHeir.name} assume a Casa ${state.character.house}`,
+    region: state.character.location.region,
+    involved: `${oldLordName} -> ${primaryHeir.name}`,
+    resolved: "Yes"
+  });
+
+  return {
+    success: true,
+    oldLordName,
+    primaryHeirName: primaryHeir.name
+  };
 }
 
 /**
