@@ -59,7 +59,14 @@ function extractQuantity(input: string): number | undefined {
 const CLARIFY_KEYWORDS = ['falar com', 'falar com ele', 'conversar', 'talk to', 'speak with'];
 const RECRUIT_KEYWORDS = ['recrut', 'recruit', 'soldado', 'soldier', 'infantaria'];
 const BUILD_KEYWORDS = ['constru', 'build', 'palisad', 'palisade', 'fortifica'];
-const INFO_KEYWORDS = ['quanto custa', 'qual o custo', 'como funciona', 'how much', 'qual regra', 'avaliar', 'situacao', 'situação', 'diplomacia', 'inimig', 'necessidade', 'povo', 'popula', 'conselh', 'como estamos', 'o que fazer', 'relatorio', 'relatório', 'inform'];
+const INFO_KEYWORDS = [
+  'quanto custa', 'qual o custo', 'como funciona', 'how much', 'qual regra',
+  'avaliar', 'situacao', 'situação', 'diplomacia', 'inimig', 'necessidade', 'povo', 'popula',
+  'conselh', 'como estamos', 'o que fazer', 'relatorio', 'relatório', 'inform',
+  'mara', 'ren', 'baldur', 'roric', 'gerold', 'aldren', 'chancel', 'marechal',
+  'fronteir', 'hosti', 'ameac', 'ameaç', 'perig', 'batedor', 'patrulh', 'guarda', 'acao', 'ação', 'passo', 'atencao', 'atenção', 'demanda', 'moviment',
+  'quem', 'como', 'onde', 'qual', 'quando', 'por que', 'porque', 'o que', 'quais'
+];
 const TRAVEL_KEYWORDS = ['viajar', 'marchar', 'viagem', 'travel', 'march'];
 const TRADE_KEYWORDS = ['comprar', 'vender', 'trocar', 'comercio', 'comércio', 'buy', 'sell'];
 const IMPOSSIBLE_KEYWORDS = ['mato o rei', 'matar o rei', 'kill the king'];
@@ -79,10 +86,10 @@ function interpretInput(playerInput: string): NarrativeCommand {
     }, playerInput);
   }
 
-  if (INFO_KEYWORDS.some(k => normalized.includes(k))) {
+  if (/\?/.test(playerInput) || INFO_KEYWORDS.some(k => normalized.includes(k))) {
     return buildCommand('INFORMATION', { 
       confidence: 0.95,
-      desiredOutcome: 'avaliar a situação geral, defesas, povo e conselho de Estado'
+      desiredOutcome: 'dialogar com conselheiros e consultar o estado das fronteiras e do feudo'
     }, playerInput);
   }
 

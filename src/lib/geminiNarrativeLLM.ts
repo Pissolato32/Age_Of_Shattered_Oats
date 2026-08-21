@@ -60,7 +60,7 @@ export class GeminiNarrativeLLM implements NarrativeLLM {
     try {
       const prompt = `Analise a entrada do jogador no jogo 'Age of Shattered Oaths' e extraia a intenção estruturada em JSON seguindo rigorosamente o esquema:
 {
-  "action": "RECRUIT" | "BUILD" | "TRAVEL" | "TRADE" | "CRAFT" | "INFORMATION" | "FLAVOR_QUERY" | "THREAT" | "INVESTIGATE" | "UNKNOWN",
+  "action": "RECRUIT" | "BUILD" | "TRAVEL" | "TRADE" | "DIPLOMACY" | "ESPIONAGE" | "MILITARY" | "SOCIAL" | "INTRIGUE" | "EXPLORATION" | "CRAFT" | "INFORMATION" | "FLAVOR_QUERY" | "UNKNOWN",
   "targetId": string | null,
   "objectId": string | null,
   "locationId": string | null,
@@ -69,6 +69,14 @@ export class GeminiNarrativeLLM implements NarrativeLLM {
   "requiresClarification": boolean,
   "ambiguity": string[]
 }
+
+REGRAS DE CLASSIFICAÇÃO:
+- Perguntas a conselheiros (ex: Mara, Ren), consultas sobre fronteiras, ameaças, hostilidades, situação do povo, dúvidas de regras ou conselhos devem ser classificadas como "INFORMATION" ou "FLAVOR_QUERY" com requiresClarification = false.
+- Ações de recrutamento militar -> "RECRUIT".
+- Construção de muralhas, paliçadas ou estruturas -> "BUILD".
+- Deslocamento de tropas ou viagens -> "TRAVEL".
+- Comércio ou compra/venda de mantimentos -> "TRADE".
+- Apenas intenções completamente incoerentes ou ilegíveis devem ser "UNKNOWN".
 
 Entrada do jogador: "${input.playerInput}"
 Responda APENAS com o JSON válido, sem comentários ou markdown.`;
@@ -271,14 +279,19 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
       };
     }
 
-    // 5. INFORMATION / SITUATION / ADVICE / EXPLORATION
-    if (/avaliar|situacao|situação|diplomacia|inimig|necessidade|povo|popula|conselh|como estamos|o que fazer|relatorio|relatório|inform|quanto custa|qual o custo|como funciona|how much|qual regra/i.test(normalized)) {
+    // 5. INFORMATION / COUNSELOR DIALOGUE / SITUATION / EXPLORATION
+    if (
+      /\?/.test(playerInput) ||
+      /mara|ren|baldur|roric|gerold|aldren|conselh|chancel|marechal|senhor|lorde/i.test(normalized) ||
+      /fronteir|hosti|ameac|ameaç|perig|batedor|patrulh|guarda|acao|ação|passo|atencao|atenção|demanda|moviment/i.test(normalized) ||
+      /avaliar|situacao|situação|diplomacia|inimig|necessidade|povo|popula|como estamos|o que fazer|relatorio|relatório|inform|quanto custa|qual o custo|como funciona|how much|qual regra|quem|como|onde|qual|quando|por que|porque|o que|quais/i.test(normalized)
+    ) {
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
         commandId: createDeterministicCommandId('player', 'INFORMATION', playerInput),
         actorId: 'player',
         action: 'INFORMATION',
-        desiredOutcome: 'avaliar a situação geral, defesas, povo e conselho de Estado',
+        desiredOutcome: 'dialogar com conselheiros e consultar o estado das fronteiras e do feudo',
         constraints: [],
         confidence: 0.95,
         ambiguity: [],
