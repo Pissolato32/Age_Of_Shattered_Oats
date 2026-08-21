@@ -25,12 +25,22 @@ export class MockNarrativeLLM implements NarrativeLLM {
   }
 }
 
-function buildCommand(action: NarrativeAction, overrides: Partial<NarrativeCommand> = {}): NarrativeCommand {
+function extractStance(input: string): NarrativeCommand['stance'] {
+  if (/agressiv|ameaç|força|hostil/i.test(input)) return 'AGGRESSIVE';
+  if (/cautel|cuidad|prudente/i.test(input)) return 'CAUTIOUS';
+  if (/diploma|acordo|negoci/i.test(input)) return 'DIPLOMATIC';
+  if (/escond|furtiv|dissimul|mentir/i.test(input)) return 'DECEPTIVE';
+  if (/honra|justo|leal/i.test(input)) return 'HONORABLE';
+  return 'NEUTRAL';
+}
+
+function buildCommand(action: NarrativeAction, overrides: Partial<NarrativeCommand> = {}, playerInput = ''): NarrativeCommand {
   return {
     contractVersion: NARRATIVE_CONTRACT_VERSION,
     commandId: `mock-${action.toLowerCase()}-command`,
     actorId: 'player',
     action,
+    stance: extractStance(playerInput),
     constraints: [],
     confidence: 1,
     ambiguity: [],
@@ -58,7 +68,7 @@ function interpretInput(playerInput: string): NarrativeCommand {
   const normalized = ` ${playerInput.trim().toLowerCase()} `;
 
   if (IMPOSSIBLE_KEYWORDS.some(k => normalized.includes(k))) {
-    return buildCommand('UNKNOWN');
+    return buildCommand('UNKNOWN', {}, playerInput);
   }
 
   if (CLARIFY_KEYWORDS.some(k => normalized.includes(k))) {
@@ -66,11 +76,11 @@ function interpretInput(playerInput: string): NarrativeCommand {
       requiresClarification: true,
       ambiguity: ['alvo da conversa não identificado'],
       confidence: 0.6
-    });
+    }, playerInput);
   }
 
   if (INFO_KEYWORDS.some(k => normalized.includes(k))) {
-    return buildCommand('INFORMATION', { confidence: 0.9 });
+    return buildCommand('INFORMATION', { confidence: 0.9 }, playerInput);
   }
 
   if (RECRUIT_KEYWORDS.some(k => normalized.includes(k))) {
@@ -80,14 +90,14 @@ function interpretInput(playerInput: string): NarrativeCommand {
         magnitude: { mode: 'ENGINE_DETERMINED' },
         desiredOutcome: 'reforçar as fileiras com novos soldados',
         confidence: 0.85
-      });
+      }, playerInput);
     }
     return buildCommand('RECRUIT', {
       commandId: `mock-recruit-${quantity}`,
       magnitude: { mode: 'FIXED', value: quantity },
       desiredOutcome: `recrutar ${quantity} soldados`,
       confidence: 0.95
-    });
+    }, playerInput);
   }
 
   if (BUILD_KEYWORDS.some(k => normalized.includes(k))) {
@@ -101,18 +111,14 @@ function interpretInput(playerInput: string): NarrativeCommand {
         requiresClarification: true,
         ambiguity: ['estrutura a construir não identificada'],
         confidence: 0.6
-      });
+      }, playerInput);
     }
     return buildCommand('BUILD', {
       commandId: `mock-build-${structure}`,
       objectId: structure,
       desiredOutcome: `construir ${structure === 'palisade' ? 'palisada de madeira' : 'muralha de pedra'}`,
       confidence: 0.95
-    });
-  }
-
-  if (INFO_KEYWORDS.some(k => normalized.includes(k))) {
-    return buildCommand('INFORMATION', { confidence: 0.9 });
+    }, playerInput);
   }
 
   if (TRAVEL_KEYWORDS.some(k => normalized.includes(k))) {
@@ -121,12 +127,12 @@ function interpretInput(playerInput: string): NarrativeCommand {
         requiresClarification: true,
         ambiguity: ['destino da viagem não identificado'],
         confidence: 0.6
-      });
+      }, playerInput);
     }
     return buildCommand('TRAVEL', {
       locationId: 'Central Plains',
       confidence: 0.9
-    });
+    }, playerInput);
   }
 
   if (TRADE_KEYWORDS.some(k => normalized.includes(k))) {
@@ -138,15 +144,15 @@ function interpretInput(playerInput: string): NarrativeCommand {
         requiresClarification: true,
         ambiguity: ['mercadoria da transação não identificada'],
         confidence: 0.6
-      });
+      }, playerInput);
     }
     return buildCommand('TRADE', {
       objectId: goods,
       confidence: 0.9
-    });
+    }, playerInput);
   }
 
-  return buildCommand('UNKNOWN', { confidence: 0.5 });
+  return buildCommand('UNKNOWN', { confidence: 0.5 }, playerInput);
 }
 
 function narrateReport(context: NarrativeContext): string {

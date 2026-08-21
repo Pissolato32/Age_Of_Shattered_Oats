@@ -65,6 +65,7 @@ export interface NarrativeCommand {
   readonly parameters?: Readonly<Record<string, StateValue>>;
   readonly motivation?: string;
   readonly desiredOutcome?: string;
+  readonly stance?: 'AGGRESSIVE' | 'CAUTIOUS' | 'DIPLOMATIC' | 'DECEPTIVE' | 'HONORABLE' | 'NEUTRAL';
   readonly constraints: readonly string[];
   readonly confidence: number;
   readonly ambiguity: readonly string[];
