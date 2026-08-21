@@ -1,10 +1,9 @@
+import { NarrativeLLM, InterpretInput } from './narrativeLLM';
 import {
-  NARRATIVE_CONTRACT_VERSION,
-  NarrativeCommand,
   NarrativeContext,
-  ObserverProjection
+  NarrativeCommand,
+  NARRATIVE_CONTRACT_VERSION
 } from './narrativeContracts';
-import { InterpretInput, NarrativeLLM } from './narrativeLLM';
 
 export interface GeminiConfig {
   readonly apiKey?: string;
@@ -13,16 +12,25 @@ export interface GeminiConfig {
   readonly fetchFn?: typeof fetch;
 }
 
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = 'gemini-1.5-pro-latest';
 const DEFAULT_TIMEOUT_MS = 15000;
 
-const SYSTEM_PROMPT = `Você é o Sistema de Tradução Sensorial de 'Age of Shattered Oaths'. Sua única função é traduzir resultados mecânicos determinísticos exatos e secos em narrativas literárias imersivas em tom de crônica de ferro.
+const SYSTEM_PROMPT = `Você é o Narrador do Sistema em 'Age of Shattered Oaths'.
+Sua função é transformar relatórios mecânicos estritamente autorizados pelo Engine determinístico em crônicas narrativas imersivas e concisas.
 
-DIRETRIZES DE POST-PROCESSING:
-1. SEPARAÇÃO E VERDADE MECÂNICA: A engine já calculou o resultado exato. Você NÃO cria novos reveses, não imagina encontros extras, não inventa baixas, não assume consequências adicionais e não altera o resultado sob nenhuma circunstância. O que não está no resultado da engine, não existe.
-2. PROIBIÇÃO DE FANFICTION: Jamais invente números, baixas, mortes, materiais, tesouros ou eventos que não foram explicitamente fornecidos no resultado mecânico recebido. Siga estritamente os fatos fornecidos.
-3. SILÊNCIO MECÂNICO: O jogador NUNCA vê dados técnicos (como moedas exatas, FSU, SD, AC, XP, dados de rolagens, nível, ou termos matemáticos de RPG) na sua narrativa. Transforme esses números secos em consequências e impactos sensoriais físicos.
+DIRETRIZES FUNDAMENTAIS:
+1. SILÊNCIO MECÂNICO: Nunca mencione números brutos, nomes de atributos (AC, XP, SD, DC), fórmulas ou rolagens.
+2. VERDADE MECÂNICA: Narre apenas o que consta explicitamente em Consequências Físicas e Alterações de Estado. Não invente mortes, baixas ou reveses adicionais.
+3. CONCISÃO: Responda em no máximo 1 a 2 parágrafos.
 4. TOM NARRATIVO: Escreva em tom de crônica de ferro gélida, realista, visceral, sombria e implacável. Sem exageros poéticos desnecessários ou floreios mágicos. Use português do Brasil, em 1 ou 2 parágrafos curtos.`;
+
+function createDeterministicCommandId(actorId: string, action: string, inputString: string): string {
+  let hash = 0;
+  for (let i = 0; i < inputString.length; i++) {
+    hash = (hash * 31 + inputString.charCodeAt(i)) >>> 0;
+  }
+  return `cmd_${actorId}_${action.toLowerCase()}_${hash.toString(16)}`;
+}
 
 export class GeminiNarrativeLLM implements NarrativeLLM {
   readonly providerId = 'gemini';
@@ -62,12 +70,13 @@ Responda APENAS com o JSON válido, sem comentários ou markdown.`;
       const responseText = await this.callGemini(prompt);
       const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleaned);
+      const action = parsed.action || 'UNKNOWN';
 
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: `cmd_gemini_${Date.now()}`,
+        commandId: createDeterministicCommandId('player', action, input.playerInput),
         actorId: 'player',
-        action: parsed.action || 'UNKNOWN',
+        action,
         targetId: parsed.targetId || undefined,
         objectId: parsed.objectId || undefined,
         locationId: parsed.locationId || undefined,
@@ -152,7 +161,7 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
     if (isRecruit) {
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: `cmd_fallback_${Date.now()}`,
+        commandId: createDeterministicCommandId('player', 'RECRUIT', playerInput),
         actorId: 'player',
         action: 'RECRUIT',
         magnitude: quantity ? { mode: 'FIXED', value: quantity } : { mode: 'ENGINE_DETERMINED' },
@@ -165,7 +174,7 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
 
     return {
       contractVersion: NARRATIVE_CONTRACT_VERSION,
-      commandId: `cmd_fallback_${Date.now()}`,
+      commandId: createDeterministicCommandId('player', 'UNKNOWN', playerInput),
       actorId: 'player',
       action: 'UNKNOWN',
       constraints: [],

@@ -8,107 +8,192 @@ import {
   GenericResolutionRequest
 } from '../src/lib/genericResolution';
 
-const baseState: CampaignState = createInitialState('Noble Ruler', 'Central Plains');
-baseState.weeklyLedger.silverdew = 500;
-baseState.holdings.laborPool = 200;
-
-function freshState(): CampaignState {
-  return JSON.parse(JSON.stringify(baseState));
+function createFreshState(type: 'Bastion' | 'Fortified Town' | 'Castle' | 'Walled City' = 'Fortified Town'): CampaignState {
+  const s = createInitialState('Noble Ruler', 'Central Plains');
+  s.holdings.type = type;
+  s.weeklyLedger.silverdew = 1000;
+  s.holdings.laborPool = 300;
+  s.holdings.population = 2500;
+  s.character.stats.commanderTier = 3;
+  s.character.reputation = 20; // +2 bonus
+  s.weeklyLedger.season = 'Sunreach';
+  return s;
 }
+
+console.log('=== TESTES UNITÁRIOS DE RESOLUÇÃO GENÉRICA CONTEXTUAL (v0.2) ===');
 
 // ---------------------------------------------------------------------------
 // 1. Classificação CANONICAL vs PLAUSIBLE vs IMPOSSIBLE vs AMBIGUOUS
 // ---------------------------------------------------------------------------
 {
-  const state = freshState();
+  const state = createFreshState();
   
   assert.equal(classifyAction({ action: 'RECRUIT' }, state).type, 'CANONICAL');
   assert.equal(classifyAction({ action: 'BUILD' }, state).type, 'CANONICAL');
   assert.equal(classifyAction({ action: 'TRAVEL' }, state).type, 'CANONICAL');
   assert.equal(classifyAction({ action: 'TRADE' }, state).type, 'CANONICAL');
+  assert.equal(classifyAction({ action: 'DIPLOMACY' }, state).type, 'CANONICAL');
 
   assert.equal(classifyAction({ action: 'Ressuscitar morto com magia' }, state).type, 'IMPOSSIBLE');
-  assert.equal(classifyAction({ action: 'Voar até a fortaleza inimiga' }, state).type, 'IMPOSSIBLE');
+  assert.equal(classifyAction({ action: 'Voar sem asas até a fortaleza' }, state).type, 'IMPOSSIBLE');
+  assert.equal(classifyAction({ action: 'Criar ouro do nada' }, state).type, 'IMPOSSIBLE');
 
   assert.equal(classifyAction({ action: '' }, state).type, 'AMBIGUOUS');
 
-  assert.equal(classifyAction({ action: 'Mandar 20 homens limpar a estrada ao norte' }, state).type, 'PLAUSIBLE_UNMODELED');
-  assert.equal(classifyAction({ action: 'Subornar o guarda da muralha' }, state).type, 'PLAUSIBLE_UNMODELED');
+  assert.equal(classifyAction({ action: 'Mandar homens limpar estrada ao norte' }, state).type, 'PLAUSIBLE_UNMODELED');
+  assert.equal(classifyAction({ action: 'Subornar guarda da muralha' }, state).type, 'PLAUSIBLE_UNMODELED');
   console.log('[CLASSIFICATION] Canonical / Impossível / Ambíguo / Plausível -> OK');
 }
 
 // ---------------------------------------------------------------------------
-// 2. Resolução de Ação Plausível com Mão de Obra e Recursos
+// 2. Gargalos de Capacidade Real (Labor vs Settlement Tier vs Treasury)
 // ---------------------------------------------------------------------------
 {
-  const state = freshState();
-  const rng = new RandomService(4242);
-  const request: GenericResolutionRequest = {
-    action: 'Limpar estrada ao norte',
-    parameters: { men: 20 }
-  };
+  // Test Bastion (Cap derived from population/tier = 50)
+  const bastionState = createFreshState('Bastion');
+  bastionState.holdings.population = 1000;
+  bastionState.holdings.laborPool = 500; // Much labor, but capped by structural work cap (50)
 
-  const result = resolveGenericPlausibleAction(request, state, rng);
-  assert.equal(result.classification, 'PLAUSIBLE_UNMODELED');
-  assert.ok(result.outcome === 'SUCCESS' || result.outcome === 'PARTIAL_SUCCESS');
-  assert.equal(result.magnitude, 20);
-  assert.equal(result.source, 'ENGINE_CALCULATED');
-  assert.ok(result.stateChanges.some(sc => sc.path === 'holdings.laborPool' && sc.delta === -20));
-  assert.ok(result.consequences.length > 0);
-  console.log('[PLAUSIBLE] Resolução genérica de infraestrutura aceita com deltas -> OK');
+  const req: GenericResolutionRequest = { action: 'Reparar paliçada de madeira', parameters: { men: 100 } };
+  const resBastion = resolveGenericPlausibleAction(req, bastionState, new RandomService(101));
+  assert.equal(resBastion.classification, 'PLAUSIBLE_UNMODELED');
+  assert.equal(resBastion.magnitude, 50, 'Deve ser limitado pelo teto de Bastion (50 homens)');
+
+  // Test Treasury Limiting Capacity (Treasury of 2 SD supports max 20 men)
+  const poorState = createFreshState('Castle');
+  poorState.weeklyLedger.silverdew = 2; // 2 SD supports 20 men
+  poorState.holdings.laborPool = 200;
+
+  const resPoor = resolveGenericPlausibleAction(req, poorState, new RandomService(101));
+  assert.equal(resPoor.magnitude, 20, 'Deve ser limitado pelo teto financeiro de apoio (20 homens)');
+
+  // Test Walled City with low labor (30)
+  const cityState = createFreshState('Walled City');
+  cityState.holdings.laborPool = 30; // Labor is the bottleneck
+
+  const resCity = resolveGenericPlausibleAction(req, cityState, new RandomService(101));
+  assert.equal(resCity.magnitude, 30, 'Deve ser limitado pelo pool real de labor (30 homens)');
+
+  // Zero labor failure
+  const zeroLaborState = createFreshState();
+  zeroLaborState.holdings.laborPool = 0;
+  const resZero = resolveGenericPlausibleAction(req, zeroLaborState, new RandomService(101));
+  assert.equal(resZero.outcome, 'FAILURE', 'Zero labor deve falhar graciosamente');
+
+  console.log('[CAPACITY] Gargalos de labor, tesouraria e tier de assentamento respeitados -> OK');
 }
 
 // ---------------------------------------------------------------------------
-// 3. Rejeição de Ação Impossível
+// 3. Envelope Dinâmico e Variância de Magnitude em Ação Não-Fixada
 // ---------------------------------------------------------------------------
 {
-  const state = freshState();
-  const rng = new RandomService(4242);
-  const request: GenericResolutionRequest = {
-    action: 'Ressuscitar o general morto'
-  };
+  const state = createFreshState('Castle');
+  state.holdings.laborPool = 200;
+  state.holdings.population = 5000; // Structural cap = 250 men
 
-  const result = resolveGenericPlausibleAction(request, state, rng);
-  assert.equal(result.classification, 'IMPOSSIBLE');
-  assert.equal(result.outcome, 'REJECTED');
-  assert.equal(result.stateChanges.length, 0);
-  assert.equal(result.consequences.length, 0);
-  console.log('[IMPOSSIBLE] Ação impossível rejeitada sem mutação -> OK');
+  // Generic request without fixed count -> magnitude should vary within envelope [100, 200]
+  const req: GenericResolutionRequest = { action: 'Desobstruir e limpar estrada' };
+
+  const magnitudes = new Set<number>();
+  for (let seed = 1; seed <= 50; seed++) {
+    const res = resolveGenericPlausibleAction(req, state, new RandomService(seed));
+    if (res.magnitude) magnitudes.add(res.magnitude);
+  }
+
+  assert.ok(magnitudes.size > 1, 'Magnitude não-fixada deve variar estocasticamente dentro do envelope.');
+  console.log(`[ENVELOPE] Variância de magnitude comprovada (${magnitudes.size} valores distintos observados) -> OK`);
 }
 
 // ---------------------------------------------------------------------------
-// 4. Ação Ambígua requer Esclarecimento
+// 4. Teste de Monotonicidade Rigorosa (Liderança, Clima, Afinidade)
 // ---------------------------------------------------------------------------
 {
-  const state = freshState();
-  const rng = new RandomService(4242);
-  const request: GenericResolutionRequest = {
-    action: 'Limpar estrada',
-    parameters: { men: 0 } // Homens zerados
-  };
+  const base = createFreshState();
+  const req: GenericResolutionRequest = { action: 'Limpar estrada da colina', parameters: { men: 25 } };
 
-  const result = resolveGenericPlausibleAction(request, state, rng);
-  assert.equal(result.classification, 'AMBIGUOUS');
-  assert.equal(result.outcome, 'CLARIFICATION_REQUIRED');
-  assert.equal(result.stateChanges.length, 0);
-  console.log('[AMBIGUOUS] Ação ambígua bloqueada para esclarecimento -> OK');
+  // Monotonicidade da Liderança
+  const lowLeadState = { ...createFreshState(), character: { ...base.character, stats: { ...base.character.stats, commanderTier: 1 } } };
+  const highLeadState = { ...createFreshState(), character: { ...base.character, stats: { ...base.character.stats, commanderTier: 5 } } };
+  const pLowLead = resolveGenericPlausibleAction(req, lowLeadState, new RandomService(10)).probability ?? 0;
+  const pHighLead = resolveGenericPlausibleAction(req, highLeadState, new RandomService(10)).probability ?? 0;
+  assert.ok(pHighLead >= pLowLead, 'Liderança maior nunca pode reduzir a probabilidade de sucesso.');
+
+  // Monotonicidade do Clima
+  const summerSeason: 'Sunreach' = 'Sunreach';
+  const winterSeason: 'Deepfrost' = 'Deepfrost';
+  const summerState = { ...createFreshState(), weeklyLedger: { ...base.weeklyLedger, season: summerSeason } };
+  const winterState = { ...createFreshState(), weeklyLedger: { ...base.weeklyLedger, season: winterSeason } };
+  const pSummer = resolveGenericPlausibleAction(req, summerState, new RandomService(10)).probability ?? 0;
+  const pWinter = resolveGenericPlausibleAction(req, winterState, new RandomService(10)).probability ?? 0;
+  assert.ok(pSummer >= pWinter, 'Deepfrost nunca pode aumentar a probabilidade de sucesso.');
+
+  // Monotonicidade da Afinidade
+  const alliedState = createFreshState();
+  alliedState.worldLedger.nobleHouses = [{ name: 'Target', region: 'Plains', currentLord: 'L', seat: 'S', tier: 3, status: 'Active', allies: [], enemies: [], opinion: 3, rumor: '', isRealRumor: false }];
+  const hostileState = createFreshState();
+  hostileState.worldLedger.nobleHouses = [{ name: 'Target', region: 'Plains', currentLord: 'L', seat: 'S', tier: 3, status: 'Active', allies: [], enemies: [], opinion: -3, rumor: '', isRealRumor: false }];
+
+  const reqSub: GenericResolutionRequest = { action: 'Negociar salvo-conduto', targetId: 'Target', parameters: { amount: 50 } };
+  const pAllied = resolveGenericPlausibleAction(reqSub, alliedState, new RandomService(10)).probability ?? 0;
+  const pHostile = resolveGenericPlausibleAction(reqSub, hostileState, new RandomService(10)).probability ?? 0;
+  assert.ok(pAllied >= pHostile, 'Opinião aliada nunca pode reduzir a probabilidade de negociação.');
+
+  console.log('[MONOTONICITY] Monotonicidade de Liderança, Clima e Afinidade validada -> OK');
 }
 
 // ---------------------------------------------------------------------------
-// 5. Determinismo e Não-Mutação de Estado de Entrada
+// 5. Accounting e Invariantes de Estado (Sem Cobrança Indevida em Falha)
 // ---------------------------------------------------------------------------
 {
-  const stateA = freshState();
-  const stateB = freshState();
+  const state = createFreshState();
+  state.weeklyLedger.silverdew = 100;
+
+  state.worldLedger.nobleHouses = [
+    {
+      name: 'Enemy_Clan',
+      region: 'North',
+      currentLord: 'Warlord',
+      seat: 'Fortress',
+      tier: 4,
+      status: 'Hostile',
+      allies: [],
+      enemies: [],
+      opinion: -3,
+      rumor: '',
+      isRealRumor: false
+    }
+  ];
+
+  const req: GenericResolutionRequest = { action: 'Subornar guarda', targetId: 'Enemy_Clan', parameters: { amount: 80 } };
+
+  // Seed producing roll 1
+  const mockRng: RandomService = {
+    nextInt: () => 1
+  } as unknown as RandomService;
+
+  const res = resolveGenericPlausibleAction(req, state, mockRng);
+  assert.equal(res.outcome, 'FAILURE');
+  assert.equal(res.stateChanges.length, 0, 'Falha em suborno não pode deduzir prata');
+
+  console.log('[ACCOUNTING] Invariantes contábeis preservadas sem deduções em falha -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// 6. Determinismo Estrito
+// ---------------------------------------------------------------------------
+{
+  const stateA = createFreshState();
+  const stateB = createFreshState();
   const frozenState = Object.freeze(JSON.parse(JSON.stringify(stateA)));
 
-  const req: GenericResolutionRequest = { action: 'Subornar guarda', parameters: { amount: 30 } };
+  const req: GenericResolutionRequest = { action: 'Limpar estrada', parameters: { men: 25 } };
   const res1 = resolveGenericPlausibleAction(req, frozenState, new RandomService(999));
   const res2 = resolveGenericPlausibleAction(req, stateB, new RandomService(999));
 
   assert.deepEqual(res1, res2, 'Mesma seed -> resultado idêntico');
-  assert.equal(frozenState.weeklyLedger.silverdew, 500, 'Estado original não pode ser mutado');
-  console.log('[DETERMINISMO] Resolução determinística e sem mutação da entrada -> OK');
+  assert.equal(frozenState.weeklyLedger.silverdew, 1000, 'Estado de entrada deve ser imutável');
+
+  console.log('[DETERMINISMO] Resolução reproduzível e puramente funcional -> OK');
 }
 
 console.log('GenericResolution test suite passed successfully.');

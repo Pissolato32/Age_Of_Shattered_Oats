@@ -39,25 +39,39 @@ export interface GenericResolutionResult {
 }
 
 /**
- * Generic plausible unmodeled actions catalog.
- * Canonical actions (RECRUIT, BUILD, TRAVEL, TRADE) are CANONICAL and handled by ruleResolver.
+ * Canonically modeled action domains in the deterministic Engine.
  */
 const CANONICAL_ACTIONS = new Set<string>([
   'RECRUIT',
   'BUILD',
   'TRAVEL',
   'TRADE',
-  'CRAFT'
+  'DIPLOMACY',
+  'ESPIONAGE',
+  'MILITARY',
+  'SOCIAL',
+  'INTRIGUE',
+  'EXPLORATION',
+  'CRAFT',
+  'INFORMATION',
+  'FLAVOR_QUERY'
 ]);
 
+/**
+ * Patterns that violate physical, biological, or world-setting laws.
+ */
 const IMPOSSIBLE_PATTERNS = [
-  /ressuscitar|reviver\s+morto/i,
-  /voar|teleportar/i,
-  /destruir\s+o\s+mundo/i,
-  /matar\s+o\s+rei/i,
-  /invocar\s+drag/i
+  /ressuscitar|reviver\s+morto|ressurreição/i,
+  /voar\s+sem\s+asas|teleportar|teletransporte/i,
+  /destruir\s+o\s+mundo|apocalipse/i,
+  /matar\s+o\s+rei\s+instantaneamente/i,
+  /invocar\s+dragões|magia\s+onipotente/i,
+  /criar\s+ouro\s+do\s+nada/i
 ];
 
+/**
+ * Classifies an incoming action request authoritatively.
+ */
 export function classifyAction(
   request: GenericResolutionRequest,
   state: CampaignState
@@ -98,8 +112,108 @@ export function classifyAction(
 }
 
 /**
- * Resolves a PLAUSIBLE_UNMODELED generic action deterministically.
- * Does NOT mutate the input state.
+ * Derives settlement structural work limit based on holding population and tier.
+ * Canonical mobilization limit: at most 5% of civilian population can be assigned
+ * simultaneously to specialized unmodeled field works without disrupting basic production.
+ */
+function deriveStructuralWorkCap(state: CampaignState): number {
+  const population = state.holdings?.population ?? 1000;
+  const popDerivedCap = Math.floor(population * 0.05);
+
+  let tier = 1;
+  switch (state.holdings?.type) {
+    case 'Bastion':
+      tier = 1;
+      break;
+    case 'Fortified Town':
+      tier = 2;
+      break;
+    case 'Castle':
+      tier = 3;
+      break;
+    case 'Walled City':
+      tier = 4;
+      break;
+    default:
+      tier = Math.min(4, Math.max(1, state.holdings?.tier || 1));
+  }
+
+  return Math.max(25, Math.max(popDerivedCap, tier * 50));
+}
+
+/**
+ * Derives target opinion modifier in [-3, +3] if target is present in relationships.
+ */
+function getTargetOpinion(targetId: string | undefined, state: CampaignState): number {
+  if (!targetId) return 0;
+  const targetNorm = targetId.toLowerCase();
+
+  const house = state.worldLedger?.nobleHouses?.find(
+    h => h.name.toLowerCase() === targetNorm || h.seat.toLowerCase() === targetNorm
+  );
+  if (house && typeof house.opinion === 'number') {
+    return Math.max(-3, Math.min(3, house.opinion));
+  }
+
+  const tribe = state.worldLedger?.tribalRelations?.find(
+    t => t.tribeName.toLowerCase() === targetNorm
+  );
+  if (tribe) {
+    if (tribe.opinion === 'Friendly') return 2;
+    if (tribe.opinion === 'Hostile') return -2;
+    if (tribe.opinion === 'Eliminated') return -3;
+    return 0;
+  }
+
+  return 0;
+}
+
+/**
+ * Calculates contextual friction score for 1d20 deterministic roll.
+ * Friction is the dynamic threshold replacing arbitrary hardcoded DCs.
+ */
+function calculateContextualFriction(
+  baseFriction: number,
+  state: CampaignState,
+  options: {
+    useLeadership?: boolean;
+    useReputation?: boolean;
+    useSeason?: boolean;
+    targetOpinion?: number;
+  } = {}
+): number {
+  let friction = baseFriction;
+
+  // Environmental friction (Deepfrost adds friction to physical operations)
+  if (options.useSeason && state.weeklyLedger.season === 'Deepfrost') {
+    friction += 3;
+  }
+
+  // Leadership bonus (commanderTier reduces operational friction)
+  if (options.useLeadership) {
+    const commanderTier = state.character?.stats?.commanderTier ?? 1;
+    friction -= Math.min(5, Math.max(1, commanderTier));
+  }
+
+  // Reputation bonus (reduces friction in social/negotiation tasks)
+  if (options.useReputation) {
+    const rep = state.character?.reputation ?? 0;
+    const repBonus = Math.min(3, Math.max(0, Math.floor(rep / 10)));
+    friction -= repBonus;
+  }
+
+  // Target affinity bonus/penalty
+  if (typeof options.targetOpinion === 'number') {
+    friction -= Math.min(3, Math.max(-3, options.targetOpinion));
+  }
+
+  // Clamp friction threshold to prevent auto-win (min 2) or auto-fail (max 18)
+  return Math.max(2, Math.min(18, friction));
+}
+
+/**
+ * Resolves a PLAUSIBLE_UNMODELED generic action deterministically using contextual derivation.
+ * Does NOT mutate the input state directly.
  */
 export function resolveGenericPlausibleAction(
   request: GenericResolutionRequest,
@@ -133,22 +247,61 @@ export function resolveGenericPlausibleAction(
   const actionLower = request.action.toLowerCase();
   const laborAvailable = state.holdings.laborPool;
   const treasurySd = state.weeklyLedger.silverdew;
+  const structuralWorkCap = deriveStructuralWorkCap(state);
 
-  // Example Category 1: Road clearing / Infrastructure maintenance
-  if (actionLower.includes('limpar') || actionLower.includes('estrada') || actionLower.includes('reparar')) {
-    const requestedMen = typeof request.parameters?.men === 'number' ? request.parameters.men : 15;
-    if (requestedMen <= 0) {
+  // -------------------------------------------------------------------------
+  // Category 1: Infrastructure / Maintenance / Field Work
+  // -------------------------------------------------------------------------
+  if (
+    actionLower.includes('limpar') ||
+    actionLower.includes('estrada') ||
+    actionLower.includes('reparar') ||
+    actionLower.includes('manutenção') ||
+    actionLower.includes('infraestrutura') ||
+    actionLower.includes('escavar') ||
+    actionLower.includes('fortificar')
+  ) {
+    // Treasury capacity for operational tool/ration support: 1 SD supports up to 10 men
+    // If treasury is 0, workforce is limited to minimal local volunteer effort (max 10 men)
+    const treasurySupportedMen = treasurySd > 0 ? treasurySd * 10 : 0;
+
+    // Unified Capacity incorporating Labor, Treasury and Structural Tier:
+    const unifiedCapacity = Math.min(laborAvailable, structuralWorkCap, Math.max(10, treasurySupportedMen));
+
+    if (unifiedCapacity <= 0 || laborAvailable <= 0) {
+      return {
+        classification: 'PLAUSIBLE_UNMODELED',
+        outcome: 'FAILURE',
+        magnitude: 0,
+        probability: 0,
+        source: 'ENGINE_CALCULATED',
+        stateChanges: [],
+        consequences: [],
+        reason: 'Mão de obra ou recursos insuficientes no feudo para sustentar os trabalhos.'
+      };
+    }
+
+    // Envelope: [min 1 or 50% capacity, max capacity]
+    const envMin = Math.max(1, Math.floor(unifiedCapacity * 0.5));
+    const envMax = unifiedCapacity;
+
+    const requestedMen = typeof request.parameters?.men === 'number' ? request.parameters.men : undefined;
+    if (requestedMen !== undefined && requestedMen <= 0) {
       return {
         classification: 'AMBIGUOUS',
         outcome: 'CLARIFICATION_REQUIRED',
         source: 'ENGINE_CALCULATED',
         stateChanges: [],
         consequences: [],
-        reason: 'Quantidade de homens inválida ou não especificada para trabalho de campo.'
+        reason: 'Quantidade de homens inválida ou não positiva especificada para o trabalho de campo.'
       };
     }
 
-    const assignedMen = Math.min(requestedMen, laborAvailable);
+    // If requestedMen is provided, clamp to envelope; otherwise roll deterministically within envelope:
+    const assignedMen = requestedMen !== undefined
+      ? Math.min(requestedMen, envMax)
+      : (envMax > envMin ? rng.nextInt(envMin, envMax) : envMin);
+
     if (assignedMen <= 0) {
       return {
         classification: 'PLAUSIBLE_UNMODELED',
@@ -158,116 +311,208 @@ export function resolveGenericPlausibleAction(
         source: 'ENGINE_CALCULATED',
         stateChanges: [],
         consequences: [],
-        reason: 'Mão de obra insuficiente no pool de trabalho para alocação.'
+        reason: 'Mão de obra insuficiente para suportar a alocação requerida.'
       };
     }
 
-    // Cost: 0.1 SD per man for tools/rations
-    const toolCost = Math.round(assignedMen * 0.1);
-    const hasFunds = treasurySd >= toolCost;
+    // Operational friction cost derived from workforce: 1 SD per 10 men allocated, bounded by treasury
+    const toolCost = Math.min(treasurySd, Math.floor(assignedMen / 10));
 
-    // Roll difficulty 1d20 + workforce bonus
+    // Dynamic friction threshold (base 10 - leadership + deepfrost penalty)
+    const frictionThreshold = calculateContextualFriction(10, state, {
+      useLeadership: true,
+      useSeason: true
+    });
+
     const roll = rng.nextInt(1, 20);
-    const success = roll >= 5 && hasFunds;
+    let outcome: GenericOutcome;
 
-    const outcome: GenericOutcome = success ? (roll >= 15 ? 'SUCCESS' : 'PARTIAL_SUCCESS') : 'FAILURE';
-    const stateChanges: StateChange[] = [];
-
-    if (hasFunds && toolCost > 0) {
-      stateChanges.push({
-        path: 'weeklyLedger.silverdew',
-        before: treasurySd,
-        after: treasurySd - toolCost,
-        delta: -toolCost
-      });
+    if (roll >= frictionThreshold + 5) {
+      outcome = 'SUCCESS';
+    } else if (roll >= frictionThreshold) {
+      outcome = 'PARTIAL_SUCCESS';
+    } else {
+      outcome = 'FAILURE';
     }
 
-    stateChanges.push({
-      path: 'holdings.laborPool',
-      before: laborAvailable,
-      after: laborAvailable - assignedMen,
-      delta: -assignedMen
-    });
+    const stateChanges: StateChange[] = [];
+
+    // Deduct labor only on success or partial success where work commenced
+    if (outcome !== 'FAILURE') {
+      stateChanges.push({
+        path: 'holdings.laborPool',
+        before: laborAvailable,
+        after: laborAvailable - assignedMen,
+        delta: -assignedMen
+      });
+
+      if (toolCost > 0) {
+        stateChanges.push({
+          path: 'weeklyLedger.silverdew',
+          before: treasurySd,
+          after: treasurySd - toolCost,
+          delta: -toolCost
+        });
+      }
+    }
 
     return {
       classification: 'PLAUSIBLE_UNMODELED',
       outcome,
       magnitude: assignedMen,
-      probability: 0.65,
+      probability: Number(((21 - frictionThreshold) / 20).toFixed(2)),
       source: 'ENGINE_CALCULATED',
       stateChanges,
       consequences: [
         {
           consequenceId: `csq_generic_${rng.nextInt(1000, 9999)}`,
           kind: 'IMMEDIATE',
-          description: success
-            ? `Trabalho de campo concluído com ${assignedMen} homens alocados.`
-            : `Dificuldades no terreno impediram a conclusão satisfatória do trabalho de campo.`,
+          description: outcome === 'SUCCESS'
+            ? `Trabalho de campo concluído com pleno êxito com ${assignedMen} homens alocados.`
+            : outcome === 'PARTIAL_SUCCESS'
+              ? `Trabalho de campo parcialmente concluído (${assignedMen} homens alocados sob atrito).`
+              : `Dificuldades no terreno e atrito operacional impediram a execução dos trabalhos.`,
           authorized: true
         }
       ],
-      reason: `Resolução genérica de infraestrutura: ${outcome} (roll=${roll}, homens=${assignedMen}).`
+      reason: `Resolução contextual de infraestrutura: ${outcome} (roll=${roll}, atrito=${frictionThreshold}, homens=${assignedMen}, envelope=[${envMin}, ${envMax}]).`
     };
   }
 
-  // Example Category 2: Bribery / Negotiation / Local diplomacy
-  if (actionLower.includes('suborno') || actionLower.includes('subornar') || actionLower.includes('propina')) {
-    const bribeOffer = typeof request.parameters?.amount === 'number' ? request.parameters.amount : 20;
-    if (bribeOffer <= 0 || treasurySd < bribeOffer) {
+  // -------------------------------------------------------------------------
+  // Category 2: Bribery / Negotiation / Local Diplomacy
+  // -------------------------------------------------------------------------
+  if (
+    actionLower.includes('suborno') ||
+    actionLower.includes('subornar') ||
+    actionLower.includes('propina') ||
+    actionLower.includes('negociar') ||
+    actionLower.includes('persuadir') ||
+    actionLower.includes('acordo')
+  ) {
+    if (treasurySd <= 0) {
       return {
         classification: 'PLAUSIBLE_UNMODELED',
         outcome: 'FAILURE',
         magnitude: 0,
+        probability: 0,
         source: 'ENGINE_CALCULATED',
         stateChanges: [],
         consequences: [],
-        reason: 'Tesouraria insuficiente para a oferta de suborno pretendida.'
+        reason: 'Tesouraria zerada ou insuficiente para negociação financeira.'
       };
     }
 
-    const roll = rng.nextInt(1, 20);
-    const success = roll >= 10;
-    const outcome: GenericOutcome = success ? 'SUCCESS' : 'FAILURE';
+    const requestedAmount = typeof request.parameters?.amount === 'number' ? request.parameters.amount : undefined;
+    if (requestedAmount !== undefined && requestedAmount <= 0) {
+      return {
+        classification: 'AMBIGUOUS',
+        outcome: 'CLARIFICATION_REQUIRED',
+        source: 'ENGINE_CALCULATED',
+        stateChanges: [],
+        consequences: [],
+        reason: 'Valor de oferta monetária inválido ou negativo.'
+      };
+    }
 
-    const stateChanges: StateChange[] = [
-      {
+    // Default bribe offer envelope: [10, min(treasury, 50)]
+    const bribeMin = Math.max(1, Math.min(10, treasurySd));
+    const bribeMax = Math.min(treasurySd, Math.max(bribeMin, 50));
+
+    const bribeOffer = requestedAmount !== undefined
+      ? requestedAmount
+      : (bribeMax > bribeMin ? rng.nextInt(bribeMin, bribeMax) : bribeMin);
+
+    if (bribeOffer > treasurySd) {
+      return {
+        classification: 'PLAUSIBLE_UNMODELED',
+        outcome: 'FAILURE',
+        magnitude: 0,
+        probability: 0,
+        source: 'ENGINE_CALCULATED',
+        stateChanges: [],
+        consequences: [],
+        reason: 'Tesouraria insuficiente para a oferta monetária pretendida.'
+      };
+    }
+
+    const targetOpinion = getTargetOpinion(request.targetId, state);
+    const frictionThreshold = calculateContextualFriction(10, state, {
+      useReputation: true,
+      targetOpinion
+    });
+
+    const roll = rng.nextInt(1, 20);
+    let outcome: GenericOutcome;
+
+    if (roll >= frictionThreshold + 5) {
+      outcome = 'SUCCESS';
+    } else if (roll >= frictionThreshold) {
+      outcome = 'PARTIAL_SUCCESS';
+    } else {
+      outcome = 'FAILURE';
+    }
+
+    const stateChanges: StateChange[] = [];
+
+    // Deduct treasury only if negotiation succeeded and coin was accepted
+    if (outcome !== 'FAILURE') {
+      stateChanges.push({
         path: 'weeklyLedger.silverdew',
         before: treasurySd,
         after: treasurySd - bribeOffer,
         delta: -bribeOffer
-      }
-    ];
+      });
+    }
 
     return {
       classification: 'PLAUSIBLE_UNMODELED',
       outcome,
       magnitude: bribeOffer,
-      probability: 0.55,
+      probability: Number(((21 - frictionThreshold) / 20).toFixed(2)),
       source: 'ENGINE_CALCULATED',
       stateChanges,
       consequences: [
         {
           consequenceId: `csq_generic_${rng.nextInt(1000, 9999)}`,
           kind: 'IMMEDIATE',
-          description: success
-            ? `Suborno de ${bribeOffer} SD aceito pelo alvo.`
-            : `A tentativa de suborno falhou e foi recusada.`,
+          description: outcome === 'SUCCESS'
+            ? `Negociação aceita plenamente pelo alvo mediante oferta de ${bribeOffer} SD.`
+            : outcome === 'PARTIAL_SUCCESS'
+              ? `Acordo provisório aceito com concessões mútuas (${bribeOffer} SD).`
+              : `A proposta foi rejeitada pelo interlocutor.`,
           authorized: true
         }
       ],
-      reason: `Resolução genérica de suborno: ${outcome} (roll=${roll}, valor=${bribeOffer} SD).`
+      reason: `Resolução contextual de negociação: ${outcome} (roll=${roll}, atrito=${frictionThreshold}, valor=${bribeOffer} SD, afinidade=${targetOpinion}).`
     };
   }
 
-  // Generic fallback for unmodeled interaction
+  // -------------------------------------------------------------------------
+  // Category 3: Generic Unmodeled Interaction
+  // -------------------------------------------------------------------------
+  const frictionThreshold = calculateContextualFriction(10, state, {
+    useLeadership: true,
+    useReputation: true,
+    useSeason: true
+  });
+
   const roll = rng.nextInt(1, 20);
-  const outcome: GenericOutcome = roll >= 12 ? 'SUCCESS' : 'PARTIAL_SUCCESS';
+  let outcome: GenericOutcome;
+
+  if (roll >= frictionThreshold + 5) {
+    outcome = 'SUCCESS';
+  } else if (roll >= frictionThreshold) {
+    outcome = 'PARTIAL_SUCCESS';
+  } else {
+    outcome = 'FAILURE';
+  }
 
   return {
     classification: 'PLAUSIBLE_UNMODELED',
     outcome,
     magnitude: 1,
-    probability: 0.5,
+    probability: Number(((21 - frictionThreshold) / 20).toFixed(2)),
     source: 'ENGINE_CALCULATED',
     stateChanges: [],
     consequences: [
@@ -278,6 +523,6 @@ export function resolveGenericPlausibleAction(
         authorized: true
       }
     ],
-    reason: `Resolução genérica contextual executada com sucesso (roll=${roll}).`
+    reason: `Resolução genérica contextual executada: ${outcome} (roll=${roll}, atrito=${frictionThreshold}).`
   };
 }
