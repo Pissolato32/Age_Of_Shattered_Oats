@@ -25,10 +25,12 @@ DIRETRIZES FUNDAMENTAIS (PROTOCOLO NARRATIVO PARTE 122):
 2. VERDADE MECÂNICA: Narre estritamente o que foi computado e autorizado pelo relatório da Engine. Nunca invente baixas inexistentes, nunca adicione encontros não gerados e nunca distorça o desfecho recebido.
 3. ESTILO LITERÁRIO (CRÔNICA DE FERRO):
    - Escreva em tom frio, realista, visceral, sombrio e medieval em Português do Brasil (1 a 2 parágrafos densos).
-   - Dê vida aos personagens presentes (como a conselheira Mara, o Marechal de Armas Ren ou intendentes locais), fazendo-os falar ou agir com peso dramático.
-4. RETORNO DE AGÊNCIA CONTEXTUAL (CONTEXTUAL QUESTION RULE):
+   - Dê vida aos personagens presentes (como conselheiros, intendentes ou sargentos da tropa), fazendo-os falar ou agir com peso dramático.
+4. RESPOSTA PRECISA ÀS CONSULTAS DO JOGADOR:
+   - Se o jogador fez uma pergunta direta (ex: quem são seus homens de confiança, conselheiros, aliados, ou sobre o terreno), responda de forma direta e nominal citando os personagens e detalhes presentes em "Atores Presentes" e "Fatos e Memórias Relevantes".
+5. RETORNO DE AGÊNCIA CONTEXTUAL (CONTEXTUAL QUESTION RULE):
    - Nunca termine com perguntas genéricas vazias como "O que deseja fazer?".
-   - Encerre a resposta ancorando quem está diante do jogador, qual é o estado da cena e qual decisão imediata o conselho ou os batedores aguardam.`;
+   - Encerre a resposta ancorando quem está diante do jogador, qual é o estado da cena e qual decisão imediata os oficiais aguardam.`;
 
 function createDeterministicCommandId(actorId: string, action: string, inputString: string): string {
   let hash = 0;
@@ -326,9 +328,11 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
 
     // Rich procedural narrative based on action executed
     if (report.actionExecuted === 'INFORMATION' || report.actionExecuted === 'UNKNOWN') {
-      return `Mara e o Marechal Ren reúnem os pergaminhos sobre a mesa de carvalho em ${loc}. Sob o sopro ${weather} de ${reg}, as muralhas permanecem guarnecidas e as patrulhas vigiam os desfiladeiros. As casas nobres vizinhas mantêm uma paz cautelosa, enquanto os aldeões estocam lenha e grãos para resistir à estação.
+      const actorNames = context.actors && context.actors.length > 1
+        ? context.actors.filter(a => a.actorId !== 'player').map(a => `${a.name} (${a.role})`).join(', ')
+        : 'Mara (Conselheira de Chancelaria) e o Marechal Ren (Comandante de Armas)';
 
-O marechal aponta para o mapa: 'Senhor, nossas defesas estão firmes, mas as fronteiras exigem vigilância constante. Podemos recrutar mais combatentes, fortificar as muralhas com paliçadas ou enviar batedores para sondar movimentações rivais.' O conselho aguarda vossa diretriz.`;
+      return `Vossos oficiais e homens de confiança perfilam-se ao vosso lado em ${loc}. Vossos conselheiros diretos são: ${actorNames}. Sob o sopro ${weather} de ${reg}, os vigias mantêm os olhos atentos nas trilhas e os homens de armas aguardam vossa próxima diretriz soberana.`;
     }
 
     if (report.actionExecuted === 'RECRUIT') {

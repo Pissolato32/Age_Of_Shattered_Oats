@@ -97,7 +97,7 @@ export function createObserverProjection(
     immediateCircumstances: immediateCircumstances.length > 0 ? immediateCircumstances : undefined
   };
 
-  // 2. Actors in Scope (Player character and visible local figures)
+  // 2. Actors in Scope (Player character, inner circle advisors, and visible local figures)
   const actors: NarrativeActor[] = [
     {
       actorId: state.character.name,
@@ -106,6 +106,43 @@ export function createObserverProjection(
       house: state.character.house
     }
   ];
+
+  // Include Player's Inner Circle Advisors / Lieutenants
+  if (state.advisors) {
+    if (state.advisors.counselorName) {
+      actors.push({
+        actorId: 'advisor_counselor',
+        name: state.advisors.counselorName,
+        role: state.character.archetype === 'Landless' ? 'Sargento e Segundo em Comando' : 'Conselheira de Chancelaria e Diplomacia',
+        goals: ['Aconselhar o líder e zelar pela honra da Casa']
+      });
+    }
+    if (state.advisors.stewardName) {
+      actors.push({
+        actorId: 'advisor_steward',
+        name: state.advisors.stewardName,
+        role: state.character.archetype === 'Landless' ? 'Intendente e Pagador da Tropa' : 'Intendente de Fazenda e Provisões',
+        goals: ['Controlar os mantimentos e o tesouro']
+      });
+    }
+    if (state.advisors.spyMasterName) {
+      actors.push({
+        actorId: 'advisor_spymaster',
+        name: state.advisors.spyMasterName,
+        role: state.character.archetype === 'Landless' ? 'Batedor e Olhos da Companhia' : 'Mestre dos Sussurros e Informações',
+        goals: ['Vigiar os movimentos dos rivais e reportar segredos']
+      });
+    }
+  }
+
+  if (state.holdings?.residentSmith?.name) {
+    actors.push({
+      actorId: 'resident_smith',
+      name: state.holdings.residentSmith.name,
+      role: 'Mestre Armeiro e Ferreiro',
+      goals: ['Forjar e manter o equipamento de armas']
+    });
+  }
 
   if (state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
     for (const house of state.worldLedger.nobleHouses) {
@@ -138,6 +175,24 @@ export function createObserverProjection(
           subjectId: mem.subjectId
         });
       }
+    }
+  }
+
+  // Inner circle and trusted advisors fact
+  if (state.advisors) {
+    const list = [
+      state.advisors.counselorName ? `${state.advisors.counselorName} (Chancelaria e Braço Direito)` : null,
+      state.advisors.stewardName ? `${state.advisors.stewardName} (Intendente de Provisões e Finanças)` : null,
+      state.advisors.spyMasterName ? `${state.advisors.spyMasterName} (Mestre dos Sussurros e Batedor)` : null
+    ].filter(Boolean).join(', ');
+    if (list) {
+      knownFacts.push({
+        factId: 'fact_inner_circle',
+        statement: `Oficiais de confiança e conselheiros diretos do líder: ${list}`,
+        tier: 'CHARACTER_KNOWLEDGE',
+        certainty: 'CONFIRMED',
+        source: 'ENGINE'
+      });
     }
   }
 
