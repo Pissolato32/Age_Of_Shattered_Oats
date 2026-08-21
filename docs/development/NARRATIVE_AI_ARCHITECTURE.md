@@ -10,6 +10,12 @@ This specification governs all current and future AI integrations to ensure that
 
 ## 2. Core Architectural Principles
 
+### Contract foundation status
+
+The typed contract foundation now lives in `src/lib/narrativeContracts.ts` and is documented in `NARRATIVE_AI_CONTRACTS.md`. `NarrativeCommand`, `ExecutionReport`, `ObserverProjection`, `KnowledgeTier`, and `NarrativeContext` are implemented as data contracts. The Engine boundary `resolveNarrativeCommand()` now resolves `NarrativeCommand` through the existing deterministic rules and produces real `ExecutionReport`s (deltas/facts/consequences, never state snapshots) for the supported action subset. The deterministic vertical slice v0.1 (`src/lib/narrativeLLM.ts` interface, `src/lib/mockNarrativeLLM.ts` offline provider, `src/lib/narrativeCycle.ts` orchestrator, `src/lib/semanticValidation.ts` validator) demonstrates the full AI → ENGINE → AI cycle offline with adversarial tests. The complete production path remains partial: the current narrator route and existing UI actions are intentionally unchanged, the Engine has not yet been wired to construct observer projections for observers beyond the current player/character, and no live LLM provider is connected yet (see `NARRATIVE_VERTICAL_SLICE_V0_1_IMPLEMENTATION_REPORT.md`).
+
+> **AI must never receive unrestricted `CampaignState`.**
+
 ### A. Engine vs. AI Responsibility Split
 
 - **The Game Engine is the SINGLE SOURCE OF TRUTH**:
@@ -32,6 +38,36 @@ This specification governs all current and future AI integrations to ensure that
          ↓
     PLAYER DISPLAY
     ```
+
+### A.1 Generic Resolution Philosophy (normative)
+
+> **The Engine closes the circle only over what is impossible, illegal, or mechanically defined.
+> For plausible situations without a specific rule, the Engine provides a deterministic
+> resolution/magnitude and the AI interprets/narrates the result.**
+
+The world is not limited to the set of commands that were explicitly programmed. The system
+classifies every action into one of four classes:
+
+1. **CANONICAL** — a specific Codex/Engine rule exists; the rule has authority.
+2. **PLAUSIBLE_UNMODELED** — no dedicated rule exists, but the action is physically, socially
+   and contextually plausible; the Engine resolves a deterministic magnitude/outcome from
+   contextual reference values and seeded randomness.
+3. **IMPOSSIBLE** — contradicts immutable world constraints, current state, or explicit
+   canonical restrictions; the Engine rejects it.
+4. **AMBIGUOUS** — the intention cannot be resolved without player input; the Engine requests
+   clarification.
+
+The LLM MUST NEVER manufacture a canonical rule merely because one does not exist; the Engine
+MUST NOT reject a plausible action merely because no dedicated mechanic exists. The LLM receives
+the factual result (`ExecutionReport`), never the hidden formula, RNG roll, calibration
+coefficients, or internal decision process.
+
+Full normative text, per-action framing, and the two resolution mechanisms (canonical /
+emergent): `NARRATIVE_MAGNITUDE_RESOLUTION_SYSTEM.md` §2.1. The Magnitude Resolution System v0.1
+is the first concrete implementation of this architecture (RECRUIT magnitude — config frozen in
+`src/lib/magnitudeConfig.ts`, resolver in `src/lib/magnitudeResolution.ts`, wired into the Engine
+facade; see `NARRATIVE_MAGNITUDE_RESOLUTION_V0_1_IMPLEMENTATION_REPORT.md`); the generic
+`PLAUSIBLE_UNMODELED` resolver is a future step.
 
 ---
 

@@ -1,0 +1,174 @@
+import {
+  NARRATIVE_CONTRACT_VERSION,
+  NarrativeCommand,
+  NarrativeContext,
+  NarrativeAction
+} from './narrativeContracts';
+import { InterpretInput, NarrativeLLM } from './narrativeLLM';
+
+/**
+ * Deterministic offline provider for the vertical slice. Keyword-driven, no
+ * network, no API key, no RNG, no clock. It never accesses CampaignState
+ * directly: it grounds only on the Engine-authorized inputs it receives
+ * (ObserverProjection for interpretation, NarrativeContext for narration).
+ */
+export class MockNarrativeLLM implements NarrativeLLM {
+  readonly providerId = 'mock';
+  readonly modelId = 'mock-deterministic';
+
+  interpret(input: InterpretInput): Promise<NarrativeCommand> {
+    return Promise.resolve(interpretInput(input.playerInput));
+  }
+
+  narrate(context: NarrativeContext): Promise<string> {
+    return Promise.resolve(narrateReport(context));
+  }
+}
+
+function buildCommand(action: NarrativeAction, overrides: Partial<NarrativeCommand> = {}): NarrativeCommand {
+  return {
+    contractVersion: NARRATIVE_CONTRACT_VERSION,
+    commandId: `mock-${action.toLowerCase()}-command`,
+    actorId: 'player',
+    action,
+    constraints: [],
+    confidence: 1,
+    ambiguity: [],
+    requiresClarification: false,
+    ...overrides
+  };
+}
+
+function extractQuantity(input: string): number | undefined {
+  const match = /\b(\d+)\b/.exec(input);
+  if (!match) return undefined;
+  const quantity = parseInt(match[1], 10);
+  return Number.isFinite(quantity) && quantity >= 1 ? quantity : undefined;
+}
+
+const CLARIFY_KEYWORDS = ['falar com', 'falar com ele', 'conversar', 'talk to', 'speak with'];
+const RECRUIT_KEYWORDS = ['recrut', 'recruit', 'soldado', 'soldier', 'infantaria'];
+const BUILD_KEYWORDS = ['constru', 'build', 'palisad', 'palisade', 'fortifica'];
+const INFO_KEYWORDS = ['quanto custa', 'qual o custo', 'como funciona', 'how much', 'qual regra'];
+const TRAVEL_KEYWORDS = ['viajar', 'marchar', 'viagem', 'travel', 'march'];
+const TRADE_KEYWORDS = ['comprar', 'vender', 'trocar', 'comercio', 'comércio', 'buy', 'sell'];
+const IMPOSSIBLE_KEYWORDS = ['mato o rei', 'matar o rei', 'kill the king'];
+
+function interpretInput(playerInput: string): NarrativeCommand {
+  const normalized = ` ${playerInput.trim().toLowerCase()} `;
+
+  if (IMPOSSIBLE_KEYWORDS.some(k => normalized.includes(k))) {
+    return buildCommand('UNKNOWN');
+  }
+
+  if (CLARIFY_KEYWORDS.some(k => normalized.includes(k))) {
+    return buildCommand('UNKNOWN', {
+      requiresClarification: true,
+      ambiguity: ['alvo da conversa não identificado'],
+      confidence: 0.6
+    });
+  }
+
+  if (INFO_KEYWORDS.some(k => normalized.includes(k))) {
+    return buildCommand('INFORMATION', { confidence: 0.9 });
+  }
+
+  if (RECRUIT_KEYWORDS.some(k => normalized.includes(k))) {
+    const quantity = extractQuantity(playerInput);
+    if (quantity === undefined) {
+      return buildCommand('RECRUIT', {
+        magnitude: { mode: 'ENGINE_DETERMINED' },
+        desiredOutcome: 'reforçar as fileiras com novos soldados',
+        confidence: 0.85
+      });
+    }
+    return buildCommand('RECRUIT', {
+      commandId: `mock-recruit-${quantity}`,
+      magnitude: { mode: 'FIXED', value: quantity },
+      desiredOutcome: `recrutar ${quantity} soldados`,
+      confidence: 0.95
+    });
+  }
+
+  if (BUILD_KEYWORDS.some(k => normalized.includes(k))) {
+    const structure = /palisad|palisade/.test(normalized)
+      ? 'palisade'
+      : /muralha|pedra|stone/.test(normalized)
+        ? 'stone_wall'
+        : undefined;
+    if (structure === undefined) {
+      return buildCommand('BUILD', {
+        requiresClarification: true,
+        ambiguity: ['estrutura a construir não identificada'],
+        confidence: 0.6
+      });
+    }
+    return buildCommand('BUILD', {
+      commandId: `mock-build-${structure}`,
+      objectId: structure,
+      desiredOutcome: `construir ${structure === 'palisade' ? 'palisada de madeira' : 'muralha de pedra'}`,
+      confidence: 0.95
+    });
+  }
+
+  if (INFO_KEYWORDS.some(k => normalized.includes(k))) {
+    return buildCommand('INFORMATION', { confidence: 0.9 });
+  }
+
+  if (TRAVEL_KEYWORDS.some(k => normalized.includes(k))) {
+    if (!/central plains|fronteira/.test(normalized)) {
+      return buildCommand('TRAVEL', {
+        requiresClarification: true,
+        ambiguity: ['destino da viagem não identificado'],
+        confidence: 0.6
+      });
+    }
+    return buildCommand('TRAVEL', {
+      locationId: 'Central Plains',
+      confidence: 0.9
+    });
+  }
+
+  if (TRADE_KEYWORDS.some(k => normalized.includes(k))) {
+    const goods = ['mantimentos', 'comida', 'madeira', 'ferro', 'pedra', 'racao', 'ração'].find(g =>
+      normalized.includes(g)
+    );
+    if (goods === undefined) {
+      return buildCommand('TRADE', {
+        requiresClarification: true,
+        ambiguity: ['mercadoria da transação não identificada'],
+        confidence: 0.6
+      });
+    }
+    return buildCommand('TRADE', {
+      objectId: goods,
+      confidence: 0.9
+    });
+  }
+
+  return buildCommand('UNKNOWN', { confidence: 0.5 });
+}
+
+function narrateReport(context: NarrativeContext): string {
+  const report = context.executionResult;
+
+  if (report.status === 'REJECTED') {
+    if (report.reasonCode.includes('esclarecimento')) {
+      return 'Antes de qualquer ação, preciso de um esclarecimento: o que exatamente deseja fazer?';
+    }
+    return `A ação solicitada não foi executada: ${report.reasonCode}`;
+  }
+
+  switch (report.actionExecuted) {
+    case 'RECRUIT': {
+      const levies = report.stateChanges.find(sc => sc.path === 'army.units.levies')?.delta ?? 0;
+      return `O recrutamento foi autorizado: ${levies} soldados incorporados às suas forças, e o tesouro arcou com o ônus devido.`;
+    }
+    case 'BUILD': {
+      const silverdew = report.stateChanges.find(sc => sc.path === 'weeklyLedger.silverdew')?.delta ?? 0;
+      return `A construção foi autorizada: a paliçada avança sob as muralhas, custo total de ${Math.abs(silverdew)} SD.`;
+    }
+    default:
+      return 'A solicitação foi registrada e autorizada sem alteração mecânica.';
+  }
+}

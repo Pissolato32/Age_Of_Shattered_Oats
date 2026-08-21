@@ -1,0 +1,226 @@
+{
+  "categories": [
+    {
+      "id": "aldeia",
+      "label": "Aldeia",
+      "expectedTier": 2,
+      "tierThresholdsUsed": {
+        "population": 1000,
+        "labor": 400,
+        "military": 100,
+        "treasury": 85
+      },
+      "pure": {
+        "runs": 100000,
+        "infeasible": 0,
+        "median": 10,
+        "p05": 10,
+        "p95": 10,
+        "min": 10,
+        "max": 10,
+        "capPinnedRate": 1,
+        "envelopeMissRate": 1,
+        "withinEnvelopeRate": 0
+      },
+      "e2e": {
+        "runs": 1000,
+        "accepted": 1000,
+        "rejected": 0,
+        "magnitudeMismatch": 0,
+        "deltaMismatch": 0,
+        "negativeBalance": 0
+      },
+      "sequential": {
+        "runs": 1000,
+        "weeks": 20,
+        "medianBatch": 3,
+        "treasuryMin": 0,
+        "laborExhaustionWeek": null,
+        "finalUnitSize": 129,
+        "finalMaxSize": 129
+      }
+    },
+    {
+      "id": "vila",
+      "label": "Vila",
+      "expectedTier": 2,
+      "tierThresholdsUsed": {
+        "population": 1200,
+        "labor": 480,
+        "military": 100,
+        "treasury": 300
+      },
+      "pure": {
+        "runs": 100000,
+        "infeasible": 0,
+        "median": 10,
+        "p05": 10,
+        "p95": 10,
+        "min": 10,
+        "max": 10,
+        "capPinnedRate": 1,
+        "envelopeMissRate": 1,
+        "withinEnvelopeRate": 0
+      },
+      "e2e": {
+        "runs": 1000,
+        "accepted": 1000,
+        "rejected": 0,
+        "magnitudeMismatch": 0,
+        "deltaMismatch": 0,
+        "negativeBalance": 0
+      },
+      "sequential": {
+        "runs": 1000,
+        "weeks": 20,
+        "medianBatch": 3,
+        "treasuryMin": 0,
+        "laborExhaustionWeek": null,
+        "finalUnitSize": 129,
+        "finalMaxSize": 129
+      }
+    },
+    {
+      "id": "cidade",
+      "label": "Cidade",
+      "expectedTier": 3,
+      "tierThresholdsUsed": {
+        "population": 3000,
+        "labor": 1200,
+        "military": 180,
+        "treasury": 1000
+      },
+      "pure": {
+        "runs": 100000,
+        "infeasible": 0,
+        "median": 10,
+        "p05": 10,
+        "p95": 10,
+        "min": 10,
+        "max": 10,
+        "capPinnedRate": 1,
+        "envelopeMissRate": 1,
+        "withinEnvelopeRate": 0
+      },
+      "e2e": {
+        "runs": 1000,
+        "accepted": 1000,
+        "rejected": 0,
+        "magnitudeMismatch": 0,
+        "deltaMismatch": 0,
+        "negativeBalance": 0
+      },
+      "sequential": {
+        "runs": 1000,
+        "weeks": 20,
+        "medianBatch": 6.5,
+        "treasuryMin": 0,
+        "laborExhaustionWeek": null,
+        "finalUnitSize": 193,
+        "finalMaxSize": 193
+      }
+    },
+    {
+      "id": "cidade_grande",
+      "label": "Cidade grande",
+      "expectedTier": 4,
+      "tierThresholdsUsed": {
+        "population": 5000,
+        "labor": 2000,
+        "military": 300,
+        "treasury": 3000
+      },
+      "pure": {
+        "runs": 100000,
+        "infeasible": 0,
+        "median": 10,
+        "p05": 10,
+        "p95": 10,
+        "min": 10,
+        "max": 10,
+        "capPinnedRate": 1,
+        "envelopeMissRate": 1,
+        "withinEnvelopeRate": 0
+      },
+      "e2e": {
+        "runs": 1000,
+        "accepted": 1000,
+        "rejected": 0,
+        "magnitudeMismatch": 0,
+        "deltaMismatch": 0,
+        "negativeBalance": 0
+      },
+      "sequential": {
+        "runs": 1000,
+        "weeks": 20,
+        "medianBatch": 10,
+        "treasuryMin": 0,
+        "laborExhaustionWeek": null,
+        "finalUnitSize": 293,
+        "finalMaxSize": 293
+      }
+    },
+    {
+      "id": "capital",
+      "label": "Capital",
+      "expectedTier": 4,
+      "tierThresholdsUsed": {
+        "population": 10000,
+        "labor": 4000,
+        "military": 450,
+        "treasury": 10000
+      },
+      "pure": {
+        "runs": 100000,
+        "infeasible": 0,
+        "median": 10,
+        "p05": 10,
+        "p95": 10,
+        "min": 10,
+        "max": 10,
+        "capPinnedRate": 1,
+        "envelopeMissRate": 1,
+        "withinEnvelopeRate": 0
+      },
+      "e2e": {
+        "runs": 1000,
+        "accepted": 1000,
+        "rejected": 0,
+        "magnitudeMismatch": 0,
+        "deltaMismatch": 0,
+        "negativeBalance": 0
+      },
+      "sequential": {
+        "runs": 1000,
+        "weeks": 20,
+        "medianBatch": 10,
+        "treasuryMin": 8,
+        "laborExhaustionWeek": null,
+        "finalUnitSize": 300,
+        "finalMaxSize": 300
+      }
+    }
+  ],
+  "acceptance": {
+    "1_0_rejected": true,
+    "2_median_within_envelope": false,
+    "3_95_percent_within_envelope": false,
+    "4_max_within_caps": true,
+    "5_treasury_labor_never_negative": true,
+    "6_sanity_45_1": true,
+    "7_determinism": true,
+    "8_runtime_60s": "90122ms > 60000ms",
+    "9_cap_dominance_flagged": "median==cap? true; capPinnedRate=1.000/1.000/1.000/1.000/1.000; recommended v0.2 balance candidate"
+  },
+  "determinism": {
+    "verified": true,
+    "sampleRuns": 200
+  },
+  "runtimeMs": 90122.49500000001,
+  "phaseTimesMs": {
+    "pure": 47834.550500000005,
+    "e2e": 23054.162300000004,
+    "sequential": 19011.45709999999,
+    "determinism": 222.47660000000542
+  }
+}

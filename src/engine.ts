@@ -1,6 +1,6 @@
 import { CampaignState, Character, WeeklyLedger, ArmyUnit, Holdings, ResourcePatch, NobleHouse, TurnResult } from "./types";
 import { INITIAL_HOUSES, REGIONS, MONTHS } from "./data";
-import { globalRNG } from "./core/RandomService";
+import { globalRNG, RandomService } from "./core/RandomService";
 import { globalEventStore } from "./core/EventStore";
 import { Relationship } from "./domain/relationship/Relationship";
 import { CommanderAIService, CombatContext, CommanderProfile, CombatTactic } from "./domain/npc_ai/CommanderAIService";
@@ -15,6 +15,44 @@ import { TreasuryService, ExpenseOutcome } from "./domain/kingdom/services/Treas
 import { ConstructionService, ConstructionRefundResult, ResourcePatchQuality } from "./domain/kingdom/services/ConstructionService";
 import { PayrollService, UpkeepCosts, DesertionResult } from "./domain/military/services/PayrollService";
 import { BreedingService } from "./domain/military/services/BreedingService";
+import { createNarrativeContext, ExecutionReport, NarrativeCommand, NarrativeContext, ObserverProjection } from "./lib/narrativeContracts";
+import { createObserverProjection } from "./lib/narrativeProjection";
+import { NarrativeResolutionResult, resolveNarrativeCommand as resolveNarrativeCommandCore } from "./lib/narrativeExecution";
+
+/**
+ * Builds an observer-scoped narrative context from an already-authorized projection.
+ * CampaignState filtering remains an Engine responsibility for a future integration step.
+ */
+export function buildNarrativeContext(
+  projection: ObserverProjection,
+  executionReport: ExecutionReport
+): NarrativeContext {
+  return createNarrativeContext(projection, executionReport);
+}
+
+/**
+ * Creates an explicit observer projection from CampaignState using a deny-by-default allow-list.
+ */
+export function buildObserverProjection(
+  state: CampaignState,
+  observer: ObserverProjection['observer']
+): ObserverProjection {
+  return createObserverProjection(state, observer);
+}
+
+/**
+ * Authoritative Engine boundary: resolves an interpreted NarrativeCommand through
+ * the existing deterministic rules and represents only real consequences as an
+ * ExecutionReport of deltas/facts (never a CampaignState snapshot). The injected
+ * RandomService is consumed only for MRS magnitude draws (default: globalRNG).
+ */
+export function resolveNarrativeCommand(
+  command: NarrativeCommand,
+  state: CampaignState,
+  rng?: RandomService
+): NarrativeResolutionResult {
+  return resolveNarrativeCommandCore(command, state, rng);
+}
 
 /**
  * Calculates mount breeding success rates based on primary region suitability and holding tier limits using canonical BreedingService rules.
