@@ -1030,16 +1030,19 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     // Use FoodService for military food consumption calculation
     const totalFoodConsumption = FoodService.calculateMilitaryConsumption(totalMilitaryUnitsSize);
 
+    const foodState = { treasuryFsu: s.weeklyLedger.food, famineTicks: s.weeklyLedger.famineTicks };
     const foodOutcome = FoodService.applyFoodConsumption(
-      { treasuryFsu: s.weeklyLedger.food, famineTicks: s.weeklyLedger.famineTicks },
+      foodState,
       totalFoodConsumption
     );
 
     if (!foodOutcome.famineStarted) {
-      s.weeklyLedger.food = foodOutcome.consumed;
+      s.weeklyLedger.food = foodState.treasuryFsu;
+      s.weeklyLedger.famineTicks = 0;
       turnResult.foodChanges -= totalFoodConsumption;
     } else {
       s.weeklyLedger.food = 0;
+      s.weeklyLedger.famineTicks = foodState.famineTicks;
       turnResult.militaryChanges.moralePenalty += 1; // Fome gera penalidade
       s.army.units.forEach(u => {
         u.morale = Math.max(1, u.morale - 1);
@@ -1050,13 +1053,14 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
       });
     }
 
+    const treasuryState = { treasurySd: s.weeklyLedger.silverdew };
     const treasuryOutcome = TreasuryService.deductExpenses(
-      { treasurySd: s.weeklyLedger.silverdew },
+      treasuryState,
       totalWages
     );
 
     if (!treasuryOutcome.defaulted) {
-      s.weeklyLedger.silverdew = treasuryOutcome.expensesDeducted; // remaining SD
+      s.weeklyLedger.silverdew = treasuryState.treasurySd; // remaining SD
       turnResult.militaryChanges.wagesPaid = totalWages;
       const payrollState = { units: s.army.units, unpaidTicks: s.weeklyLedger.unpaidWagesTicks };
       PayrollService.applyPaymentOutcome(payrollState, true);
