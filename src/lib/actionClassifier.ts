@@ -113,8 +113,8 @@ export function classifyNarrativeCommand(
     }
   }
 
-  // Priority 2: Check Canonical Rule Domain (with closed mechanical resolver)
-  if (CANONICALLY_RESOLVED_DOMAINS.has(command.action)) {
+  // Priority 2: Check Canonical Rule Domain
+  if (CANONICAL_DOMAINS.has(command.action)) {
     return {
       type: 'CANONICAL',
       reason: `Ação ${command.action} possui regra canônica modelada no Engine.`,
