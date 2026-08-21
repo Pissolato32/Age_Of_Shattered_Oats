@@ -223,7 +223,7 @@ function readResourceValue(state: CampaignState, path: string): number | undefin
     case 'materials.stone':
       return state.weeklyLedger.materials.stone;
     case 'army.units.levies':
-      return state.army.units.filter(u => u.type === 'Levy').reduce((sum, u) => sum + u.size, 0);
+      return (state.army?.units ?? []).filter(u => u.type === 'Levy').reduce((sum, u) => sum + u.size, 0);
     default:
       return undefined;
   }

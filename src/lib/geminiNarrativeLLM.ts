@@ -12,8 +12,8 @@ export interface GeminiConfig {
   readonly fetchFn?: typeof fetch;
 }
 
-const DEFAULT_MODEL = 'gemini-2.5-flash';
-const CANDIDATE_MODELS = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
+const DEFAULT_MODEL = 'gemini-3.6-flash';
+const CANDIDATE_MODELS = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-flash'];
 const DEFAULT_TIMEOUT_MS = 15000;
 
 const SYSTEM_PROMPT = `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (seguindo o Protocolo Narrativo da Crônica de Ferro).

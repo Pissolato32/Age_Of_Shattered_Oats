@@ -11,6 +11,7 @@ import { GeminiNarrativeLLM } from "./src/lib/geminiNarrativeLLM";
 import { MockNarrativeLLM } from "./src/lib/mockNarrativeLLM";
 import { NarrativeObserver } from "./src/lib/narrativeContracts";
 import { CampaignState } from "./src/types";
+import { sanitizeState } from "./src/engine";
 
 dotenv.config();
 
@@ -129,9 +130,11 @@ async function startServer() {
         observerId: "player"
       };
 
+      const normalizedState = sanitizeState(state);
+
       const result = await runNarrativeCycle({
         playerInput,
-        state: state as CampaignState,
+        state: normalizedState,
         observer,
         llm
       });

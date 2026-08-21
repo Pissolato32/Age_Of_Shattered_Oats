@@ -1333,138 +1333,150 @@ export function importStateFromText(textBlock: string): CampaignState {
       throw new Error("O savegame fornecido não é um objeto de estado válido.");
     }
 
-    // Auto-populate / sanitize defaults for missing structures
-    const defaultState = createInitialState(
-      parsedState.character?.archetype || "Noble Ruler", 
-      parsedState.character?.location?.region || "Southern Mountains"
-    );
-
-    // Merge character safely
-    const character = { ...defaultState.character, ...parsedState.character };
-    character.stats = { ...defaultState.character.stats, ...parsedState.character?.stats };
-    character.location = { ...defaultState.character.location, ...parsedState.character?.location };
-    character.banner = { ...defaultState.character.banner, ...parsedState.character?.banner };
-    character.nicknames = parsedState.character?.nicknames || defaultState.character.nicknames;
-
-    // Sanitize character null overrides
-    if (character.archetype === null || character.archetype === undefined) character.archetype = "Noble Ruler";
-    if (character.gender === null || character.gender === undefined) character.gender = "Male";
-    if (character.reputation === null || character.reputation === undefined) character.reputation = 0;
-    if (character.stats.ac === null || character.stats.ac === undefined) character.stats.ac = 4;
-    if (character.stats.initiativeBonus === null || character.stats.initiativeBonus === undefined) character.stats.initiativeBonus = 1;
-    if (character.location.subregion === null || character.location.subregion === undefined) character.location.subregion = "The Frontier";
-    if (character.location.distanceNearTown === null || character.location.distanceNearTown === undefined) character.location.distanceNearTown = 3;
-    if (character.location.distanceNearCastle === null || character.location.distanceNearCastle === undefined) character.location.distanceNearCastle = 0;
-    if (character.location.distanceCapital === null || character.location.distanceCapital === undefined) character.location.distanceCapital = 4;
-
-    // Merge weeklyLedger safely
-    const weeklyLedger = { ...defaultState.weeklyLedger, ...parsedState.weeklyLedger };
-    weeklyLedger.materials = { ...defaultState.weeklyLedger.materials, ...parsedState.weeklyLedger?.materials };
-
-    // Sanitize weeklyLedger null overrides
-    if (weeklyLedger.week === null || weeklyLedger.week === undefined) weeklyLedger.week = 1;
-    if (weeklyLedger.weather === null || weeklyLedger.weather === undefined) weeklyLedger.weather = "Cold and Windy";
-
-    // Merge army safely
-    const army = { ...defaultState.army, ...parsedState.army };
-    army.garrisonDetail = parsedState.army?.garrisonDetail || parsedState.army?.garrison?.detail || parsedState.garrisonDetail || parsedState.garrison?.detail;
-    army.commandStructure = parsedState.army?.commandStructure || parsedState.army?.chainOfCommand || parsedState.commandStructure || parsedState.chainOfCommand;
-    army.militia = parsedState.army?.militia || parsedState.militia;
-    
-    if (parsedState.army?.units && Array.isArray(parsedState.army.units)) {
-      army.units = parsedState.army.units.map((u: any, idx: number) => {
-        const sizeVal = (u.size !== undefined && u.size !== null) ? u.size : 30;
-        const maxSizeVal = (u.maxSize !== undefined && u.maxSize !== null) ? u.maxSize : sizeVal;
-        return {
-          id: `u_recruited_${globalRNG.nextInt(0, 1000000)}`,
-          name: u.name || "Guarda Desconhecida",
-          size: sizeVal,
-          maxSize: maxSizeVal,
-          tier: (u.tier !== undefined && u.tier !== null) ? u.tier : 1,
-          ac: (u.ac !== undefined && u.ac !== null) ? u.ac : 3,
-          weapon: u.weapon || "Spear",
-          mount: u.mount || "None",
-          morale: (u.morale !== undefined && u.morale !== null) ? u.morale : 5,
-          type: u.type
-        };
-      });
-    }
-
-    // Merge holdings safely
-    const holdings = { ...defaultState.holdings, ...parsedState.holdings };
-    holdings.villages = parsedState.holdings?.villages || parsedState.villages || [];
-    holdings.otherHoldings = parsedState.holdings?.otherHoldings || parsedState.otherHoldings || [];
-    if (parsedState.holdings?.fortification) {
-      holdings.fortification = { ...defaultState.holdings.fortification, ...parsedState.holdings.fortification };
-    }
-    if (parsedState.holdings?.residentSmith) {
-      holdings.residentSmith = { ...defaultState.holdings.residentSmith, ...parsedState.holdings.residentSmith };
-    }
-
-    // Merge inventory safely
-    const inventory = {
-      horns: parsedState.inventory?.horns || defaultState.inventory.horns,
-      smudgeBundles: {
-        sage: parsedState.inventory?.smudgeBundles?.sage !== undefined ? parsedState.inventory.smudgeBundles.sage : 0,
-        cedar: parsedState.inventory?.smudgeBundles?.cedar !== undefined ? parsedState.inventory.smudgeBundles.cedar : 0,
-        sweetgrass: parsedState.inventory?.smudgeBundles?.sweetgrass !== undefined ? parsedState.inventory.smudgeBundles.sweetgrass : 0,
-        tobacco: parsedState.inventory?.smudgeBundles?.tobacco !== undefined ? parsedState.inventory.smudgeBundles.tobacco : 0,
-      }
-    };
-
-    // Merge advisors safely
-    const advisors = { ...defaultState.advisors, ...parsedState.advisors };
-
-    // Populate worldLedger
-    const worldLedger = parsedState.worldLedger || defaultState.worldLedger;
-
-    // Populate other missing sections
-    const crowns = parsedState.crowns || defaultState.crowns;
-    const worldSecrets = parsedState.worldSecrets || defaultState.worldSecrets;
-    const falseLineage = parsedState.falseLineage || defaultState.falseLineage;
-    const revealedRegions = parsedState.revealedRegions || defaultState.revealedRegions;
-    const narrativeHistory = parsedState.narrativeHistory || defaultState.narrativeHistory;
-
-    const mergedState: CampaignState = {
-      ...defaultState,
-      character,
-      weeklyLedger,
-      army,
-      holdings,
-      inventory,
-      advisors,
-      worldLedger,
-      crowns,
-      worldSecrets,
-      falseLineage,
-      revealedRegions,
-      narrativeHistory,
-      councils: parsedState.councils || defaultState.councils,
-      spyNetwork: parsedState.spyNetwork || defaultState.spyNetwork,
-      equipmentInventory: parsedState.equipmentInventory || defaultState.equipmentInventory,
-      mountBreeding: parsedState.mountBreeding || parsedState.holdings?.mountBreeding,
-      tradeRoutes: parsedState.tradeRoutes || parsedState.diplomacy?.tradeRoutes,
-      caravanLedger: parsedState.caravanLedger || defaultState.caravanLedger,
-      regionalTrade: parsedState.regionalTrade || defaultState.regionalTrade,
-      tribalRelations: parsedState.tribalRelations || parsedState.diplomacy?.tribalRelations || defaultState.tribalRelations,
-      meta: parsedState.meta,
-      executiveBrief: parsedState.executiveBrief,
-      characters: parsedState.characters,
-      diplomacy: parsedState.diplomacy,
-      livroNegroDetail: parsedState.livroNegroDetail,
-      mercenaries: parsedState.mercenaries,
-      fortalezasOrm: parsedState.fortalezasOrm,
-      genealogy: parsedState.genealogy,
-      distances: parsedState.distances,
-      hiddenHeir: parsedState.hiddenHeir,
-      discoveredArtifacts: parsedState.discoveredArtifacts || defaultState.discoveredArtifacts,
-      family: parsedState.family || defaultState.family
-    };
-
-    return mergedState;
+    return sanitizeState(parsedState);
   } catch (error: any) {
     throw new Error(`Falha ao carregar campanha: ${error.message}`);
   }
+}
+
+/**
+ * Normalizes and sanitizes any partial or incoming CampaignState object, ensuring
+ * that all default domains, arrays, army units, and nested structures exist safely.
+ */
+export function sanitizeState(parsedState: any): CampaignState {
+  if (!parsedState || typeof parsedState !== 'object') {
+    return createInitialState("Noble Ruler", "Southern Mountains");
+  }
+
+  // Auto-populate / sanitize defaults for missing structures
+  const defaultState = createInitialState(
+    parsedState.character?.archetype || "Noble Ruler", 
+    parsedState.character?.location?.region || "Southern Mountains"
+  );
+
+  // Merge character safely
+  const character = { ...defaultState.character, ...parsedState.character };
+  character.stats = { ...defaultState.character.stats, ...parsedState.character?.stats };
+  character.location = { ...defaultState.character.location, ...parsedState.character?.location };
+  character.banner = { ...defaultState.character.banner, ...parsedState.character?.banner };
+  character.nicknames = parsedState.character?.nicknames || defaultState.character.nicknames;
+
+  // Sanitize character null overrides
+  if (character.archetype === null || character.archetype === undefined) character.archetype = "Noble Ruler";
+  if (character.gender === null || character.gender === undefined) character.gender = "Male";
+  if (character.reputation === null || character.reputation === undefined) character.reputation = 0;
+  if (character.stats.ac === null || character.stats.ac === undefined) character.stats.ac = 4;
+  if (character.stats.initiativeBonus === null || character.stats.initiativeBonus === undefined) character.stats.initiativeBonus = 1;
+  if (character.location.subregion === null || character.location.subregion === undefined) character.location.subregion = "The Frontier";
+  if (character.location.distanceNearTown === null || character.location.distanceNearTown === undefined) character.location.distanceNearTown = 3;
+  if (character.location.distanceNearCastle === null || character.location.distanceNearCastle === undefined) character.location.distanceNearCastle = 0;
+  if (character.location.distanceCapital === null || character.location.distanceCapital === undefined) character.location.distanceCapital = 4;
+
+  // Merge weeklyLedger safely
+  const weeklyLedger = { ...defaultState.weeklyLedger, ...parsedState.weeklyLedger };
+  weeklyLedger.materials = { ...defaultState.weeklyLedger.materials, ...parsedState.weeklyLedger?.materials };
+
+  // Sanitize weeklyLedger null overrides
+  if (weeklyLedger.week === null || weeklyLedger.week === undefined) weeklyLedger.week = 1;
+  if (weeklyLedger.weather === null || weeklyLedger.weather === undefined) weeklyLedger.weather = "Cold and Windy";
+
+  // Merge army safely
+  const army = { ...defaultState.army, ...parsedState.army };
+  army.garrisonDetail = parsedState.army?.garrisonDetail || parsedState.army?.garrison?.detail || parsedState.garrisonDetail || parsedState.garrison?.detail;
+  army.commandStructure = parsedState.army?.commandStructure || parsedState.army?.chainOfCommand || parsedState.commandStructure || parsedState.chainOfCommand;
+  army.militia = parsedState.army?.militia || parsedState.militia;
+  
+  if (parsedState.army?.units && Array.isArray(parsedState.army.units)) {
+    army.units = parsedState.army.units.map((u: any) => {
+      const sizeVal = (u.size !== undefined && u.size !== null) ? u.size : 30;
+      const maxSizeVal = (u.maxSize !== undefined && u.maxSize !== null) ? u.maxSize : sizeVal;
+      return {
+        id: u.id || `u_recruited_${globalRNG.nextInt(0, 1000000)}`,
+        name: u.name || "Guarda Desconhecida",
+        size: sizeVal,
+        maxSize: maxSizeVal,
+        tier: (u.tier !== undefined && u.tier !== null) ? u.tier : 1,
+        ac: (u.ac !== undefined && u.ac !== null) ? u.ac : 3,
+        weapon: u.weapon || "Spear",
+        mount: u.mount || "None",
+        morale: (u.morale !== undefined && u.morale !== null) ? u.morale : 5,
+        type: u.type || "Levy"
+      };
+    });
+  }
+
+  // Merge holdings safely
+  const holdings = { ...defaultState.holdings, ...parsedState.holdings };
+  holdings.villages = parsedState.holdings?.villages || parsedState.villages || [];
+  holdings.otherHoldings = parsedState.holdings?.otherHoldings || parsedState.otherHoldings || [];
+  if (parsedState.holdings?.fortification) {
+    holdings.fortification = { ...defaultState.holdings.fortification, ...parsedState.holdings.fortification };
+  }
+  if (parsedState.holdings?.residentSmith) {
+    holdings.residentSmith = { ...defaultState.holdings.residentSmith, ...parsedState.holdings.residentSmith };
+  }
+
+  // Merge inventory safely
+  const inventory = {
+    horns: parsedState.inventory?.horns || defaultState.inventory.horns,
+    smudgeBundles: {
+      sage: parsedState.inventory?.smudgeBundles?.sage !== undefined ? parsedState.inventory.smudgeBundles.sage : 0,
+      cedar: parsedState.inventory?.smudgeBundles?.cedar !== undefined ? parsedState.inventory.smudgeBundles.cedar : 0,
+      sweetgrass: parsedState.inventory?.smudgeBundles?.sweetgrass !== undefined ? parsedState.inventory.smudgeBundles.sweetgrass : 0,
+      tobacco: parsedState.inventory?.smudgeBundles?.tobacco !== undefined ? parsedState.inventory.smudgeBundles.tobacco : 0,
+    }
+  };
+
+  // Merge advisors safely
+  const advisors = { ...defaultState.advisors, ...parsedState.advisors };
+
+  // Populate worldLedger
+  const worldLedger = parsedState.worldLedger || defaultState.worldLedger;
+
+  // Populate other missing sections
+  const crowns = parsedState.crowns || defaultState.crowns;
+  const worldSecrets = parsedState.worldSecrets || defaultState.worldSecrets;
+  const falseLineage = parsedState.falseLineage || defaultState.falseLineage;
+  const revealedRegions = parsedState.revealedRegions || defaultState.revealedRegions;
+  const narrativeHistory = parsedState.narrativeHistory || defaultState.narrativeHistory;
+
+  const mergedState: CampaignState = {
+    ...defaultState,
+    character,
+    weeklyLedger,
+    army,
+    holdings,
+    inventory,
+    advisors,
+    worldLedger,
+    crowns,
+    worldSecrets,
+    falseLineage,
+    revealedRegions,
+    narrativeHistory,
+    councils: parsedState.councils || defaultState.councils,
+    spyNetwork: parsedState.spyNetwork || defaultState.spyNetwork,
+    equipmentInventory: parsedState.equipmentInventory || defaultState.equipmentInventory,
+    mountBreeding: parsedState.mountBreeding || parsedState.holdings?.mountBreeding,
+    tradeRoutes: parsedState.tradeRoutes || parsedState.diplomacy?.tradeRoutes,
+    caravanLedger: parsedState.caravanLedger || defaultState.caravanLedger,
+    regionalTrade: parsedState.regionalTrade || defaultState.regionalTrade,
+    tribalRelations: parsedState.tribalRelations || parsedState.diplomacy?.tribalRelations || defaultState.tribalRelations,
+    meta: parsedState.meta,
+    executiveBrief: parsedState.executiveBrief,
+    characters: parsedState.characters,
+    diplomacy: parsedState.diplomacy,
+    livroNegroDetail: parsedState.livroNegroDetail,
+    mercenaries: parsedState.mercenaries,
+    fortalezasOrm: parsedState.fortalezasOrm,
+    genealogy: parsedState.genealogy,
+    distances: parsedState.distances,
+    hiddenHeir: parsedState.hiddenHeir,
+    discoveredArtifacts: parsedState.discoveredArtifacts || defaultState.discoveredArtifacts,
+    family: parsedState.family || defaultState.family
+  };
+
+  return mergedState;
 }
 
 // Simulate one round of deterministic Mass Combat

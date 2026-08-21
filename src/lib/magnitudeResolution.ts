@@ -47,8 +47,8 @@ function laborPoolOf(state: CampaignState): number {
 }
 
 function standingMilitary(state: CampaignState): number {
-  const armySize = state.army.units.reduce((sum, unit) => sum + unit.size, 0);
-  return armySize + state.holdings.garrison;
+  const armySize = (state.army?.units ?? []).reduce((sum, unit) => sum + unit.size, 0);
+  return armySize + (state.holdings?.garrison ?? 0);
 }
 
 function componentTier(value: number, thresholds: readonly number[]): number {
