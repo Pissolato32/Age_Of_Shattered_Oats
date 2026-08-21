@@ -13,8 +13,8 @@ export interface GeminiConfig {
 }
 
 const DEFAULT_MODEL = 'gemini-3.6-flash';
-const CANDIDATE_MODELS = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-2.0-flash', 'gemini-1.5-flash'];
-const DEFAULT_TIMEOUT_MS = 15000;
+const CANDIDATE_MODELS = ['gemini-3.6-flash'];
+const DEFAULT_TIMEOUT_MS = 6000;
 
 const SYSTEM_PROMPT = `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (seguindo o Protocolo Narrativo da Crônica de Ferro).
 Sua função é transformar os resultados das ordens e as perguntas do soberano em crônicas narrativas imersivas, densas, viscerais e dinâmicas.
