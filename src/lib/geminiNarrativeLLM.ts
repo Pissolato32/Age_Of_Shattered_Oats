@@ -12,9 +12,9 @@ export interface GeminiConfig {
   readonly fetchFn?: typeof fetch;
 }
 
-const DEFAULT_MODEL = 'gemini-3.6-flash';
-const CANDIDATE_MODELS = ['gemini-3.6-flash'];
-const DEFAULT_TIMEOUT_MS = 6000;
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+const CANDIDATE_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+const DEFAULT_TIMEOUT_MS = 12000;
 
 const SYSTEM_PROMPT = `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (seguindo o Protocolo Narrativo da Crônica de Ferro).
 Sua função é transformar os resultados das ordens e as perguntas do soberano em crônicas narrativas imersivas, densas, viscerais e dinâmicas.
@@ -103,13 +103,15 @@ Responda APENAS com o JSON válido, sem comentários ou markdown.`;
         ambiguity: Array.isArray(parsed.ambiguity) ? parsed.ambiguity : [],
         requiresClarification: Boolean(parsed.requiresClarification)
       };
-    } catch {
+    } catch (err: any) {
+      console.error('[GeminiNarrativeLLM.interpret] Falha na interpretação com Gemini:', err?.message || err);
       return this.fallbackInterpret(input.playerInput);
     }
   }
 
   async narrate(context: NarrativeContext): Promise<string> {
     if (!this.apiKey || !this.fetchFn) {
+      console.log('[GeminiNarrativeLLM.narrate] Sem API key configurada, usando fallback procedural.');
       return this.fallbackNarrate(context);
     }
 
@@ -144,8 +146,12 @@ Consequências Físicas: ${JSON.stringify(context.executionResult.consequences)}
 
 Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos concisos em tom de crônica de ferro, concluindo com o estado presente para a condução da cena:`;
 
-      return await this.callGemini(prompt);
-    } catch {
+      console.log(`[GeminiNarrativeLLM.narrate] Solicitando crônica narrativa ao Gemini...`);
+      const res = await this.callGemini(prompt);
+      console.log(`[GeminiNarrativeLLM.narrate] Crônica gerada com sucesso (${res.length} chars).`);
+      return res;
+    } catch (err: any) {
+      console.error('[GeminiNarrativeLLM.narrate] Falha na geração narrativa com Gemini:', err?.message || err);
       return this.fallbackNarrate(context);
     }
   }
@@ -160,6 +166,7 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
       const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
       try {
+        console.log(`[GeminiNarrativeLLM.callGemini] POST ${model} (timeout: ${this.timeoutMs}ms)...`);
         const res = await this.fetchFn(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -170,7 +177,8 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
         });
 
         if (!res.ok) {
-          throw new Error(`Gemini API Error with model ${model}: HTTP ${res.status}`);
+          const errText = await res.text();
+          throw new Error(`Gemini API Error with model ${model}: HTTP ${res.status} - ${errText.slice(0, 150)}`);
         }
 
         const data = await res.json() as {
@@ -181,7 +189,9 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
         if (text && text.trim().length > 0) {
           return text.trim();
         }
+        throw new Error(`Gemini candidate empty response on model ${model}`);
       } catch (err: any) {
+        console.warn(`[GeminiNarrativeLLM.callGemini] Erro no modelo ${model}:`, err?.message || err);
         lastError = err;
         continue;
       } finally {

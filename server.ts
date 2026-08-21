@@ -121,6 +121,8 @@ async function startServer() {
       const apiKey = clientApiKey || headerKey || process.env.GEMINI_API_KEY;
       const hasValidKey = Boolean(apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey !== "SUA_CHAVE_AQUI" && apiKey.trim().length >= 15);
 
+      console.log(`[API /narrative-cycle] Entrada: "${playerInput}" | API Key: ${hasValidKey ? 'VÁLIDA (' + apiKey.trim().slice(0, 8) + '...)' : 'NENHUMA (Usando Mock)'}`);
+
       const llm = hasValidKey
         ? new GeminiNarrativeLLM({ apiKey: apiKey.trim() })
         : new MockNarrativeLLM();
