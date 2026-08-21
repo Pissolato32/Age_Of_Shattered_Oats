@@ -98,18 +98,35 @@ Responda APENAS com o JSON válido, sem comentários ou markdown.`;
     }
 
     try {
+      const actorsList = context.actors && context.actors.length > 0
+        ? context.actors.map(a => `${a.name} (${a.role})`).join(', ')
+        : 'Nenhum NPC proeminente presente';
+      const factsList = context.knownFacts && context.knownFacts.length > 0
+        ? context.knownFacts.map(f => f.statement).join('; ')
+        : 'Nenhum fato relevante adicional';
+      const eventsList = context.recentEvents && context.recentEvents.length > 0
+        ? context.recentEvents.map(e => `[Semana ${e.week}] ${e.summary}`).join('; ')
+        : 'Nenhum evento recente registrado';
+      const circumstancesList = context.scene.immediateCircumstances && context.scene.immediateCircumstances.length > 0
+        ? context.scene.immediateCircumstances.join('; ')
+        : 'Nenhuma circunstância extraordinária';
+
       const prompt = `${SYSTEM_PROMPT}
 
 CONTEXTO AUTORIZADO DO MOTOR:
 Local: ${context.scene.locationId} (${context.scene.regionName})
 Clima: ${context.scene.weather}, Estação: ${context.scene.season}
+Atores Presentes: ${actorsList}
+Circunstâncias em Andamento: ${circumstancesList}
+Fatos e Memórias Relevantes: ${factsList}
+Eventos Recentes Observáveis: ${eventsList}
 Status da Ação: ${context.executionResult.status}
 Ação Executada: ${context.executionResult.actionExecuted}
 Motivo/Código: ${context.executionResult.reasonCode}
 Alterações de Estado Concretas: ${JSON.stringify(context.executionResult.stateChanges)}
 Consequências Físicas: ${JSON.stringify(context.executionResult.consequences)}
 
-Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos concisos:`;
+Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos concisos em tom de crônica de ferro, concluindo com o estado presente para a condução da cena:`;
 
       return await this.callGemini(prompt);
     } catch {

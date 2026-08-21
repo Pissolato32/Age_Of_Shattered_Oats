@@ -235,4 +235,145 @@ function snapshot(value: unknown): string {
   console.log('[ALLOW-LIST] UNKNOWN_PARAMETER/INVALID_PARAMETER rejeitados, quantity válido aceito -> OK');
 }
 
-console.log('\nNarrativeCycle.test.ts: TODOS OS CENÁRIOS A-F + não-mutação + determinismo PASSARAM.');
+// ---------------------------------------------------------------------------
+// Semantic Validation Recovery Flow: recuperação de violação semântica
+// ---------------------------------------------------------------------------
+{
+  class FlakyNarrativeLLM extends MockNarrativeLLM {
+    private callCount = 0;
+    override narrate(context: any): Promise<string> {
+      this.callCount++;
+      if (this.callCount === 1) {
+        // First attempt generates deliberate violation (claims 999 casualties when none occurred)
+        return Promise.resolve('Massacre total nas muralhas, centenas de soldados tombaram mortos!');
+      }
+      // Second attempt generates compliant narrative
+      return Promise.resolve(super.narrate(context));
+    }
+  }
+
+  const flakyLLM = new FlakyNarrativeLLM();
+  const state = createSliceState();
+  const result = await runNarrativeCycle({
+    playerInput: 'Quero recrutar 10 soldados.',
+    state,
+    observer: PLAYER_OBSERVER,
+    llm: flakyLLM
+  });
+
+  assert.equal(result.validation.length, 0, 'A recuperação semântica deve retornar 0 violações');
+  assert.ok(!result.narrative.includes('Massacre total'), 'A narrativa com violação deve ser corrigida');
+  assert.equal(result.resultState.weeklyLedger.silverdew, 270, 'Estado deve ser atualizado apenas uma vez');
+  console.log('[RECOVERY-TEST] Recuperação de violação semântica executada com sucesso -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// Fallback Autoritativo: quando LLM persiste em violação, fallback seguro é aplicado
+// ---------------------------------------------------------------------------
+{
+  class DefectiveNarrativeLLM extends MockNarrativeLLM {
+    override narrate(): Promise<string> {
+      // Always generates deliberate violation
+      return Promise.resolve('Ação executada com sucesso total sem qualquer restrição.');
+    }
+  }
+
+  const defectiveLLM = new DefectiveNarrativeLLM();
+  const state = createSliceState();
+  // Action that gets REJECTED
+  const result = await runNarrativeCycle({
+    playerInput: 'Eu mato o rei.',
+    state,
+    observer: PLAYER_OBSERVER,
+    llm: defectiveLLM
+  });
+
+  assert.equal(result.report.status, 'REJECTED');
+  assert.equal(result.validation.length, 0, 'Fallback autoritativo deve garantir 0 violações semânticas');
+  assert.ok(result.narrative.includes('não foi executada'), 'Fallback seguro deve relatar a rejeição');
+  assert.equal(result.resultState, state, 'Estado deve permanecer intacto');
+  console.log('[FALLBACK-TEST] Fallback autoritativo seguro aplicado com 0 violações -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// Multi-Action Continuity: Ação A -> Estado A -> Ação B -> Estado B -> Turno -> Ação C
+// ---------------------------------------------------------------------------
+{
+  const initialState = createSliceState();
+  assert.equal(initialState.army.units.filter(u => u.type === 'Levy').reduce((s, u) => s + u.size, 0), 60);
+  assert.equal(initialState.weeklyLedger.silverdew, 300);
+
+  // Add an initial campaign event and a pending consequence to verify causal propagation
+  initialState.worldLedger.majorEvents = [
+    {
+      date: 'W1, M1, Y342',
+      event: 'Fundação das defesas da fronteira de Caedor.',
+      region: 'Central Plains',
+      involved: 'Lord Alric',
+      resolved: 'Yes'
+    }
+  ];
+
+  initialState.sessionLog.pendingConsequences = [
+    {
+      id: 'c_multi_1',
+      kind: 'PENDING',
+      description: 'Caravana de ferro aguarda confirmação de rota segura.',
+      triggerTurn: 1, // Will trigger on next turn
+      originAction: 'TRADE',
+      resolved: false
+    }
+  ];
+
+  // 1. Action A: Recrutar 10 soldados
+  const resultA = await runNarrativeCycle({
+    playerInput: 'Quero recrutar 10 soldados.',
+    state: initialState,
+    observer: PLAYER_OBSERVER,
+    llm: mock
+  });
+
+  assert.equal(resultA.report.status, 'ACCEPTED');
+  assert.equal(resultA.resultState.weeklyLedger.silverdew, 270);
+  assert.equal(resultA.resultState.army.units.filter(u => u.type === 'Levy').reduce((s, u) => s + u.size, 0), 70);
+  assert.ok(resultA.projection.recentEvents.some(e => e.summary.includes('Fundação das defesas')));
+  assert.ok(resultA.projection.scene.immediateCircumstances?.some(c => c.includes('Caravana de ferro')));
+
+  // 2. Action B: Construir palisada usando o estado resultante de A
+  const resultB = await runNarrativeCycle({
+    playerInput: 'Quero construir uma palisada.',
+    state: resultA.resultState,
+    observer: PLAYER_OBSERVER,
+    llm: mock
+  });
+
+  assert.equal(resultB.report.status, 'ACCEPTED');
+  assert.equal(resultB.resultState.weeklyLedger.silverdew, 220); // 270 - 50 = 220
+  assert.equal(resultB.resultState.army.units.filter(u => u.type === 'Levy').reduce((s, u) => s + u.size, 0), 70, 'Tropas recrutadas em A devem persistir em B');
+  assert.ok(resultB.projection.recentEvents.length >= 1, 'Projeção de B deve conter histórico de eventos');
+
+  // 3. Advance Weekly Turn (triggers pending consequence resolution)
+  const { resolveWeeklyTurn } = await import('../src/engine');
+  const turnResult = resolveWeeklyTurn(resultB.resultState);
+  const turnState = turnResult.updatedState;
+
+  assert.equal(turnState.worldLedger.currentDate.week, 2, 'Semana deve avançar para 2');
+  assert.ok(turnState.sessionLog.pendingConsequences?.find(c => c.id === 'c_multi_1')?.resolved === true, 'Consequência deve ter sido concretizada');
+
+  // 4. Action C: Consulta de informação no novo turno semanal
+  const resultC = await runNarrativeCycle({
+    playerInput: 'Quanto custa o recrutamento?',
+    state: turnState,
+    observer: PLAYER_OBSERVER,
+    llm: mock
+  });
+
+  assert.equal(resultC.report.status, 'ACCEPTED');
+  assert.equal(resultC.projection.scene.weather, turnState.weeklyLedger.weather, 'Cena deve refletir novo clima da semana 2');
+  assert.ok(resultC.projection.recentEvents.some(e => e.summary.includes('Consequência Concretizada')), 'Consequência resolvida deve constar nos eventos recentes');
+  assert.equal(resultC.validation.length, 0, 'Zero violações no ciclo contínuo multi-ação');
+
+  console.log('[MULTI-ACTION-TEST] Continuidade causal multi-ação A -> B -> Turno -> C validada -> OK');
+}
+
+console.log('\nNarrativeCycle.test.ts: TODOS OS CENÁRIOS A-F + não-mutação + determinismo + recuperação + multi-ação PASSARAM.');

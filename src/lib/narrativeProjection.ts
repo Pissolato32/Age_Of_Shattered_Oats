@@ -69,13 +69,32 @@ export function createObserverProjection(
 
   // 1. Scene Construction (scoped to current location)
   const loc = state.character.location;
+  const immediateCircumstances: string[] = [];
+
+  // Observable unresolved pending consequences (tension in motion, never exposing future trigger turn)
+  if (state.sessionLog?.pendingConsequences && Array.isArray(state.sessionLog.pendingConsequences)) {
+    for (const pc of state.sessionLog.pendingConsequences) {
+      if (!pc.resolved) {
+        immediateCircumstances.push(`Um assunto previamente iniciado segue em andamento: ${pc.description}`);
+      }
+    }
+  }
+
+  if (state.weeklyLedger?.famineTicks && state.weeklyLedger.famineTicks > 0) {
+    immediateCircumstances.push('A escassez de mantimentos afeta o ânimo do assentamento.');
+  }
+  if (state.weeklyLedger?.unpaidWagesTicks && state.weeklyLedger.unpaidWagesTicks > 0) {
+    immediateCircumstances.push('O pagamento dos soldados está atrasado, gerando inquietação.');
+  }
+
   const scene: NarrativeScene = {
     locationId: loc.landmark || loc.subregion || loc.region || 'Valenfort Citadel',
     regionName: loc.region || 'Unknown Region',
     environment: loc.subregion || loc.region || 'Settlement',
     weather: state.weeklyLedger.weather || 'Clear',
     season: state.weeklyLedger.season || 'Thawtide',
-    currentActivity: state.character.title
+    currentActivity: state.character.title,
+    immediateCircumstances: immediateCircumstances.length > 0 ? immediateCircumstances : undefined
   };
 
   // 2. Actors in Scope (Player character and visible local figures)
@@ -88,9 +107,39 @@ export function createObserverProjection(
     }
   ];
 
-  // 3. Relationships & Public Rumors
+  if (state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
+    for (const house of state.worldLedger.nobleHouses) {
+      if (house.currentLord && (house.region === loc.region || !house.region || loc.region === 'Unknown Region')) {
+        actors.push({
+          actorId: `npc_${house.name.toLowerCase().replace(/\s+/g, '_')}`,
+          name: house.currentLord,
+          role: `Lord of House ${house.name}`,
+          house: house.name,
+          goals: [house.relationshipDetail || `Govern ${house.seat || house.name}`]
+        });
+      }
+    }
+  }
+
+  // 3. Relationships, Active Memories & Public Rumors
   const relationships: NarrativeRelationship[] = [];
   const knownFacts: AuthorizedKnowledgeFact[] = [];
+
+  // Active non-decayed character memories
+  if (state.character.memories && Array.isArray(state.character.memories)) {
+    for (const mem of state.character.memories) {
+      if (!mem.decayed) {
+        knownFacts.push({
+          factId: mem.id,
+          statement: `[Memória] ${mem.description}`,
+          tier: 'CHARACTER_KNOWLEDGE',
+          certainty: 'CONFIRMED',
+          source: 'ENGINE',
+          subjectId: mem.subjectId
+        });
+      }
+    }
+  }
 
   if (state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
     for (const house of state.worldLedger.nobleHouses) {

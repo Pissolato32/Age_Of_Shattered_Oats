@@ -1,5 +1,7 @@
 import { CampaignState } from '../types';
+import { getAbsoluteCampaignTurn } from '../engine';
 import { globalRNG, RandomService } from '../core/RandomService';
+import { globalEventStore } from '../core/EventStore';
 import {
   AffectedEntity,
   ExecutionConsequence,
@@ -508,10 +510,67 @@ export function resolveNarrativeCommand(
 
   const resolution = resolveAction(phrase, state);
   const { updatedState, mutated } = applyResolutionToState(state, resolution);
+  const report = buildExecutionReport(command, resolution, state, updatedState, mutated, magnitude);
+  const finalState = attachTemporalConsequencesAndEvents(report, updatedState, mutated, command);
 
   return {
-    report: buildExecutionReport(command, resolution, state, updatedState, mutated, magnitude),
-    state: updatedState,
+    report,
+    state: finalState,
     mutated
   };
+}
+
+function attachTemporalConsequencesAndEvents(
+  report: ExecutionReport,
+  state: CampaignState,
+  mutated: boolean,
+  command: NarrativeCommand
+): CampaignState {
+  if (!mutated) return state;
+
+  const targetState: CampaignState = state;
+  const curDate = targetState.worldLedger?.currentDate;
+  const absoluteTurn = curDate?.year !== undefined
+    ? getAbsoluteCampaignTurn(curDate.year, curDate.month, curDate.week)
+    : 1;
+
+  // Process PENDING consequences
+  if (report.consequences && report.consequences.length > 0) {
+    report.consequences.forEach(c => {
+      if (c.kind === 'PENDING') {
+        if (!targetState.sessionLog) {
+          targetState.sessionLog = { lastSessionDate: '', lastThingHappened: '', activeMissions: [], pendingDecisions: [] };
+        }
+        if (!targetState.sessionLog.pendingConsequences) {
+          targetState.sessionLog.pendingConsequences = [];
+        }
+        targetState.sessionLog.pendingConsequences.push({
+          id: c.consequenceId,
+          kind: 'PENDING',
+          description: c.description,
+          triggerTurn: absoluteTurn + 2,
+          originAction: command.action,
+          resolved: false
+        });
+      }
+    });
+  }
+
+  // Record command resolution in EventStore
+  const currentWeek = targetState.worldLedger?.currentDate?.week || 1;
+  const nextSeq = (targetState.eventStore?.length || 0) + 1;
+  const evt = globalEventStore.record('COMMAND_RESOLVED', {
+    commandId: command.commandId,
+    action: command.action,
+    status: report.status,
+    reason: report.reasonCode,
+    stateChanges: report.stateChanges
+  }, currentWeek, nextSeq);
+
+  if (!targetState.eventStore) {
+    targetState.eventStore = [];
+  }
+  targetState.eventStore.push(evt);
+
+  return targetState;
 }

@@ -18,14 +18,14 @@ export class LaborService {
   /**
    * Calculates the total labor currently allocated to resource patches.
    */
-  public static calculateAllocatedLabor(patches: { laborAllocated?: number }[]): number {
-    return patches.reduce((sum, p) => sum + (p.laborAllocated || 0), 0);
+  public static calculateAllocatedLabor(patches: { laborAllocated?: number; laborRequired?: number }[]): number {
+    return patches.reduce((sum, p) => sum + (p.laborAllocated || p.laborRequired || 0), 0);
   }
 
   /**
    * Calculates the unallocated labor capacity remaining in the holding.
    */
-  public static calculateAvailableLabor(population: number, patches: { laborAllocated?: number }[]): number {
+  public static calculateAvailableLabor(population: number, patches: { laborAllocated?: number; laborRequired?: number }[]): number {
     const totalPool = LaborService.calculateLaborPool(population);
     const allocated = LaborService.calculateAllocatedLabor(patches);
     return Math.max(0, totalPool - allocated);

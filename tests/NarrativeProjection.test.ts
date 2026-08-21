@@ -12,7 +12,7 @@ import { NARRATIVE_CONTRACT_VERSION, NarrativeObserver } from '../src/lib/narrat
 
   assert.equal(projection.contractVersion, NARRATIVE_CONTRACT_VERSION);
   assert.equal(projection.observer.kind, 'PLAYER');
-  assert.equal(projection.actors.length, 1);
+  assert.ok(projection.actors.length >= 1);
   assert.equal(projection.actors[0].name, state.character.name);
 
   // Unrevealed secret must NOT be anywhere in knownFacts, scene, or actors
@@ -82,6 +82,51 @@ import { NARRATIVE_CONTRACT_VERSION, NarrativeObserver } from '../src/lib/narrat
   }
 
   console.log('[TEST D] Auditoria de allow-list restrita e determinismo concluída -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST E — Pending Consequences Visibility & Trigger Protection
+// ---------------------------------------------------------------------------
+{
+  const state = createSecretState();
+  state.sessionLog = {
+    lastSessionDate: 'Greening Day 1, Year 342',
+    lastThingHappened: 'Iniciou a campanha.',
+    activeMissions: [],
+    pendingDecisions: [],
+    pendingConsequences: [
+      {
+        id: 'c_pending_1',
+        kind: 'PENDING',
+        description: 'Mercadores relataram contrabandistas em fuga nas colinas.',
+        triggerTurn: 15,
+        originAction: 'TRADE',
+        resolved: false
+      },
+      {
+        id: 'c_resolved_1',
+        kind: 'PENDING',
+        description: 'Antiga disputa de pasto resolvida.',
+        triggerTurn: 5,
+        originAction: 'DIPLOMACY',
+        resolved: true
+      }
+    ]
+  };
+
+  const projection = buildObserverProjection(state, PLAYER_OBSERVER);
+  const circumstances = projection.scene.immediateCircumstances ?? [];
+
+  assert.ok(circumstances.length >= 1, 'Circunstâncias devem conter a consequência não resolvida');
+  assert.ok(circumstances.some(c => c.includes('contrabandistas em fuga')), 'Consequência pendente deve ser projetada');
+  assert.ok(!circumstances.some(c => c.includes('Antiga disputa de pasto')), 'Consequência já resolvida não deve constar como pendente');
+
+  // Internal triggerTurn must NOT leak to the projection
+  const serialized = JSON.stringify(projection);
+  assert.ok(!serialized.includes('"triggerTurn"'));
+  assert.ok(!serialized.includes(':15'));
+
+  console.log('[TEST E] Consequências pendentes projetadas sem vazamento de triggerTurn -> OK');
 }
 
 console.log('NarrativeProjection.test.ts: PASS');

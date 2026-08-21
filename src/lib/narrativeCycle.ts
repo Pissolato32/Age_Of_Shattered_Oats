@@ -30,6 +30,29 @@ export interface NarrativeCycleResult {
   readonly resultState: CampaignState;
 }
 
+export function buildSafeFallbackNarrative(report: ExecutionReport): string {
+  if (report.status === 'REJECTED') {
+    if (report.reasonCode && report.reasonCode.toLowerCase().includes('esclarecimento')) {
+      return 'Antes de qualquer ação, é necessário esclarecimento sobre a ordem solicitada.';
+    }
+    return `A ordem não foi executada: ${report.reasonCode}`;
+  }
+
+  if (report.actionExecuted === 'RECRUIT') {
+    const levies = report.stateChanges.find(sc => sc.path === 'army.units.levies')?.delta ?? report.magnitude?.value;
+    if (levies !== undefined) {
+      return `O recrutamento de ${levies} soldados foi autorizado pelos intendentes da campanha.`;
+    }
+    return 'O recrutamento foi autorizado conforme os registros do feudo.';
+  }
+
+  if (report.actionExecuted === 'BUILD') {
+    return 'As obras da fortificação foram iniciadas conforme a ordem registrada nos livros de ferro.';
+  }
+
+  return 'A resolução foi selada conforme registrado nos livros de ferro da campanha.';
+}
+
 export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<NarrativeCycleResult> {
   const initialProjection = buildObserverProjection(input.state, input.observer);
 
@@ -45,11 +68,28 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
   const resultProjection = buildObserverProjection(resultState, input.observer);
   const context = buildNarrativeContext(resultProjection, report);
 
-  const narrative = await input.llm.narrate(context);
+  let narrative = await input.llm.narrate(context);
 
-  const validation = validateNarrativeConsistency(report, context, narrative, {
+  let validation = validateNarrativeConsistency(report, context, narrative, {
     excludedSecretStatements: input.excludedSecretStatements
   });
+
+  // Phase 3: Semantic Validation Recovery Flow
+  // If violations exist, attempt one safe regeneration with exact same context
+  if (validation.length > 0) {
+    narrative = await input.llm.narrate(context);
+    validation = validateNarrativeConsistency(report, context, narrative, {
+      excludedSecretStatements: input.excludedSecretStatements
+    });
+
+    // If still invalid, enforce safe authoritative fallback narrative
+    if (validation.length > 0) {
+      narrative = buildSafeFallbackNarrative(report);
+      validation = validateNarrativeConsistency(report, context, narrative, {
+        excludedSecretStatements: input.excludedSecretStatements
+      });
+    }
+  }
 
   return {
     command,

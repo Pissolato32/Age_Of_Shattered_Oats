@@ -11,11 +11,14 @@ import { CampaignState } from '../../src/types';
 export function runVisibilityEngineIntegrationTests() {
   console.log("🧪 Running Visibility Engine Integration Tests...");
 
-  // 1. Test Absolute Campaign Turn Calculation
+  // 1. Test Absolute Campaign Turn Calculation (48 weeks/year, 4 weeks/month, 12 months/year)
   console.log("  - Testing Campaign Turn Conversion...");
-  assert.strictEqual(getAbsoluteCampaignTurn(342, 1), 1);
-  assert.strictEqual(getAbsoluteCampaignTurn(342, 52), 52);
-  assert.strictEqual(getAbsoluteCampaignTurn(343, 1), 53);
+  assert.strictEqual(getAbsoluteCampaignTurn(342, "Frostwane", 1), 1);
+  assert.strictEqual(getAbsoluteCampaignTurn(342, "Frostwane", 4), 4);
+  assert.strictEqual(getAbsoluteCampaignTurn(342, "Deepfrost", 1), 5);
+  assert.strictEqual(getAbsoluteCampaignTurn(342, "Longdark_2", 4), 48);
+  assert.strictEqual(getAbsoluteCampaignTurn(343, "Frostwane", 1), 49);
+  assert.strictEqual(getAbsoluteCampaignTurn(343, 1, 1), 49); // Month as 1-based number
 
   // 2. Test Location Normalization
   console.log("  - Testing Landmark Location Normalization...");
@@ -42,6 +45,7 @@ export function runVisibilityEngineIntegrationTests() {
   const state: CampaignState = createInitialState("Noble Ruler", "Central Plains");
   state.character.location.landmark = "Valenfort Citadel";
   state.worldLedger.currentDate.year = 342;
+  state.worldLedger.currentDate.month = "Frostwane";
   state.worldLedger.currentDate.week = 1;
 
   const initialJson = JSON.stringify(state.worldLedger);

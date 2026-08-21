@@ -50,6 +50,15 @@ export interface Character {
   controlLimit?: number; // for Necromancer Lord
   isLich?: boolean; // for Necromancer Lord
   phylacteryLocation?: string; // for Necromancer Lord
+  memories?: Array<{
+    id: string;
+    ownerId: string;
+    subjectId: string;
+    description: string;
+    importance: number;
+    tickRegistered: number;
+    decayed?: boolean;
+  }>;
 }
 
 export interface TurnResult {
@@ -197,6 +206,12 @@ export interface NobleHouse {
   soldiers?: number;
   weeklyIncome?: number;
   relationshipDetail?: string;
+  vows?: Array<{
+    type: string;
+    deadlineTick: number;
+    active: boolean;
+    broken: boolean;
+  }>;
 }
 
 export interface DetailedForces {
@@ -316,6 +331,14 @@ export interface CampaignState {
       details: string;
     }>;
     pendingDecisions: string[];
+    pendingConsequences?: Array<{
+      id: string;
+      kind: 'PENDING';
+      description: string;
+      triggerTurn: number;
+      originAction?: string;
+      resolved?: boolean;
+    }>;
   };
   worldLedger: {
     currentDate: { day: number; month: string; year: number; week: number };
@@ -376,6 +399,15 @@ export interface CampaignState {
     obsoleteInWeeks?: number;
     originLocation?: string;
     originTurn?: number;
+  }>;
+  eventStore?: Array<{
+    id: string;
+    sequence: number;
+    type: string;
+    payload: any;
+    timestamp: string;
+    week: number;
+    hash: string;
   }>;
   advisors?: {
     counselorName: string;

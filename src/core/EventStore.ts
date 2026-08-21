@@ -1,5 +1,3 @@
-import { globalRNG } from './RandomService';
-
 export interface CampaignEvent {
   id: string;
   sequence: number;
@@ -20,17 +18,22 @@ export class EventStore {
   private events: CampaignEvent[] = [];
   private sequenceCounter: number = 0;
 
-  public record(type: string, payload: any, week: number): CampaignEvent {
-    this.sequenceCounter += 1;
-      const timestamp = `1970-01-01T00:00:00Z`;
-    const rawContent = JSON.stringify({ sequence: this.sequenceCounter, type, payload, week });
+  public record(type: string, payload: any, week: number, explicitSequence?: number): CampaignEvent {
+    const seq = explicitSequence !== undefined ? explicitSequence : (this.sequenceCounter + 1);
+    this.sequenceCounter = seq;
+    const timestamp = `1970-01-01T00:00:00Z`;
+    const rawContent = JSON.stringify({ sequence: seq, type, payload, week });
     
-    // Hash determinístico simples para encadeamento de auditoria
-    const hash = `evt_${this.sequenceCounter}_${globalRNG.nextInt(1000, 9999)}`;
+    // Hash determinístico puro derivado do conteúdo e sequência
+    let h = 0;
+    for (let i = 0; i < rawContent.length; i++) {
+      h = ((h << 5) - h + rawContent.charCodeAt(i)) | 0;
+    }
+    const hash = `evt_${seq}_${Math.abs(h)}`;
 
     const event: CampaignEvent = {
-      id: `evt_${globalRNG.nextInt(0, 1000000)}_${this.sequenceCounter}`,
-      sequence: this.sequenceCounter,
+      id: `evt_${seq}_${Math.abs(h)}`,
+      sequence: seq,
       type,
       payload,
       timestamp,

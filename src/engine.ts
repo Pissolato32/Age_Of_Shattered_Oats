@@ -3,6 +3,7 @@ import { INITIAL_HOUSES, REGIONS, MONTHS } from "./data";
 import { globalRNG, RandomService } from "./core/RandomService";
 import { globalEventStore } from "./core/EventStore";
 import { Relationship } from "./domain/relationship/Relationship";
+import { MemoryLog } from "./domain/relationship/MemoryLog";
 import { CommanderAIService, CombatContext, CommanderProfile, CombatTactic } from "./domain/npc_ai/CommanderAIService";
 import { VisibilityService } from "./domain/visibility/VisibilityService";
 import { MarketService, MarketPriceResult } from "./domain/commerce/services/MarketService";
@@ -266,12 +267,20 @@ export function calculateMaterialPrice(
 }
 
 /**
- * Calculates absolute week-tick from CampaignState currentDate (base year 342).
+ * Calculates canonical monotonic absolute week-tick from CampaignState currentDate (base year 342, 12 months/year, 4 weeks/month = 48 weeks/year).
  */
-export function getAbsoluteCampaignTurn(year: number, week?: number): number {
+export function getAbsoluteCampaignTurn(year: number, month?: string | number, week?: number): number {
   const baseYear = 342;
-  const safeWeek = week !== undefined && week !== null ? Math.max(1, week) : 1;
-  return Math.max(1, (year - baseYear) * 52 + safeWeek);
+  let monthIdx = 0;
+
+  if (typeof month === 'string') {
+    monthIdx = Math.max(0, Math.min(11, getMonthNumberFromName(month) - 1));
+  } else if (typeof month === 'number') {
+    monthIdx = month > 0 && month <= 12 ? month - 1 : Math.max(0, Math.min(11, month));
+  }
+
+  const safeWeek = week !== undefined && week !== null ? Math.max(1, Math.min(4, week)) : 1;
+  return Math.max(1, (year - baseYear) * 48 + monthIdx * 4 + safeWeek);
 }
 
 /**
@@ -307,7 +316,11 @@ export function isEventVisibleToObserver(
  */
 export function getVisibleWorldSecrets(state: CampaignState): Array<any> {
   if (!state.worldSecrets) return [];
-  const currentTurn = getAbsoluteCampaignTurn(state.worldLedger.currentDate.year, state.worldLedger.currentDate.week);
+  const currentTurn = getAbsoluteCampaignTurn(
+    state.worldLedger.currentDate.year,
+    state.worldLedger.currentDate.month,
+    state.worldLedger.currentDate.week
+  );
   const playerLoc = (state.character.location as any).currentLandmark || state.character.location.landmark || state.character.location.region || "Valenfort Citadel";
 
   return state.worldSecrets.filter(sec => {
@@ -554,7 +567,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
       currentDate: { day: 1, month: "Greening", year: 342, week: 1 },
       activeConflicts: [],
       majorEvents: [],
-      nobleHouses: INITIAL_HOUSES,
+      nobleHouses: JSON.parse(JSON.stringify(INITIAL_HOUSES)),
       rareEventStatus: {
         warmYear: { active: false, lastOccurredYear: 312 },
         youngPretender: { active: false },
@@ -962,6 +975,9 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   turnResult.eventLog.push(`Clima: ${w.weather}`);
 
   // 2. Production (PHASE 1)
+  // Recalculate weekly available civilian labor pool
+  s.holdings.laborPool = LaborService.calculateAvailableLabor(s.holdings.population, s.holdings.resourcePatches);
+
   let holdingBaseIncome = 0;
   if (!isNecro) {
     const type = s.holdings.type;
@@ -1164,6 +1180,92 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
       turnResult.eventLog.push("RUMOR: Jovem pretendente ao trono surgiu.");
     }
   }
+
+  // 5. Temporal Dynamics: Vows, Memory Decay, and Pending Consequences
+  const absoluteTurn = getAbsoluteCampaignTurn(
+    s.worldLedger.currentDate.year,
+    s.worldLedger.currentDate.month,
+    s.worldLedger.currentDate.week
+  );
+
+  // 5a. Process noble house vows expiration
+  if (s.worldLedger.nobleHouses && Array.isArray(s.worldLedger.nobleHouses)) {
+    s.worldLedger.nobleHouses.forEach((house) => {
+      if (house.vows && Array.isArray(house.vows)) {
+        const rel = new Relationship({
+          sourceId: s.character.house || "PlayerHouse",
+          targetId: house.name,
+          opinion: house.opinion,
+          relationshipType: house.status || "Neutra",
+          stateJson: { vows: house.vows }
+        });
+        const expired = rel.checkVowsExpired(absoluteTurn);
+        if (expired.length > 0) {
+          expired.forEach((v) => {
+            turnResult.eventLog.push(`JURAMENTO EXPIRADO: O pacto "${v.type}" com a Casa ${house.name} chegou ao prazo final no Turno ${absoluteTurn}.`);
+            s.worldLedger.majorEvents.push({
+              date: `W${s.worldLedger.currentDate.week}, M${s.worldLedger.currentDate.month}, Y${s.worldLedger.currentDate.year}`,
+              event: `Juramento "${v.type}" expirado com Casa ${house.name}`,
+              region: house.region || s.character.location.region,
+              involved: `${s.character.name} -> ${house.name}`,
+              resolved: "Yes"
+            });
+          });
+          house.vows = rel.stateJson.vows;
+        }
+      }
+    });
+  }
+
+  // 5b. Process memory decay for character
+  if (s.character.memories && Array.isArray(s.character.memories)) {
+    s.character.memories.forEach((m) => {
+      const memInstance = new MemoryLog({
+        id: m.id,
+        ownerId: m.ownerId,
+        subjectId: m.subjectId,
+        description: m.description,
+        importance: m.importance,
+        tickRegistered: m.tickRegistered,
+        decayed: m.decayed
+      });
+      m.decayed = memInstance.evaluateDecay(absoluteTurn);
+    });
+  }
+
+  // 5c. Process pending consequences
+  if (s.sessionLog && s.sessionLog.pendingConsequences && Array.isArray(s.sessionLog.pendingConsequences)) {
+    s.sessionLog.pendingConsequences.forEach((pc) => {
+      if (!pc.resolved && absoluteTurn >= pc.triggerTurn) {
+        pc.resolved = true;
+        turnResult.eventLog.push(`CONSEQUÊNCIA CONCRETIZADA: ${pc.description}`);
+        s.worldLedger.majorEvents.push({
+          date: `W${s.worldLedger.currentDate.week}, M${s.worldLedger.currentDate.month}, Y${s.worldLedger.currentDate.year}`,
+          event: `Consequência Concretizada: ${pc.description}`,
+          region: s.character.location.region,
+          involved: pc.originAction || "CampaignConsequence",
+          resolved: "Yes"
+        });
+      }
+    });
+  }
+
+  // 5d. Record turn resolution in EventStore
+  const nextSeq = (s.eventStore?.length || 0) + 1;
+  const recordedTurnEvent = globalEventStore.record('WEEKLY_TURN_RESOLVED', {
+    turn: absoluteTurn,
+    year: s.worldLedger.currentDate.year,
+    month: s.worldLedger.currentDate.month,
+    week: s.worldLedger.currentDate.week,
+    season: s.weeklyLedger.season,
+    silverdew: s.weeklyLedger.silverdew,
+    food: s.weeklyLedger.food
+  }, s.worldLedger.currentDate.week, nextSeq);
+
+  if (!s.eventStore) {
+    s.eventStore = [];
+  }
+  s.eventStore.push(recordedTurnEvent);
 
   return { updatedState: s, turnResult };
 }
