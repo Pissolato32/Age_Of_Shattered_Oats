@@ -22,6 +22,12 @@ export const CANONICAL_DOMAINS: ReadonlySet<NarrativeAction> = new Set<Narrative
   'BUILD',
   'TRAVEL',
   'TRADE',
+  'DIPLOMACY',
+  'ESPIONAGE',
+  'MILITARY',
+  'SOCIAL',
+  'INTRIGUE',
+  'EXPLORATION',
   'CRAFT',
   'INFORMATION',
   'FLAVOR_QUERY'
@@ -46,6 +52,12 @@ const MANDATORY_IDENTITY: Readonly<Record<string, readonly string[]>> = {
   BUILD: ['objectId', 'targetId'],
   TRAVEL: ['locationId', 'targetId'],
   TRADE: ['objectId', 'targetId'],
+  DIPLOMACY: ['targetId'],
+  ESPIONAGE: ['targetId', 'locationId'],
+  MILITARY: ['targetId', 'locationId'],
+  SOCIAL: ['targetId'],
+  INTRIGUE: ['targetId'],
+  EXPLORATION: ['locationId', 'targetId'],
   THREAT: ['targetId'],
   INVESTIGATE: ['targetId', 'objectId', 'locationId']
 };

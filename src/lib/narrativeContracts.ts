@@ -2,10 +2,16 @@ export const NARRATIVE_CONTRACT_VERSION = 1 as const;
 
 export type NarrativeAction =
   | 'RECRUIT'
-  | 'CRAFT'
   | 'BUILD'
   | 'TRAVEL'
   | 'TRADE'
+  | 'DIPLOMACY'
+  | 'ESPIONAGE'
+  | 'MILITARY'
+  | 'SOCIAL'
+  | 'INTRIGUE'
+  | 'EXPLORATION'
+  | 'CRAFT'
   | 'THREAT'
   | 'INVESTIGATE'
   | 'INFORMATION'
