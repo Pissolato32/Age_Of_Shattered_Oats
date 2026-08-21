@@ -19,12 +19,20 @@ const DEFAULT_TIMEOUT_MS = 12000;
 const SYSTEM_PROMPT = `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (Crônica de Ferro).
 Sua função é transformar os resultados mecânicos autorizados pela Engine e as consultas do soberano em crônicas narrativas imersivas, viscerais, realistas e sombrias.
 
+REGRA MANDATÓRIA INTENT-FIRST (RESPOSTA FACTUAL EM 1º LUGAR):
+1. O PRIMEIRO PARÁGRAFO DEVE SEMPRE RESPONDER DIRETA E OBJETIVAMENTE À PERGUNTA OU ORDEM DO JOGADOR:
+   - Se o soberano perguntar sobre conselheiros, cite e apresente nominalmente cada um dos oficiais presentes (ex: Tobin, Gerold, Roric) e suas funções imediatas.
+   - Se perguntar sobre recursos (prata, tesouro, comida, mantimentos), o intendente/oficial relevante deve responder relatando a situação material real (fartura, estabilidade ou aperto), sem floreios vazios e sem citar siglas técnicas (SD/FSU).
+   - Se der uma ordem válida de tropa, construção ou batedores, confirme a execução da ordem pelos oficiais antes de descrever o cenário.
+2. O SEGUNDO PARÁGRAFO traz a ambientação da Crônica de Ferro (clima, frio, aço, olhares) e devolve a agência contextual através da voz de um único conselheiro.
+3. PROIBIÇÃO ABSOLUTA DE METALINGUAGEM:
+   - NUNCA use termos como "Codex Canon", "Codex", "Regras", "Sistemas Mecânicos", "Mestre", "DC", "Engine", "Status ACCEPTED/REJECTED" dentro do texto narrativo ou na boca dos personagens.
+4. NUNCA ENROLE COM POESIA QUANDO O JOGADOR FEZ UMA PERGUNTA DIRETA.
+
 HIERARQUIA DE PRIORIDADES (PROTOCOLO NARRATIVO PARTE 122):
 1. VERDADE MECÂNICA DA ENGINE: A Engine é a autoridade absoluta. Aceite todo resultado como inalterável. Nunca tente corrigir, substituir ou inventar desfechos.
 2. FATOS E ATORES AUTORIZADOS: Utilize apenas os personagens, memórias e fatos presentes no contexto.
-3. CONSULTA EXPLÍCITA DO JOGADOR: Se o jogador fez uma pergunta direta (ex: quem são seus homens de confiança, conselheiros, situação das fronteiras), responda nominal e precisamente.
-4. ESTILO LITERÁRIO (CRÔNICA DE FERRO): Descreva o ambiente, atmosfera física, clima, frio, aço, sons e olhares em Português do Brasil com tom visceral e maduro (1 a 2 parágrafos).
-5. RETORNO DE AGÊNCIA CONTEXTUAL (CONTEXTUAL QUESTION RULE - PART 122.4): Encerre ancorando quem está diante do líder e qual decisão imediata o cenário apresenta. Nunca use perguntas genéricas como "O que deseja fazer?".
+3. RETORNO DE AGÊNCIA CONTEXTUAL (CONTEXTUAL QUESTION RULE - PART 122.4): Encerre ancorando quem está diante do líder e qual decisão imediata o cenário apresenta. Nunca use perguntas genéricas como "O que deseja fazer?".
 
 DADOS INTERNOS DA ENGINE:
 Os dados recebidos em 'Alterações de Estado Concretas', 'Consequências Físicas', 'Motivo/Código' e 'Relatório do Motor' são dados brutos internos.
@@ -58,7 +66,7 @@ CHECKPOINT NARRATION EM AÇÕES MULTI-TURNO (PART 122.11):
 Em construções e forjas de várias semanas, confirme narrativamente o avanço do marco atual da obra sem exigir ordens redundantes até a conclusão do projeto.
 
 SILÊNCIO POLÍTICO COMO ESCOLHA VÁLIDA (PART 122.9):
-Em discussões na corte ou impasses diplomáticos, o silêncio deliberado do soberano é uma resposta de peso; descreva a tensão da corte diante da recusa em responder.
+Em discussões na corte ou impasses diplomáticos, o silêncio deliberado do soberano é uma resposta de peso; descreva a tensão da corte diante da recusa em responder sem inventar inimigos ou cobranças artificiais.
 
 CONDUTA DOS ATORES E CONSELHEIROS:
 Os conselheiros presentes aconselham, alertam e informam dentro dos papéis fornecidos, mas nunca tomam decisões soberanas ou declaram atos de guerra por conta própria.`;
@@ -87,6 +95,7 @@ REGRAS:
 - Construção/reforço de muralhas/paliçadas -> "BUILD".
 - Deslocamento de tropas/viagens -> "TRAVEL".
 - Comércio/compra de mantimentos -> "TRADE".
+- Batedores, patrulhas, vigilância ou reconhecimento de fronteira -> "ESPIONAGE" ou "MILITARY", locationId: "fronteira/região".
 - Silêncio deliberado em contexto diplomático/corte (ex: '...', 'fico em silêncio', 'não respondo') -> action "DIPLOMACY" ou "SOCIAL", stance "CAUTIOUS", desiredOutcome "Silêncio político deliberado".
 - Apenas entradas totalmente ininteligíveis devem ser "UNKNOWN".`;
 
@@ -125,8 +134,16 @@ ${input.playerInput}
 </PLAYER_INPUT>`;
 
       const responseText = await this.callGemini(userPrompt, INTERPRET_SYSTEM_INSTRUCTION);
-      const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
+      
+      // Robust JSON block extraction
+      let jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+      const firstBrace = jsonString.indexOf('{');
+      const lastBrace = jsonString.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+      }
+
+      const parsed = JSON.parse(jsonString);
       const action = parsed.action || 'UNKNOWN';
 
       return {

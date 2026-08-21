@@ -211,6 +211,42 @@ export function createObserverProjection(
     }
   }
 
+  // Material standing facts (qualitative state of treasury and food without raw numbers)
+  if (state.weeklyLedger) {
+    const silverdew = state.weeklyLedger.silverdew ?? 0;
+    const food = state.weeklyLedger.food ?? 0;
+    
+    let treasuryStanding = 'Os cofres da tesouraria guardam uma reserva moderada de moedas de prata para o custeio da companhia.';
+    if (silverdew >= 400) {
+      treasuryStanding = 'As arcas de ferro da tesouraria estão fartas e pesadas de moedas de prata, garantindo os soldos e contratações.';
+    } else if (silverdew < 100) {
+      treasuryStanding = 'As arcas da tesouraria encontram-se baixas e em nível crítico, exigindo cuidado estrito com cada moeda.';
+    }
+
+    let foodStanding = 'Os celeiros e fardos de provisões possuem rações regulares para a alimentação da tropa.';
+    if (food >= 8) {
+      foodStanding = 'Os celeiros e armazéns estão plenamente abastecidos de grãos e carne salgada para muitas semanas.';
+    } else if (food < 2 || (state.weeklyLedger.famineTicks ?? 0) > 0) {
+      foodStanding = 'Os estoques de comida estão perigosamente escassos, impondo racionamento rigoroso aos homens.';
+    }
+
+    knownFacts.push({
+      factId: 'fact_treasury_standing',
+      statement: `[Situação do Tesouro] ${treasuryStanding}`,
+      tier: 'CHARACTER_KNOWLEDGE',
+      certainty: 'CONFIRMED',
+      source: 'ENGINE'
+    });
+
+    knownFacts.push({
+      factId: 'fact_food_standing',
+      statement: `[Situação dos Mantimentos] ${foodStanding}`,
+      tier: 'CHARACTER_KNOWLEDGE',
+      certainty: 'CONFIRMED',
+      source: 'ENGINE'
+    });
+  }
+
   if (state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
     for (const house of state.worldLedger.nobleHouses) {
       relationships.push({

@@ -17,6 +17,16 @@ export interface ActionClassification {
 /**
  * Canonically modeled action domains in the deterministic Engine.
  */
+export const CANONICALLY_RESOLVED_DOMAINS: ReadonlySet<NarrativeAction> = new Set<NarrativeAction>([
+  'RECRUIT',
+  'BUILD',
+  'TRAVEL',
+  'TRADE',
+  'INFORMATION',
+  'FLAVOR_QUERY',
+  'CRAFT'
+]);
+
 export const CANONICAL_DOMAINS: ReadonlySet<NarrativeAction> = new Set<NarrativeAction>([
   'RECRUIT',
   'BUILD',
@@ -83,8 +93,12 @@ export function classifyNarrativeCommand(
   }
 
   // Priority 1: Mandatory identity check for any action requiring targets
+  const isSilenceAction =
+    (command.action === 'DIPLOMACY' || command.action === 'SOCIAL') &&
+    (command.desiredOutcome?.toLowerCase().includes('silêncio') || command.desiredOutcome?.toLowerCase().includes('silencio') || command.stance === 'CAUTIOUS');
+
   const mandatory = MANDATORY_IDENTITY[command.action];
-  if (mandatory) {
+  if (mandatory && !isSilenceAction) {
     const hasIdentity = mandatory.some(key => {
       const value = command[key as keyof NarrativeCommand];
       return value !== undefined && value !== null && value !== '';
@@ -99,8 +113,8 @@ export function classifyNarrativeCommand(
     }
   }
 
-  // Priority 2: Check Canonical Rule Domain
-  if (CANONICAL_DOMAINS.has(command.action)) {
+  // Priority 2: Check Canonical Rule Domain (with closed mechanical resolver)
+  if (CANONICALLY_RESOLVED_DOMAINS.has(command.action)) {
     return {
       type: 'CANONICAL',
       reason: `Ação ${command.action} possui regra canônica modelada no Engine.`,
