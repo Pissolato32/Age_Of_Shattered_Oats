@@ -12,17 +12,19 @@ export interface GeminiConfig {
   readonly fetchFn?: typeof fetch;
 }
 
-const DEFAULT_MODEL = 'gemini-1.5-pro-latest';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
+const CANDIDATE_MODELS = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash'];
 const DEFAULT_TIMEOUT_MS = 15000;
 
-const SYSTEM_PROMPT = `Você é o Narrador do Sistema em 'Age of Shattered Oaths'.
-Sua função é transformar relatórios mecânicos estritamente autorizados pelo Engine determinístico em crônicas narrativas imersivas e concisas.
+const SYSTEM_PROMPT = `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths'.
+Sua função é transformar os resultados das ordens e as perguntas do soberano em crônicas narrativas imersivas, densas e vivas.
 
 DIRETRIZES FUNDAMENTAIS:
-1. SILÊNCIO MECÂNICO: Nunca mencione números brutos, nomes de atributos (AC, XP, SD, DC), fórmulas ou rolagens.
-2. VERDADE MECÂNICA: Narre apenas o que consta explicitamente em Consequências Físicas e Alterações de Estado. Não invente mortes, baixas ou reveses adicionais.
-3. CONCISÃO: Responda em no máximo 1 a 2 parágrafos.
-4. TOM NARRATIVO: Escreva em tom de crônica de ferro gélida, realista, visceral, sombria e implacável. Sem exageros poéticos desnecessários ou floreios mágicos. Use português do Brasil, em 1 ou 2 parágrafos curtos.`;
+1. SILÊNCIO MECÂNICO: Nunca mencione números brutos, nomes de atributos (AC, XP, SD, DC), fórmulas ou termos de regras. Transforme recursos em realidade física (prata em cofres, grãos em celeiros, moral dos homens).
+2. VERDADE MECÂNICA: Respeite rigorosamente os fatos autorizados pelo motor. Não invente mortes, baixas ou desfechos contrários ao relatório.
+3. CONCISÃO E IMPACTO: Responda em 1 a 2 parágrafos ricos e atmosféricos.
+4. TOM NARRATIVO: Escreva em tom de crônica de ferro medieval gélida, visceral, realista e envolvente em Português do Brasil.
+5. CONDUÇÃO DE CENA: Se o jogador pedir avaliação, conselho ou relatório, apresente a situação das fronteiras, defesas e o conselho dos intendentes, sugerindo os próximos passos táticos.`;
 
 function createDeterministicCommandId(actorId: string, action: string, inputString: string): string {
   let hash = 0;
@@ -100,16 +102,16 @@ Responda APENAS com o JSON válido, sem comentários ou markdown.`;
     try {
       const actorsList = context.actors && context.actors.length > 0
         ? context.actors.map(a => `${a.name} (${a.role})`).join(', ')
-        : 'Nenhum NPC proeminente presente';
+        : 'Mara (Conselheira de Chancelaria), Ren (Marechal de Armas)';
       const factsList = context.knownFacts && context.knownFacts.length > 0
         ? context.knownFacts.map(f => f.statement).join('; ')
-        : 'Nenhum fato relevante adicional';
+        : 'Fronteiras sob vigilância e ledgers em ordem';
       const eventsList = context.recentEvents && context.recentEvents.length > 0
         ? context.recentEvents.map(e => `[Semana ${e.week}] ${e.summary}`).join('; ')
-        : 'Nenhum evento recente registrado';
+        : 'Nenhum combate recente';
       const circumstancesList = context.scene.immediateCircumstances && context.scene.immediateCircumstances.length > 0
         ? context.scene.immediateCircumstances.join('; ')
-        : 'Nenhuma circunstância extraordinária';
+        : 'Rotina de inverno e guarda ativa nas ameias';
 
       const prompt = `${SYSTEM_PROMPT}
 
@@ -135,38 +137,45 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
   }
 
   private async callGemini(prompt: string): Promise<string> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelId}:generateContent?key=${this.apiKey}`;
+    const modelsToTry = [this.modelId, ...CANDIDATE_MODELS.filter(m => m !== this.modelId)];
+    
+    let lastError: Error | null = null;
+    for (const model of modelsToTry) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+      try {
+        const res = await this.fetchFn(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          }),
+          signal: controller.signal
+        });
 
-    try {
-      const res = await this.fetchFn(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        }),
-        signal: controller.signal
-      });
+        if (!res.ok) {
+          throw new Error(`Gemini API Error with model ${model}: HTTP ${res.status}`);
+        }
 
-      if (!res.ok) {
-        throw new Error(`Gemini API HTTP Error: ${res.status}`);
+        const data = await res.json() as {
+          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        };
+
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text && text.trim().length > 0) {
+          return text.trim();
+        }
+      } catch (err: any) {
+        lastError = err;
+        continue;
+      } finally {
+        clearTimeout(timer);
       }
-
-      const data = await res.json() as {
-        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-      };
-
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) {
-        throw new Error('Empty response from Gemini API');
-      }
-
-      return text.trim();
-    } finally {
-      clearTimeout(timer);
     }
+
+    throw lastError || new Error('All Gemini model endpoints failed');
   }
 
   private fallbackInterpret(playerInput: string): NarrativeCommand {
@@ -175,7 +184,7 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
     const quantity = quantityMatch ? parseInt(quantityMatch[1], 10) : undefined;
 
     // 1. RECRUIT
-    if (/recrut|soldad|infantaria|recruit/i.test(normalized)) {
+    if (/recrut|soldad|infantaria|homens|tropa|convo/i.test(normalized)) {
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
         commandId: createDeterministicCommandId('player', 'RECRUIT', playerInput),
@@ -190,7 +199,7 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
     }
 
     // 2. BUILD
-    if (/constru|palisad|palisade|muralha|pedra|stone/i.test(normalized)) {
+    if (/constru|palisad|palisade|muralha|pedra|stone|erguer|oficina|torre/i.test(normalized)) {
       const structure = /palisad|palisade/.test(normalized)
         ? 'palisade'
         : /muralha|pedra|stone/.test(normalized)
@@ -225,7 +234,7 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
     }
 
     // 3. TRAVEL
-    if (/viajar|marchar|viagem|travel|march/i.test(normalized)) {
+    if (/viajar|marchar|viagem|travel|march|deslocar|ir para/i.test(normalized)) {
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
         commandId: createDeterministicCommandId('player', 'TRAVEL', playerInput),
@@ -240,7 +249,7 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
     }
 
     // 4. TRADE
-    if (/comprar|vender|trocar|comercio|comércio|buy|sell/i.test(normalized)) {
+    if (/comprar|vender|trocar|comercio|comércio|buy|sell|caravana|mercado/i.test(normalized)) {
       const goods = ['mantimentos', 'comida', 'madeira', 'ferro', 'pedra', 'racao', 'ração'].find(g =>
         normalized.includes(g)
       );
@@ -258,15 +267,16 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
       };
     }
 
-    // 5. INFORMATION
-    if (/quanto custa|qual o custo|como funciona|how much|qual regra/i.test(normalized)) {
+    // 5. INFORMATION / SITUATION / ADVICE / EXPLORATION
+    if (/avaliar|situacao|situação|diplomacia|inimig|necessidade|povo|popula|conselh|como estamos|o que fazer|relatorio|relatório|inform|quanto custa|qual o custo|como funciona|how much|qual regra/i.test(normalized)) {
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
         commandId: createDeterministicCommandId('player', 'INFORMATION', playerInput),
         actorId: 'player',
         action: 'INFORMATION',
+        desiredOutcome: 'avaliar a situação geral, defesas, povo e conselho de Estado',
         constraints: [],
-        confidence: 0.9,
+        confidence: 0.95,
         ambiguity: [],
         requiresClarification: false
       };
@@ -286,9 +296,40 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
 
   private fallbackNarrate(context: NarrativeContext): string {
     const report = context.executionResult;
+    const loc = context.scene.locationId || 'a fortaleza';
+    const reg = context.scene.regionName || 'as terras feudais';
+    const weather = context.scene.weather ? context.scene.weather.toLowerCase() : 'frio';
+
     if (report.status === 'REJECTED') {
-      return `A ordem não foi executada pelos intendentes: ${report.reasonCode}`;
+      if (report.reasonCode.includes('esclarecimento')) {
+        return `Vossos conselheiros em ${loc} solicitam maiores detalhes antes de mobilizar os homens: qual ordem exata deseja expedir?`;
+      }
+      return `A ordem não pôde ser executada pelos intendentes em ${loc}: ${report.reasonCode}. Os recursos foram preservados.`;
     }
-    return `A resolução foi selada conforme registrado nos livros de ferro da campanha.`;
+
+    // Rich procedural narrative based on action executed
+    if (report.actionExecuted === 'INFORMATION' || report.actionExecuted === 'UNKNOWN') {
+      return `Mara e o Marechal Ren reúnem os pergaminhos sobre a mesa de carvalho em ${loc}. Sob o sopro ${weather} de ${reg}, as muralhas permanecem guarnecidas e as patrulhas vigiam os desfiladeiros. As casas nobres vizinhas mantêm uma paz cautelosa, enquanto os aldeões estocam lenha e grãos para resistir à estação.
+
+O marechal aponta para o mapa: 'Senhor, nossas defesas estão firmes, mas as fronteiras exigem vigilância constante. Podemos recrutar mais combatentes, fortificar as muralhas com paliçadas ou enviar batedores para sondar movimentações rivais.' O conselho aguarda vossa diretriz.`;
+    }
+
+    if (report.actionExecuted === 'RECRUIT') {
+      return `Novos homens atendem ao chamado senhorial em ${loc}. Revestidos com armaduras de couro batido e lanças afiadas, os recrutas prestam juramento no pátio sob o olhar severo dos veteranos. A guarda pessoal ganha novas fileiras prontas para defender as fronteiras.`;
+    }
+
+    if (report.actionExecuted === 'BUILD') {
+      return `O som compassado de machados e martelos corta o ar gélido em ${loc}. Os carpinteiros e pedreiros concluem o reforço das estruturas defensivas. As novas paliçadas erguem-se firmes, elevando a segurança do feudo contra invasões e emboscadas.`;
+    }
+
+    if (report.actionExecuted === 'TRAVEL') {
+      return `A comitiva de armas põe-se em marcha pelas estradas de pedra e lama. As bandeiras ondulam sob o vento e os vigias das aldeias locais saúdam a passagem de vossa escolta. A marcha conclui seu percurso com segurança.`;
+    }
+
+    if (report.actionExecuted === 'TRADE') {
+      return `As carretas mercantis negociam as cargas no entreposto regional. O comércio é selado com aperto de mãos calejadas e os livros de contas da tesouraria registram as transações sob o selo de vossa Casa.`;
+    }
+
+    return `Vossas ordens foram executadas com rigor pelos servos e capitães em ${loc}. A disciplina reina sobre as propriedades e os conselheiros aguardam vosso próximo movimento.`;
   }
 }

@@ -59,7 +59,7 @@ function extractQuantity(input: string): number | undefined {
 const CLARIFY_KEYWORDS = ['falar com', 'falar com ele', 'conversar', 'talk to', 'speak with'];
 const RECRUIT_KEYWORDS = ['recrut', 'recruit', 'soldado', 'soldier', 'infantaria'];
 const BUILD_KEYWORDS = ['constru', 'build', 'palisad', 'palisade', 'fortifica'];
-const INFO_KEYWORDS = ['quanto custa', 'qual o custo', 'como funciona', 'how much', 'qual regra'];
+const INFO_KEYWORDS = ['quanto custa', 'qual o custo', 'como funciona', 'how much', 'qual regra', 'avaliar', 'situacao', 'situação', 'diplomacia', 'inimig', 'necessidade', 'povo', 'popula', 'conselh', 'como estamos', 'o que fazer', 'relatorio', 'relatório', 'inform'];
 const TRAVEL_KEYWORDS = ['viajar', 'marchar', 'viagem', 'travel', 'march'];
 const TRADE_KEYWORDS = ['comprar', 'vender', 'trocar', 'comercio', 'comércio', 'buy', 'sell'];
 const IMPOSSIBLE_KEYWORDS = ['mato o rei', 'matar o rei', 'kill the king'];
@@ -80,7 +80,10 @@ function interpretInput(playerInput: string): NarrativeCommand {
   }
 
   if (INFO_KEYWORDS.some(k => normalized.includes(k))) {
-    return buildCommand('INFORMATION', { confidence: 0.9 }, playerInput);
+    return buildCommand('INFORMATION', { 
+      confidence: 0.95,
+      desiredOutcome: 'avaliar a situação geral, defesas, povo e conselho de Estado'
+    }, playerInput);
   }
 
   if (RECRUIT_KEYWORDS.some(k => normalized.includes(k))) {
@@ -157,6 +160,7 @@ function interpretInput(playerInput: string): NarrativeCommand {
 
 function narrateReport(context: NarrativeContext): string {
   const report = context.executionResult;
+  const loc = context.scene.locationId || 'Grey Keep';
 
   if (report.status === 'REJECTED') {
     if (report.reasonCode.includes('esclarecimento')) {
@@ -173,6 +177,9 @@ function narrateReport(context: NarrativeContext): string {
     case 'BUILD': {
       const silverdew = report.stateChanges.find(sc => sc.path === 'weeklyLedger.silverdew')?.delta ?? 0;
       return `A construção foi autorizada: a paliçada avança sob as muralhas, custo total de ${Math.abs(silverdew)} SD.`;
+    }
+    case 'INFORMATION': {
+      return `Mara e o Marechal Ren reúnem os pergaminhos sobre a mesa em ${loc}. As defesas permanecem sob vigilância e o conselho recomenda reforçar a guarda, fortificar as muralhas ou enviar batedores para sondar as fronteiras.`;
     }
     default:
       return 'A solicitação foi registrada e autorizada sem alteração mecânica.';
