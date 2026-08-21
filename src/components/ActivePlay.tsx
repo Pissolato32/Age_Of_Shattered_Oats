@@ -514,38 +514,52 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
 
     const commandText = customCommand.trim();
     setCustomCommand("");
-
-    // Executar Pipeline Completo AOS V4.7 (Intent Parser -> Rule Resolver -> State Mutation -> Hash Verification)
-    const pipelineResult = executeGameplayPipeline(commandText, state);
-
-    if (pipelineResult.requiresPlayerClarification && pipelineResult.clarificationMessage) {
-      const playerMsg = `[JOGADOR] "${commandText}"`;
-      const masterMsg = `[MESTRE] ${pipelineResult.clarificationMessage}`;
-      setNarrativeHistory(prev => {
-        const updated = [...prev, playerMsg, masterMsg];
-        setState(s => s ? { ...s, narrativeHistory: updated } : s);
-        return updated;
-      });
-      return;
-    }
-
-    if (pipelineResult.stateMutated) {
-      setState(pipelineResult.updatedState);
-    }
-
-    const resolution = pipelineResult.resolution;
-    const mechanicalOutcome = resolution 
-      ? resolution.decisionReason 
-      : "Ação processada deterministicamente pela engine.";
+    setIsNarrating(true);
 
     const playerMsg = `[JOGADOR] "${commandText}"`;
-    setNarrativeHistory(prev => {
-      const updated = [...prev, playerMsg];
-      setState(s => s ? { ...s, narrativeHistory: updated } : s);
-      return updated;
-    });
+    setNarrativeHistory(prev => [...prev, playerMsg]);
 
-    await generateNarrativeWithAI(commandText, mechanicalOutcome, pipelineResult.webFlavor?.flavorText);
+    try {
+      const clientApiKey = localStorage.getItem("aos_gemini_api_key") || "";
+      const response = await fetch("/api/narrative-cycle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-gemini-api-key": clientApiKey
+        },
+        body: JSON.stringify({
+          playerInput: commandText,
+          state,
+          clientApiKey
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro do servidor HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success && data.resultState) {
+        setState(data.resultState);
+        const masterNarrative = data.narrative.startsWith("[MESTRE]")
+          ? data.narrative
+          : `[MESTRE] ${data.narrative}`;
+        setCurrentNarrative(masterNarrative);
+        setNarrativeHistory(prev => {
+          const updated = [...prev, masterNarrative];
+          return updated;
+        });
+      } else {
+        throw new Error(data.error || "Resposta inválida do servidor narrativo");
+      }
+    } catch (err: any) {
+      console.error("Erro na comunicação com /api/narrative-cycle:", err);
+      const fallbackMsg = `[MESTRE] Os conselheiros de ${state.character.location.landmark} registraram a ordem sob os livros de ferro. A simulação permanece segura e o estado preservado.`;
+      setCurrentNarrative(fallbackMsg);
+      setNarrativeHistory(prev => [...prev, fallbackMsg]);
+    } finally {
+      setIsNarrating(false);
+    }
   };
 
   // ==========================================

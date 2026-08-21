@@ -6,6 +6,11 @@ import { GoogleGenAI } from "@google/genai";
 import { searchCodex } from "./src/lib/codexRetriever";
 import { resolveAction } from "./src/lib/ruleResolver";
 import { fetchWebFlavorContext } from "./src/lib/webFlavorService";
+import { runNarrativeCycle } from "./src/lib/narrativeCycle";
+import { GeminiNarrativeLLM } from "./src/lib/geminiNarrativeLLM";
+import { MockNarrativeLLM } from "./src/lib/mockNarrativeLLM";
+import { NarrativeObserver } from "./src/lib/narrativeContracts";
+import { CampaignState } from "./src/types";
 
 dotenv.config();
 
@@ -100,7 +105,56 @@ async function startServer() {
     });
   });
 
-  // 4. Safe lazy-loaded API route for Gemini narrative generation (com Auto-RAG & Web Context Isolation)
+  // 4. Canonical Narrative Cycle Endpoint (Full Pipeline: Natural Language -> NarrativeCommand -> Engine -> Projection -> Narration -> Validation)
+  app.post("/api/narrative-cycle", async (req, res) => {
+    try {
+      const { playerInput, state, clientApiKey } = req.body;
+      if (!playerInput || typeof playerInput !== "string") {
+        return res.status(400).json({ error: "Parâmetro 'playerInput' é obrigatório." });
+      }
+      if (!state || typeof state !== "object") {
+        return res.status(400).json({ error: "Objeto 'state' (CampaignState) é obrigatório." });
+      }
+
+      const headerKey = req.headers["x-gemini-api-key"] as string;
+      const apiKey = clientApiKey || headerKey || process.env.GEMINI_API_KEY;
+      const hasValidKey = Boolean(apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey !== "SUA_CHAVE_AQUI" && apiKey.trim().length >= 15);
+
+      const llm = hasValidKey
+        ? new GeminiNarrativeLLM({ apiKey: apiKey.trim() })
+        : new MockNarrativeLLM();
+
+      const observer: NarrativeObserver = {
+        kind: "PLAYER",
+        observerId: "player"
+      };
+
+      const result = await runNarrativeCycle({
+        playerInput,
+        state: state as CampaignState,
+        observer,
+        llm
+      });
+
+      return res.json({
+        success: true,
+        command: result.command,
+        report: result.report,
+        narrative: result.narrative,
+        validation: result.validation,
+        resultState: result.resultState
+      });
+    } catch (err: any) {
+      console.error("Erro na execução do ciclo narrativo canônico:", err);
+      return res.status(500).json({
+        error: "Falha na resolução narrativa",
+        details: err?.message || String(err),
+        stateUnchanged: true
+      });
+    }
+  });
+
+  // 5. Safe lazy-loaded API route for Gemini narrative generation (com Auto-RAG & Web Context Isolation)
   app.post("/api/narrate", async (req, res) => {
     try {
       const { systemPrompt, userPrompt, webFlavorText, clientApiKey } = req.body;

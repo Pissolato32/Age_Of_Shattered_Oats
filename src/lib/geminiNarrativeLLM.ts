@@ -171,11 +171,11 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
 
   private fallbackInterpret(playerInput: string): NarrativeCommand {
     const normalized = ` ${playerInput.trim().toLowerCase()} `;
-    const isRecruit = /recrut|soldad|infantaria/i.test(normalized);
     const quantityMatch = /\b(\d+)\b/.exec(playerInput);
     const quantity = quantityMatch ? parseInt(quantityMatch[1], 10) : undefined;
 
-    if (isRecruit) {
+    // 1. RECRUIT
+    if (/recrut|soldad|infantaria|recruit/i.test(normalized)) {
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
         commandId: createDeterministicCommandId('player', 'RECRUIT', playerInput),
@@ -183,7 +183,90 @@ Escreva a crônica narrativa do resultado para o jogador em 1 ou 2 parágrafos c
         action: 'RECRUIT',
         magnitude: quantity ? { mode: 'FIXED', value: quantity } : { mode: 'ENGINE_DETERMINED' },
         constraints: [],
-        confidence: 0.8,
+        confidence: 0.85,
+        ambiguity: [],
+        requiresClarification: false
+      };
+    }
+
+    // 2. BUILD
+    if (/constru|palisad|palisade|muralha|pedra|stone/i.test(normalized)) {
+      const structure = /palisad|palisade/.test(normalized)
+        ? 'palisade'
+        : /muralha|pedra|stone/.test(normalized)
+          ? 'stone_wall'
+          : undefined;
+
+      if (structure === undefined) {
+        return {
+          contractVersion: NARRATIVE_CONTRACT_VERSION,
+          commandId: createDeterministicCommandId('player', 'BUILD', playerInput),
+          actorId: 'player',
+          action: 'BUILD',
+          constraints: [],
+          confidence: 0.6,
+          ambiguity: ['estrutura a construir não identificada'],
+          requiresClarification: true
+        };
+      }
+
+      return {
+        contractVersion: NARRATIVE_CONTRACT_VERSION,
+        commandId: createDeterministicCommandId('player', 'BUILD', playerInput),
+        actorId: 'player',
+        action: 'BUILD',
+        objectId: structure,
+        desiredOutcome: `construir ${structure === 'palisade' ? 'palisada de madeira' : 'muralha de pedra'}`,
+        constraints: [],
+        confidence: 0.9,
+        ambiguity: [],
+        requiresClarification: false
+      };
+    }
+
+    // 3. TRAVEL
+    if (/viajar|marchar|viagem|travel|march/i.test(normalized)) {
+      return {
+        contractVersion: NARRATIVE_CONTRACT_VERSION,
+        commandId: createDeterministicCommandId('player', 'TRAVEL', playerInput),
+        actorId: 'player',
+        action: 'TRAVEL',
+        locationId: 'Central Plains',
+        constraints: [],
+        confidence: 0.85,
+        ambiguity: [],
+        requiresClarification: false
+      };
+    }
+
+    // 4. TRADE
+    if (/comprar|vender|trocar|comercio|comércio|buy|sell/i.test(normalized)) {
+      const goods = ['mantimentos', 'comida', 'madeira', 'ferro', 'pedra', 'racao', 'ração'].find(g =>
+        normalized.includes(g)
+      );
+
+      return {
+        contractVersion: NARRATIVE_CONTRACT_VERSION,
+        commandId: createDeterministicCommandId('player', 'TRADE', playerInput),
+        actorId: 'player',
+        action: 'TRADE',
+        objectId: goods ?? 'mantimentos',
+        constraints: [],
+        confidence: 0.85,
+        ambiguity: [],
+        requiresClarification: false
+      };
+    }
+
+    // 5. INFORMATION
+    if (/quanto custa|qual o custo|como funciona|how much|qual regra/i.test(normalized)) {
+      return {
+        contractVersion: NARRATIVE_CONTRACT_VERSION,
+        commandId: createDeterministicCommandId('player', 'INFORMATION', playerInput),
+        actorId: 'player',
+        action: 'INFORMATION',
+        constraints: [],
+        confidence: 0.9,
         ambiguity: [],
         requiresClarification: false
       };

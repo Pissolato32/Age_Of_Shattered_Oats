@@ -1,20 +1,36 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Age of Shattered Oaths
 
-# Run and deploy your AI Studio app
+> A dark, fatalistic, and deterministic feudal strategy RPG powered by an authoritative deterministic simulation engine and an Iron Chronicle sensory translation AI layer.
 
-This contains everything you need to run your app locally.
+---
 
-View your app in AI Studio: https://ai.studio/apps/aec60269-c40a-4945-970d-add5e9e2814e
+## 🏛️ Documentation & Architecture
 
-## Run Locally
+* **[Project Master Roadmap & Definition of Done](docs/development/PROJECT_ROADMAP.md)**: Authoritative 5-phase completion contract and release acceptance checklist.
+* **[System Guidelines & Narrative Rules (AGENTS.md)](AGENTS.md)**: Core operational principles (Mechanical Truth, Sensory Translation, Absolute Mechanical Silence, Iron Chronicle tone).
+* **[Technical Debt & Deferred Backlog](docs/development/TECHNICAL_DEBT.md)**: Single source of truth for verified technical findings and deferred optimizations.
+* **[Narrative AI Architecture](docs/development/NARRATIVE_AI_ARCHITECTURE.md)**: Canonical contracts, observer projections, and semantic validation boundaries.
 
-**Prerequisites:**  Node.js
+---
 
+## 🚀 Running Locally
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+**Prerequisites:** Node.js (v20+)
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment:**
+   Set `GEMINI_API_KEY` in `.env` (optional for offline testing; deterministic mock operates automatically if unset).
+
+3. **Run the application:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Execute full test suite:**
+   ```bash
+   npm test
+   ```
