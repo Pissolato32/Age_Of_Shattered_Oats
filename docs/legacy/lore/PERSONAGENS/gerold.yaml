@@ -1,0 +1,22 @@
+meta_header: '## 📊 PARTE 33 — COMMANDER — GEROLD'
+sheet_type: COMMANDER
+fields:
+  name: Gerold
+  age: 45-55
+  gender: —
+  status: false
+  location: —
+  rankrole: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  commander_tier: 2
+  initiative: +1 (sem armadura)
+  weapon: Adaga (2d6) — apenas para defesa pessoal
+  mount: Nenhum (administra de dentro)
+  loyalty: 6
+  temperament: Disciplinado — segue ordens, prefere Defend
+  priority: Administração e sobrevivência do domínio
+  fear: Fome — pânico com escassez de recursos

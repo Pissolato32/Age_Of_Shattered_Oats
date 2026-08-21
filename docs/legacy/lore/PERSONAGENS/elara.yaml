@@ -1,0 +1,18 @@
+meta_header: '## ⚜️ G.5 — NOBLE HOUSE — ELARA THORNWALL'
+sheet_type: NOBLE HOUSE
+fields:
+  house: —
+  tier: —
+  seat: —
+  liege: —
+  name: Elara Thornwall
+  age: 35-40
+  gender: —
+  status: true
+  location: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  loyalty: 6

@@ -1,0 +1,11 @@
+meta_header: '## 📄 NPC RECORD — MESTRE ORLAN'
+sheet_type: NPC RECORD
+fields:
+  name: Mestre Orlan
+  age: 55-65
+  gender: —
+  status: true
+  location: Cadeia de Valenfort
+  roleoccupation: —
+  health: —
+  ambition: —

@@ -1,0 +1,11 @@
+meta_header: '## 👶 NPC RECORD — LYRA DE VALENFORT'
+sheet_type: NPC RECORD
+fields:
+  name: Lyra de Valenfort
+  age: 2 meses
+  gender: —
+  status: true
+  location: —
+  roleoccupation: —
+  health: —
+  ambition: —

@@ -1,0 +1,21 @@
+meta_header: '## 🏹 PARTE 33 — COMMANDER — MIRA (COMANDANTE DE BATEDORES)'
+sheet_type: COMMANDER
+fields:
+  name: Mira
+  age: 20-25
+  gender: —
+  status: false
+  location: —
+  rankrole: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  commander_tier: 2
+  initiative: +0 (Couro) + 1 (Mount) = +1
+  weapon: Arco (3d6) + Adaga (2d6)
+  loyalty: 5
+  temperament: Astuta — prefere armadilhas e terreno
+  priority: Sobrevivência — -1 DC de moral para sua unidade
+  fear: Escuridão — -1 Iniciativa à noite

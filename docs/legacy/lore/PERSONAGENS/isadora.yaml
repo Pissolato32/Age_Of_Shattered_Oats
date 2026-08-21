@@ -1,0 +1,12 @@
+meta_header: '## 👑 NPC — RAINHA-MÃE ISADORA'
+sheet_type: NPC RECORD
+fields:
+  name: Rainha-Mãe Isadora
+  age: ~55
+  gender: Feminino
+  status: true
+  location: Capital — Palácio Real
+  role_occupation: Regente do Reino / Rainha-Mãe
+  health: Saudável
+  ambition: Manter a estabilidade do reino e preparar a sucessão do Trono Vazio
+  flaw: Confia em poucos — paranóia após a traição de Tybalt Orm

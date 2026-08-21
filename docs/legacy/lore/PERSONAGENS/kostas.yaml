@@ -1,0 +1,12 @@
+meta_header: '## 🚢 NPC — KOSTAS, SENHOR DE ALVERIA'
+sheet_type: NPC RECORD
+fields:
+  name: Kostas
+  age: ~50
+  gender: Masculino
+  status: true
+  location: Alveria Velha (Costa Norte)
+  role_occupation: Senhor de Alveria / Parceiro Comercial
+  health: Saudável
+  ambition: Expandir as rotas comerciais de Alveria
+  flaw: Distância — recursos limitados pelo isolamento geográfico

@@ -1,0 +1,16 @@
+meta_header: '## 📄 NPC RECORD — ORRIS (ESCRIBA DA CAPITAL)'
+sheet_type: NPC RECORD
+fields:
+  name: Orris
+  age: ~40
+  gender: Masculino
+  status: true
+  location: Capital — Ministério dos Registros
+  role_occupation: Escriba do Ministério dos Registros
+  health: —
+  ambition: Sobreviver — sabe que falou demais
+  notes: >
+    Recebeu prata de um homem de capuz (mãos limpas, sotaque do norte, moeda
+    antiga) para espalhar o rumor de que Valenfort está vulnerável ("Passagem
+    sangra", "dentes do lobo cegos"). Não viu o rosto do contratante. Seren
+    investiga pessoalmente.

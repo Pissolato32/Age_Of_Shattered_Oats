@@ -1,0 +1,22 @@
+meta_header: '## 🪖 PARTE 33 — COMMANDER — SGT. RODERICK'
+sheet_type: COMMANDER
+fields:
+  name: Roderick
+  age: 35-45
+  gender: —
+  status: false
+  location: —
+  rankrole: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  commander_tier: 2
+  initiative: -1 (Chain)
+  weapon: Lança (3d6)
+  mount: Nenhum
+  loyalty: 5
+  temperament: Disciplinado — segue ordens, prefere Defend
+  priority: Ordens — +1 Iniciativa quando segue um plano
+  fear: Perda — testa moral quando aliados morrem

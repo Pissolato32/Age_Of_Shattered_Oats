@@ -1,0 +1,11 @@
+meta_header: '## 🧑‍🌾 NPC MENOR — ORIN, O CONSTRUTOR'
+sheet_type: NPC RECORD
+fields:
+  name: Orin (o Construtor)
+  age: '48'
+  gender: —
+  status: true
+  location: Valenfort
+  roleoccupation: —
+  health: —
+  ambition: —

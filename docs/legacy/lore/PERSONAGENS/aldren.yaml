@@ -1,0 +1,23 @@
+meta_header: '## 🛡️ PARTE 33 — COMMANDER — ALDREN'
+sheet_type: COMMANDER
+fields:
+  name: Aldren
+  age: 50+
+  gender: —
+  status: false
+  location: —
+  rankrole: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  commander_tier: 4
+  banner_tier: 3 (Casa Valenfort) — x2 = 2,000 tropas
+  initiative: -2 (Plate) + 0 = -2
+  weapon: Espada Longa (3d6) + Lança (3d6)
+  mount: Nenhum (comanda a pé)
+  loyalty: 6
+  temperament: Disciplinado — segue ordens, prefere Defend
+  priority: Vitória — +1d6 quando pede Ajuda
+  fear: Desonra — testa moral se juramento for quebrado

@@ -1,0 +1,22 @@
+meta_header: '## NPC RECORD'
+sheet_type: COMMANDER
+fields:
+  name: Sir Sorrel
+  age: '38'
+  gender: —
+  status: true
+  location: —
+  rankrole: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  commander_tier: 3
+  initiative: 1
+  weapon: Espada Curta (3d6)
+  mount: Cavalo de Viagem
+  loyalty: 5
+  temperament: Disciplinado
+  priority: Proteção do Lorde
+  fear: Morte de Rodrigo

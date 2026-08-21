@@ -1,0 +1,11 @@
+meta_header: '## 🧑‍🌾 NPC MENOR — TOBIAS (Capital)'
+sheet_type: NPC RECORD
+fields:
+  name: Tobias
+  age: 50-60
+  gender: —
+  status: true
+  location: Capital (Conselho da Coroa)
+  roleoccupation: —
+  health: —
+  ambition: —

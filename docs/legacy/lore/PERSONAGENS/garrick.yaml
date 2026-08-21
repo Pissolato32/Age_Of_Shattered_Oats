@@ -1,0 +1,22 @@
+meta_header: '## 🐎 PARTE 33 — COMMANDER — GARRICK'
+sheet_type: COMMANDER
+fields:
+  name: Garrick
+  age: 30-35
+  gender: —
+  status: false
+  location: —
+  rankrole: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  commander_tier: 3
+  banner_tier: 1 (sem banner próprio) — x1 = 500 tropas
+  initiative: -1 (Chain) + 1 (Cavalo de Montaria) = 0
+  weapon: Espada (3d6) + Arco (3d6)
+  loyalty: 5
+  temperament: Agressivo — prefere Carga e Ataque Contínuo
+  priority: Glória — +1 Lealdade quando ataca
+  fear: Traição — testa moral se for abandonado

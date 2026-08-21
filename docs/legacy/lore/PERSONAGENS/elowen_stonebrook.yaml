@@ -1,0 +1,24 @@
+meta_header: "## 🤝 G.5 — NOBLE HOUSE — LADY ELOWEN STONEBROOK"
+sheet_type: NOBLE HOUSE
+fields:
+  house: Stonebrook
+  tier: 2
+  seat: Stonebrook
+  liege: —
+  name: Lady Elowen Stonebrook
+  age: 47
+  gender: Female
+  status: true
+  location: Stonebrook
+  personal_wealth: ~150 SD (recursos comprometidos com a reconstrução)
+  personal_gear: false
+  health: Saudável, mas exausta (lidera a reconstrução pessoalmente)
+  ambition: Reerguer Stonebrook como celeiro da Passagem Cinzenta
+  flaw: Desconfiada — acha que o Conselho da Passagem é uma manobra de Valenfort para controlar os menores
+  notes: >
+    Viúva do falecido Lord Stonebrook. Assumiu o governo após a morte do marido
+    (doença, ~2 anos atrás). O incêndio no celeiro principal (Deepfrost, Ano 345)
+    destruiu a maior parte da reserva de grãos do inverno. Valenfort ofereceu
+    grão a preço de custo — Elowen aceitou mas ainda não confia plenamente no
+    Conselho. Focada em reconstruir antes de se envolver em política regional.
+    Não compareceu às reuniões do Conselho por estar lidando com a crise.

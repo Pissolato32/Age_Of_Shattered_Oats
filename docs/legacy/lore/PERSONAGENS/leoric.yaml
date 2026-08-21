@@ -1,0 +1,16 @@
+meta_header: '## ⛓️ NPC — IRMÃO LEORIC (PRESO)'
+sheet_type: NPC RECORD
+fields:
+  name: Irmão Leoric
+  age: ~45
+  gender: Masculino
+  status: false
+  location: Masmorras de Valenfort
+  role_occupation: Falso andarilho / Emissário de Silas Vane
+  health: Preso
+  ambition: —
+  notes: >
+    Apresentou-se como andarilho para oficiar no templo de Valenfort.
+    Roric encontrou carta escondida — Leoric é emissário de Silas Vane (ourives
+    da Capital, protetor de Dorian Voss). Missão: abrir portão do castelo para
+    Blackmoor na primavera. Meia-moeda de sinal recuperada. Confessou.

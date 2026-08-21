@@ -1,0 +1,12 @@
+meta_header: '## 📜 NPC RECORD — O ANTIGO REI (HISTORICAL)'
+sheet_type: NPC RECORD
+fields:
+  name: O Antigo Rei
+  age: '— (Falecido) Age: —'
+  gender: '—    Age: —    Gender: —'
+  status: true
+  location: Criptas Reais da Capital
+  roleoccupation: —
+  health: —
+  ambition: —
+  loyalty: —

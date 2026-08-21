@@ -1,0 +1,12 @@
+meta_header: '## ⛏️ NPC — ALBERICO, SENHOR DE PEDRA ALTA'
+sheet_type: NPC RECORD
+fields:
+  name: Alberico
+  age: ~55
+  gender: Masculino
+  status: false
+  location: Valenfort — pedreira (preso)
+  role_occupation: Ex-Senhor de Pedra Alta
+  health: Preso (pena quase expirando)
+  ambition: Recuperar o controle de Pedra Alta
+  flaw: Teimosia — recusou cooperar com Valenfort

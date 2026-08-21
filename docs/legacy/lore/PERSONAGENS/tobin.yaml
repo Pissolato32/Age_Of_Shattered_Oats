@@ -1,0 +1,22 @@
+meta_header: '## 🗡️ PARTE 33 — COMMANDER — SGT. TOBIN'
+sheet_type: COMMANDER
+fields:
+  name: Tobin
+  age: 18-20
+  gender: —
+  status: false
+  location: —
+  rankrole: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  commander_tier: 2
+  initiative: -1 (Chain)
+  weapon: Espada (3d6)
+  mount: Nenhum
+  loyalty: 5
+  temperament: Disciplinado — segue ordens, lidera pelo exemplo
+  priority: Ordens — +1 Iniciativa quando segue um plano
+  fear: Perda — testa moral quando aliados morrem
