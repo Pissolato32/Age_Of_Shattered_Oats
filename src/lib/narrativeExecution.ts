@@ -14,6 +14,8 @@ import {
 } from './narrativeContracts';
 import { applyResolutionToState, resolveAction, RuleResolutionResult } from './ruleResolver';
 import { resolveMagnitude } from './magnitudeResolution';
+import { classifyNarrativeCommand } from './actionClassifier';
+import { resolveGenericPlausibleAction } from './genericResolution';
 
 /**
  * Authoritative NarrativeCommand -> Engine resolution boundary.
@@ -248,22 +250,22 @@ function collectEffectDeltas(
   return deltas;
 }
 
-function describeEntity(path: string): { entityId: string; entityType: AffectedEntity['entityType'] } {
+function describeEntity(path: string): AffectedEntity {
   switch (path) {
     case 'weeklyLedger.silverdew':
-      return { entityId: 'silverdew', entityType: 'RESOURCE' };
+      return { entityId: 'silverdew', entityType: 'RESOURCE', role: 'AFFECTED' };
     case 'holdings.laborPool':
-      return { entityId: 'laborPool', entityType: 'HOLDING' };
+      return { entityId: 'laborPool', entityType: 'HOLDING', role: 'AFFECTED' };
     case 'materials.timber':
-      return { entityId: 'timber', entityType: 'RESOURCE' };
+      return { entityId: 'timber', entityType: 'RESOURCE', role: 'AFFECTED' };
     case 'materials.iron':
-      return { entityId: 'iron', entityType: 'RESOURCE' };
+      return { entityId: 'iron', entityType: 'RESOURCE', role: 'AFFECTED' };
     case 'materials.stone':
-      return { entityId: 'stone', entityType: 'RESOURCE' };
+      return { entityId: 'stone', entityType: 'RESOURCE', role: 'AFFECTED' };
     case 'army.units.levies':
-      return { entityId: 'levies', entityType: 'ARMY' };
+      return { entityId: 'levies', entityType: 'ARMY', role: 'AFFECTED' };
     default:
-      return { entityId: path, entityType: 'RESOURCE' };
+      return { entityId: path, entityType: 'RESOURCE', role: 'AFFECTED' };
   }
 }
 
@@ -370,7 +372,9 @@ export function resolveNarrativeCommand(
   state: CampaignState,
   rng: RandomService = globalRNG
 ): NarrativeResolutionResult {
-  if (command.requiresClarification || command.action === 'UNKNOWN') {
+  const classification = classifyNarrativeCommand(command, state);
+
+  if (classification.type === 'AMBIGUOUS') {
     return {
       report: buildExecutionReport(
         command,
@@ -382,9 +386,7 @@ export function resolveNarrativeCommand(
           effects: [],
           evidence: [],
           mechanicalAllowed: false,
-          decisionReason: command.requiresClarification
-            ? UNRESOLVED_REASON
-            : 'Comando sem ação mecânica resolvível; nenhuma consequência foi produzida.',
+          decisionReason: classification.reason,
           webFlavorAllowed: false
         },
         state,
@@ -396,6 +398,75 @@ export function resolveNarrativeCommand(
     };
   }
 
+  if (classification.type === 'IMPOSSIBLE') {
+    return rejectionReport(command, state, classification.reason);
+  }
+
+  if (classification.type === 'PLAUSIBLE_UNMODELED') {
+    const genericRes = resolveGenericPlausibleAction(
+      {
+        action: command.action,
+        targetId: command.targetId,
+        parameters: command.parameters as Record<string, unknown>
+      },
+      state,
+      rng
+    );
+
+    const isSuccess = genericRes.outcome === 'SUCCESS' || genericRes.outcome === 'PARTIAL_SUCCESS';
+    let updatedState = state;
+    let mutated = false;
+
+    if (genericRes.stateChanges.length > 0) {
+      updatedState = JSON.parse(JSON.stringify(state)) as CampaignState;
+      for (const sc of genericRes.stateChanges) {
+        if (sc.path === 'weeklyLedger.silverdew' && typeof sc.delta === 'number') {
+          updatedState.weeklyLedger.silverdew += sc.delta;
+          mutated = true;
+        } else if (sc.path === 'holdings.laborPool' && typeof sc.delta === 'number') {
+          updatedState.holdings.laborPool += sc.delta;
+          mutated = true;
+        }
+      }
+    }
+
+    const report: ExecutionReport = {
+      contractVersion: command.contractVersion,
+      reportId: `rep_gen_${rng.nextInt(100000, 999999)}`,
+      command: {
+        commandId: command.commandId,
+        actorId: command.actorId,
+        action: command.action,
+        targetId: command.targetId,
+        objectId: command.objectId,
+        locationId: command.locationId
+      },
+      status: isSuccess ? 'ACCEPTED' : 'REJECTED',
+      actionExecuted: command.action,
+      reasonCode: genericRes.reason,
+      affectedEntities: genericRes.stateChanges.map(sc => describeEntity(sc.path)),
+      stateChanges: genericRes.stateChanges,
+      consequences: genericRes.consequences,
+      discoveredInformation: [],
+      hiddenInformationIds: [],
+      events: [],
+      magnitude: genericRes.magnitude !== undefined ? {
+        mode: 'ENGINE_DETERMINED',
+        value: genericRes.magnitude,
+        source: genericRes.source,
+        min: genericRes.magnitude,
+        max: genericRes.magnitude
+      } : undefined
+    };
+
+    return {
+      report,
+      state: updatedState,
+      mutated
+    };
+  }
+
+  // Canonical pipeline
   const paramViolation = validateParameters(command);
   if (paramViolation !== null) {
     return rejectionReport(command, state, paramViolation);
