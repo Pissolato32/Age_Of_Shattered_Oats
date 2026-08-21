@@ -1601,8 +1601,8 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
         {/* Command Panel Options */}
         <div className="border-t border-[#e4e4e7]/10 bg-[#111113] p-6 shrink-0 max-h-[340px] overflow-y-auto">
           <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#e4e4e7]/50 mb-4 flex justify-between">
-            <span>/COMMAND_DECISION_ARRAY</span>
-            <span className="text-cyan-400">ACTIVE</span>
+            <span>/STRATEGIC_ORDERS_HUB // ORDENS RÁPIDAS</span>
+            <span className="text-[#f2a900]">CANONICAL</span>
           </div>
 
           {/* MAIN MENU */}
