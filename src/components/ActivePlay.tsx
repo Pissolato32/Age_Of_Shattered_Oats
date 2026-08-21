@@ -277,7 +277,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden font-mono text-[#f2efeb] bg-[#111113] select-none">
+    <div className="flex flex-col h-screen w-screen overflow-hidden font-mono text-[#f2efeb] bg-[#111113]">
       {/* Header */}
       <header className="shrink-0 border-b-2 border-[#f2efeb] bg-[#111113] px-6 py-4 flex justify-between items-baseline gap-2">
         <div className="text-[10px] text-[#f2efeb]/50 uppercase tracking-[0.15em] font-mono">System 4.7 // Operational</div>
@@ -439,8 +439,8 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
           </div>
           
           {/* Historical text feed */}
-          <div className="flex-1 p-8 overflow-y-auto space-y-4 min-h-[220px]">
-            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#e4e4e7]/50 mb-4">
+          <div className="flex-1 p-8 overflow-y-auto space-y-4 min-h-[220px] select-text">
+            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#e4e4e7]/50 mb-4 select-text">
               [INITIALIZING TURN_BLOCK: WEEK_{state.weeklyLedger.week}]
             </div>
             
@@ -449,7 +449,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
               return (
                 <div 
                   key={idx} 
-                  className={`font-mono text-xs md:text-[13px] leading-relaxed transition-all duration-300 rounded-sm ${
+                  className={`font-mono text-xs md:text-[13px] leading-relaxed transition-all duration-300 rounded-sm select-text ${
                     isPlayer 
                       ? "border-l-2 border-cyan-400 bg-cyan-950/20 p-3 text-cyan-100 font-bold" 
                       : "border-l-2 border-[#f2a900] bg-[#f2a900]/[0.05] p-4 text-[#e4e4e7]"

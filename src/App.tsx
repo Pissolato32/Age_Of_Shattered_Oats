@@ -62,7 +62,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#0b0b0c] text-[#e4e4e7] font-sans overflow-hidden select-none">
+    <div className="flex flex-col h-screen bg-[#0b0b0c] text-[#e4e4e7] font-sans overflow-hidden">
       
       {/* Header Bar */}
       <header className="grid grid-cols-[200px_1fr_200px] md:grid-cols-[300px_1fr_300px] px-6 py-4 border-b-2 border-[#e4e4e7] bg-[#0b0b0c] items-center shrink-0">
