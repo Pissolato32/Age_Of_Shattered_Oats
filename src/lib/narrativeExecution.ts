@@ -4,6 +4,7 @@ import { globalRNG, RandomService } from '../core/RandomService';
 import { globalEventStore } from '../core/EventStore';
 import {
   AffectedEntity,
+  CheckpointInfo,
   ExecutionConsequence,
   ExecutionReport,
   ExecutionStatus,
@@ -336,6 +337,18 @@ function buildExecutionReport(
         ]
       : [];
 
+  let checkpoint: CheckpointInfo | undefined = undefined;
+  if (status === 'ACCEPTED' && actionExecuted === 'BUILD') {
+    const isNewFortification = !inputState.holdings?.fortification || inputState.holdings.fortification.tier === 0;
+    checkpoint = {
+      kind: isNewFortification ? 'START_CHECKPOINT' : 'COMPLETION_CHECKPOINT',
+      projectType: command.objectId || 'Paliçada Defensiva',
+      progressDescription: isNewFortification
+        ? 'Fundação e estaqueamento de madeira iniciados nos limites do feudo.'
+        : 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
+    };
+  }
+
   return {
     contractVersion: command.contractVersion,
     reportId,
@@ -356,7 +369,8 @@ function buildExecutionReport(
     hiddenInformationIds: [],
     events,
     reasonCode: resolution.decisionReason,
-    ...(status === 'ACCEPTED' && actionExecuted === 'RECRUIT' && magnitude !== undefined ? { magnitude } : {})
+    ...(status === 'ACCEPTED' && actionExecuted === 'RECRUIT' && magnitude !== undefined ? { magnitude } : {}),
+    ...(checkpoint !== undefined ? { checkpoint } : {})
   };
 }
 
@@ -432,6 +446,18 @@ export function resolveNarrativeCommand(
       }
     }
 
+    let checkpoint: CheckpointInfo | undefined = undefined;
+    if (isSuccess && command.action === 'BUILD') {
+      const isNewFortification = !state.holdings?.fortification || state.holdings.fortification.tier === 0;
+      checkpoint = {
+        kind: isNewFortification ? 'START_CHECKPOINT' : 'COMPLETION_CHECKPOINT',
+        projectType: command.objectId || 'Paliçada Defensiva',
+        progressDescription: isNewFortification
+          ? 'Fundação e estaqueamento de madeira iniciados nos limites do feudo.'
+          : 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
+      };
+    }
+
     const report: ExecutionReport = {
       contractVersion: command.contractVersion,
       reportId: `rep_gen_${rng.nextInt(100000, 999999)}`,
@@ -458,7 +484,8 @@ export function resolveNarrativeCommand(
         source: genericRes.source,
         min: genericRes.magnitude,
         max: genericRes.magnitude
-      } : undefined
+      } : undefined,
+      ...(checkpoint !== undefined ? { checkpoint } : {})
     };
 
     return {

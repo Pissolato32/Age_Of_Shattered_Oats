@@ -170,16 +170,21 @@ ${input.playerInput}
         ? context.scene.immediateCircumstances.join('; ')
         : 'Vigilância regular e rotina de guarda';
 
+      const checkpointInfo = context.executionResult.checkpoint
+        ? `\nMarco de Projeto Autorizado: ${context.executionResult.checkpoint.kind} - ${context.executionResult.checkpoint.progressDescription}`
+        : '';
+
       const userContextPrompt = `CONTEXTO AUTORIZADO DO MOTOR:
 Local: ${context.scene.locationId} (${context.scene.regionName})
 Clima: ${context.scene.weather}, Estação: ${context.scene.season}
+Estado da Cena: ${context.scene.sceneState || 'Resolved'}
 Atores Presentes: ${actorsList}
 Circunstâncias em Andamento: ${circumstancesList}
 Fatos e Memórias Relevantes: ${factsList}
 Eventos Recentes Observáveis: ${eventsList}
 Status da Resolução: ${context.executionResult.status}
 Ação Processada: ${context.executionResult.actionExecuted}
-Motivo/Código Interno: ${context.executionResult.reasonCode}
+Motivo/Código Interno: ${context.executionResult.reasonCode}${checkpointInfo}
 Alterações de Estado Concretas: ${JSON.stringify(context.executionResult.stateChanges)}
 Consequências Físicas: ${JSON.stringify(context.executionResult.consequences)}
 
@@ -256,6 +261,19 @@ Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica 
   }
 
   private fallbackInterpret(playerInput: string): NarrativeCommand {
+    if (playerInput.trim().length === 0) {
+      return {
+        contractVersion: NARRATIVE_CONTRACT_VERSION,
+        commandId: createDeterministicCommandId('player', 'UNKNOWN', playerInput),
+        actorId: 'player',
+        action: 'UNKNOWN',
+        constraints: [],
+        confidence: 0.0,
+        ambiguity: ['Nenhuma ordem inserida pelo jogador'],
+        requiresClarification: true
+      };
+    }
+
     const normalized = ` ${playerInput.trim().toLowerCase()} `;
     const quantityMatch = /\b(\d+)\b/.exec(playerInput);
     const quantity = quantityMatch ? parseInt(quantityMatch[1], 10) : undefined;
@@ -365,7 +383,7 @@ Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica 
     }
 
     // 5. POLITICAL SILENCE (PART 122.9)
-    if (/^\s*(\.{3,}|silêncio|silencio|calado|nada digo|permaneço em silêncio|permaneco em silencio|não respondo|nao respondo|sem resposta)\s*$/i.test(normalized)) {
+    if (/^\s*\.{3,}\s*$|sil[eê]ncio|calado|nada digo|n[aã]o respondo|sem resposta/i.test(normalized)) {
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
         commandId: createDeterministicCommandId('player', 'DIPLOMACY', playerInput),

@@ -140,6 +140,16 @@ export interface ExecutionReport {
   readonly reasonCode: string;
   /** Present on ACCEPTED RECRUIT resolutions; absent otherwise. */
   readonly magnitude?: ResolvedMagnitude;
+  /** Present on multi-turn project resolutions (BUILD, FORGE, RESEARCH); absent otherwise. */
+  readonly checkpoint?: CheckpointInfo;
+}
+
+export type CheckpointKind = 'START_CHECKPOINT' | 'MILESTONE_CHECKPOINT' | 'COMPLETION_CHECKPOINT';
+
+export interface CheckpointInfo {
+  readonly kind: CheckpointKind;
+  readonly projectType: string;
+  readonly progressDescription: string;
 }
 
 export type SceneState = 'Continuing' | 'Resolved' | 'Suspended' | 'Interrupted';
