@@ -308,7 +308,7 @@ export function isEventVisibleToObserver(
 export function getVisibleWorldSecrets(state: CampaignState): Array<any> {
   if (!state.worldSecrets) return [];
   const currentTurn = getAbsoluteCampaignTurn(state.worldLedger.currentDate.year, state.worldLedger.currentDate.week);
-  const playerLoc = state.character.location.currentLandmark || state.character.location.region || "Valenfort Citadel";
+  const playerLoc = (state.character.location as any).currentLandmark || state.character.location.landmark || state.character.location.region || "Valenfort Citadel";
 
   return state.worldSecrets.filter(sec => {
     // If secret is already revealed or has no origin location, it is immediately visible
@@ -593,7 +593,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         requirements: ['Obter rotas de comércio com holdings fluviais', 'Eleição pelo Conselho do Rio', 'Firmar cartas de fealdade com lordes mercantes']
       },
       {
-        id: `horn_${globalRNG.nextInt(0, 1000000)}`,
+        id: 'northwind',
         name: 'Crown of the North Wind (Gelo)',
         region: 'Northern Snowlands',
         unlocked: false,
@@ -602,7 +602,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         requirements: ['Sobreviver ao frio profundo de uma Nevasca no Norte', 'Abater uma fera ou urso da neve']
       },
       {
-        id: `skeleton_${globalRNG.nextInt(0, 1000000)}`,
+        id: 'greendrake',
         name: 'Crown of the Green Drake (Florestas)',
         region: 'Eastern Forests',
         unlocked: false,
@@ -977,7 +977,7 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   let patchIron = 0;
   let patchStone = 0;
 
-  const isWinter = w.season === "Inverno";
+  const isWinter = season === "Deepfrost" || (season as string) === "Inverno";
   s.holdings.resourcePatches.forEach((p) => {
     const yieldW = p.yieldPerDay * 7 * w.foragingMod;
     const incomeW = p.incomePerDay * 7;
@@ -1320,12 +1320,6 @@ export function importStateFromText(textBlock: string): CampaignState {
     const narrativeHistory = parsedState.narrativeHistory || defaultState.narrativeHistory;
 
     const mergedState: CampaignState = {
-      id: `evt_${globalRNG.nextInt(0, 1000000)}`,
-      sequence: 0,
-      type: "CAMPAIGN_INIT",
-      payload: {},
-      timestamp: `1970-01-01T00:00:00Z`,
-      week: 1,
       ...defaultState,
       character,
       weeklyLedger,

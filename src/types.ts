@@ -80,6 +80,8 @@ export interface WeeklyLedger {
   weather: string;
   silverdew: number;
   food: number; // FSU
+  famineTicks?: number;
+  unpaidWagesTicks?: number;
   materials: {
     timber: number;
     iron: number;

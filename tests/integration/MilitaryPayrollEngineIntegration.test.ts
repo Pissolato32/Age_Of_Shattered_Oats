@@ -27,8 +27,8 @@ async function runTests() {
     state.weeklyLedger.silverdew = 1000;
     state.weeklyLedger.food = 1000;
     state.army.units = [
-      { name: "Infantry", type: "Infantry", size: 50, morale: 5 },
-      { name: "Archers", type: "Archers", size: 50, morale: 5 }
+      { id: "u1", name: "Infantry", type: "Infantry", size: 50, maxSize: 50, tier: 1, ac: 10, weapon: "Spear", mount: "None", morale: 5 },
+      { id: "u2", name: "Archers", type: "Archers", size: 50, maxSize: 50, tier: 1, ac: 10, weapon: "Bow", mount: "None", morale: 5 }
     ];
     state.holdings.garrison = 100;
 

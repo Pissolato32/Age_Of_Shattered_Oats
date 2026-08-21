@@ -40,7 +40,7 @@ export function runVisibilityEngineIntegrationTests() {
   // 4. Test WorldSecrets Filtering via getVisibleWorldSecrets
   console.log("  - Testing WorldSecrets Fog-of-War Filtering...");
   const state: CampaignState = createInitialState("Noble Ruler", "Central Plains");
-  state.character.location.currentLandmark = "Valenfort Citadel";
+  state.character.location.landmark = "Valenfort Citadel";
   state.worldLedger.currentDate.year = 342;
   state.worldLedger.currentDate.week = 1;
 
