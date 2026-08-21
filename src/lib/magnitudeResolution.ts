@@ -89,9 +89,11 @@ export function capacityTier(state: CampaignState): CapacityTier {
  */
 function ruleCap(state: CampaignState): number {
   const config = RECRUITMENT_MRS_CONFIG;
+  const tier = capacityTier(state);
   const budget = Math.floor(state.weeklyLedger.silverdew / config.costs.sdPerSoldier);
   const labor = Math.floor(laborPoolOf(state) / config.costs.laborPerSoldier);
-  return Math.min(budget, labor, config.weeklyCapPerUnit);
+  const tierCap = config.weeklyCapByTier[tier] ?? config.weeklyCapPerUnit;
+  return Math.min(budget, labor, tierCap);
 }
 
 function plausibleEnvelope(state: CampaignState): { min: number; max: number } {

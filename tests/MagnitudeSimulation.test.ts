@@ -37,15 +37,18 @@ import {
     assert.equal(c.e2e.deltaMismatch, 0, `${c.id}: deltas consistentes com a magnitude`);
     assert.equal(c.e2e.negativeBalance, 0, `${c.id}: tesouraria/labor nunca negativos`);
     assert.ok(c.pure.min >= 1, `${c.id}: batches sempre >= 1`);
-    assert.ok(c.pure.max <= RECRUITMENT_MRS_CONFIG.weeklyCapPerUnit, `${c.id}: batches nunca excedem o cap semanal`);
+    const tierCap = RECRUITMENT_MRS_CONFIG.weeklyCapByTier[c.expectedTier] ?? RECRUITMENT_MRS_CONFIG.weeklyCapPerUnit;
+    assert.ok(c.pure.max <= tierCap, `${c.id}: batches nunca excedem o cap semanal do tier`);
   }
 
   assert.equal(report.determinism.verified, true, 'Determinismo verificado (JSON idêntico)');
   assert.equal(report.acceptance['1_0_rejected'], true);
+  assert.equal(report.acceptance['2_median_within_envelope'], true);
+  assert.equal(report.acceptance['3_95_percent_within_envelope'], true);
   assert.equal(report.acceptance['4_max_within_caps'], true);
   assert.equal(report.acceptance['5_treasury_labor_never_negative'], true);
   assert.equal(report.acceptance['7_determinism'], true);
-  console.log('[SMOKE] 2000 runs + 200 e2e: invariantes, determinismo e critérios 1/4/5/7 -> OK');
+  console.log('[SMOKE] 2000 runs + 200 e2e: invariantes, determinismo e critérios 1/2/3/4/5/7 -> OK');
 }
 
 // ---------------------------------------------------------------------------

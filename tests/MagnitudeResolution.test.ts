@@ -41,11 +41,11 @@ function capitalState(): CampaignState {
 // ---------------------------------------------------------------------------
 {
   assert.ok(Object.isFrozen(RECRUITMENT_MRS_CONFIG), 'Config deve estar congelado (sem números hardcoded fora dele)');
-  assert.equal(RECRUITMENT_MRS_CONFIG.version, '0.1.0');
+  assert.equal(RECRUITMENT_MRS_CONFIG.version, '0.2.0');
   assert.equal(RECRUITMENT_MRS_CONFIG.coefficient, 0.012);
   assert.equal(RECRUITMENT_MRS_CONFIG.costs.sdPerSoldier, 3);
   assert.equal(RECRUITMENT_MRS_CONFIG.costs.laborPerSoldier, 1);
-  assert.equal(RECRUITMENT_MRS_CONFIG.weeklyCapPerUnit, 10, 'Cap semanal Codex 41.6');
+  assert.equal(RECRUITMENT_MRS_CONFIG.weeklyCapByTier[2], 30, 'Cap semanal tier 2 (Vila)');
   assert.deepEqual(RECRUITMENT_MRS_CONFIG.tierEnvelope[2], [15, 30], 'Envelope do tier 2 (Vila)');
   assert.equal(RECRUITMENT_MRS_CONFIG.structuralTypeTier['Bastion'], 1);
   assert.equal(RECRUITMENT_MRS_CONFIG.structuralTypeTier['Walled City'], 4);
@@ -72,10 +72,10 @@ function capitalState(): CampaignState {
   assert.equal(resolution.feasible, true);
   assert.equal(resolution.mode, 'ENGINE_DETERMINED');
   assert.equal(resolution.source, 'ENGINE_CALCULATED');
-  assert.equal(resolution.min, 10, 'Envelope final: min(plausible.min=15, cap=10)');
-  assert.equal(resolution.max, 10, 'Envelope final: min(plausible.max=15, cap=10)');
-  assert.equal(resolution.value, 10, 'Faixa degenerada [10,10] -> 10 determinístico');
-  console.log('[ENGINE-DETERMINED] Estado padrão resolve 10 (envelope [15,15] x cap 10) -> OK');
+  assert.equal(resolution.min, 15, 'Envelope final min: plausible.min=15');
+  assert.equal(resolution.max, 15, 'Envelope final max: plausible.max=15');
+  assert.equal(resolution.value, 15, 'Faixa [15,15] -> 15 determinístico');
+  console.log('[ENGINE-DETERMINED] Estado padrão resolve 15 (envelope [15,15] x cap 30) -> OK');
 }
 
 // ---------------------------------------------------------------------------
@@ -111,9 +111,9 @@ function capitalState(): CampaignState {
   assert.equal(five.max, 5);
   assert.equal(rng.getSeed(), seedBefore, 'FIXED não consome RNG');
 
-  const twenty = resolveMagnitude('RECRUIT', { mode: 'FIXED', value: 20 }, state, rng);
-  assert.equal(twenty.feasible, false, 'FIXED 20 excede o cap semanal (10) -> REJECT, nunca clamp');
-  assert.match(twenty.reason!, /RECUSADO/);
+  const thirtyFive = resolveMagnitude('RECRUIT', { mode: 'FIXED', value: 35 }, state, rng);
+  assert.equal(thirtyFive.feasible, false, 'FIXED 35 excede o cap semanal do tier 2 (30) -> REJECT, nunca clamp');
+  assert.match(thirtyFive.reason!, /RECUSADO/);
 
   const zero = resolveMagnitude('RECRUIT', { mode: 'FIXED', value: 0 }, state, rng);
   assert.equal(zero.feasible, false);
@@ -134,9 +134,9 @@ function capitalState(): CampaignState {
   const rng = new RandomService(4242);
   const range = resolveMagnitude('RECRUIT', { mode: 'RANGE', range: [5, 20] }, state, rng);
   assert.equal(range.feasible, true);
-  assert.ok(range.value! >= 5 && range.value! <= 10, 'Interseção com cap 10');
+  assert.ok(range.value! >= 5 && range.value! <= 20, 'Interseção com cap 30');
 
-  const infeasible = resolveMagnitude('RECRUIT', { mode: 'RANGE', range: [20, 50] }, state, rng);
+  const infeasible = resolveMagnitude('RECRUIT', { mode: 'RANGE', range: [40, 50] }, state, rng);
   assert.equal(infeasible.feasible, false);
   assert.match(infeasible.reason!, /RECUSADO/);
 

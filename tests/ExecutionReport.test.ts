@@ -204,18 +204,18 @@ function freshState(): CampaignState {
   assert.equal(engineDetermined.report.status, 'ACCEPTED', 'Sem magnitude -> ENGINE_DETERMINED, não default silencioso');
   assert.equal(engineDetermined.report.magnitude!.mode, 'ENGINE_DETERMINED');
   assert.equal(engineDetermined.report.magnitude!.source, 'ENGINE_CALCULATED');
-  assert.equal(engineDetermined.report.magnitude!.value, 10, 'Estado padrão: envelope [15,15] x cap 10 -> 10');
-  assert.equal(engineDetermined.report.magnitude!.min, 10);
-  assert.equal(engineDetermined.report.magnitude!.max, 10);
-  assert.ok(engineDetermined.report.stateChanges.some(sc => sc.path === 'army.units.levies' && sc.delta === 10));
+  assert.equal(engineDetermined.report.magnitude!.value, 15, 'Estado padrão: envelope [15,15] x cap 30 -> 15');
+  assert.equal(engineDetermined.report.magnitude!.min, 15);
+  assert.equal(engineDetermined.report.magnitude!.max, 15);
+  assert.ok(engineDetermined.report.stateChanges.some(sc => sc.path === 'army.units.levies' && sc.delta === 15));
 
   const noTarget = resolveNarrativeCommand(makeCommand('BUILD'), state);
   assert.equal(noTarget.report.status, 'REJECTED', 'BUILD sem objectId -> esclarecimento exigido pelo Engine');
   assert.equal(noTarget.report.reasonCode.includes('esclarecimento'), true);
   assert.equal(noTarget.mutated, false);
 
-  const d0Example = resolveNarrativeCommand(makeCommand('RECRUIT', { magnitude: { mode: 'FIXED', value: 23 } }), state);
-  assert.equal(d0Example.report.status, 'REJECTED', 'D0: FIXED 23 (exemplo do owner) excede o cap §41.6 -> REJECT, nunca clamp');
+  const d0Example = resolveNarrativeCommand(makeCommand('RECRUIT', { magnitude: { mode: 'FIXED', value: 45 } }), state);
+  assert.equal(d0Example.report.status, 'REJECTED', 'FIXED 45 excede o cap tier 2 (30) -> REJECT, nunca clamp');
   assert.match(d0Example.report.reasonCode, /RECUSADO/);
 
   console.log('[TEST G] ENGINE_DETERMINED, identidade exigida (BUILD), D0 FIXED 23 -> OK');

@@ -58,11 +58,12 @@ export interface RecruitmentMRSConfig {
     readonly sdPerSoldier: number;
     readonly laborPerSoldier: number;
   };
+  readonly weeklyCapByTier: Readonly<Record<CapacityTier, number>>;
   readonly weeklyCapPerUnit: number;
 }
 
 export const RECRUITMENT_MRS_CONFIG: RecruitmentMRSConfig = Object.freeze<RecruitmentMRSConfig>({
-  version: '0.1.0',
+  version: '0.2.0',
   coefficient: 0.012,
   envelope: {
     min: 0.75,
@@ -97,6 +98,13 @@ export const RECRUITMENT_MRS_CONFIG: RecruitmentMRSConfig = Object.freeze<Recrui
   costs: {
     sdPerSoldier: 3,
     laborPerSoldier: 1
+  },
+  weeklyCapByTier: {
+    1: 15,
+    2: 30,
+    3: 60,
+    4: 100,
+    5: 250
   },
   weeklyCapPerUnit: 10
 });

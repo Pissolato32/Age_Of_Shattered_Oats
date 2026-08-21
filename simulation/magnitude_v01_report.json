@@ -11,33 +11,33 @@
         "treasury": 85
       },
       "pure": {
-        "runs": 100000,
+        "runs": 10000,
         "infeasible": 0,
-        "median": 10,
-        "p05": 10,
-        "p95": 10,
-        "min": 10,
-        "max": 10,
-        "capPinnedRate": 1,
-        "envelopeMissRate": 1,
-        "withinEnvelopeRate": 0
+        "median": 15,
+        "p05": 15,
+        "p95": 15,
+        "min": 15,
+        "max": 15,
+        "capPinnedRate": 0,
+        "envelopeMissRate": 0,
+        "withinEnvelopeRate": 1
       },
       "e2e": {
-        "runs": 1000,
-        "accepted": 1000,
+        "runs": 2000,
+        "accepted": 2000,
         "rejected": 0,
         "magnitudeMismatch": 0,
         "deltaMismatch": 0,
         "negativeBalance": 0
       },
       "sequential": {
-        "runs": 1000,
+        "runs": 200,
         "weeks": 20,
-        "medianBatch": 3,
-        "treasuryMin": 0,
+        "medianBatch": 15,
+        "treasuryMin": 124.5,
         "laborExhaustionWeek": null,
-        "finalUnitSize": 129,
-        "finalMaxSize": 129
+        "finalUnitSize": 322,
+        "finalMaxSize": 322
       }
     },
     {
@@ -51,33 +51,33 @@
         "treasury": 300
       },
       "pure": {
-        "runs": 100000,
+        "runs": 10000,
         "infeasible": 0,
-        "median": 10,
-        "p05": 10,
-        "p95": 10,
-        "min": 10,
-        "max": 10,
-        "capPinnedRate": 1,
-        "envelopeMissRate": 1,
-        "withinEnvelopeRate": 0
+        "median": 17,
+        "p05": 15,
+        "p95": 18,
+        "min": 15,
+        "max": 18,
+        "capPinnedRate": 0,
+        "envelopeMissRate": 0,
+        "withinEnvelopeRate": 1
       },
       "e2e": {
-        "runs": 1000,
-        "accepted": 1000,
+        "runs": 2000,
+        "accepted": 2000,
         "rejected": 0,
         "magnitudeMismatch": 0,
         "deltaMismatch": 0,
         "negativeBalance": 0
       },
       "sequential": {
-        "runs": 1000,
+        "runs": 200,
         "weeks": 20,
-        "medianBatch": 3,
-        "treasuryMin": 0,
+        "medianBatch": 16,
+        "treasuryMin": 330.5,
         "laborExhaustionWeek": null,
-        "finalUnitSize": 129,
-        "finalMaxSize": 129
+        "finalUnitSize": 364,
+        "finalMaxSize": 364
       }
     },
     {
@@ -91,33 +91,33 @@
         "treasury": 1000
       },
       "pure": {
-        "runs": 100000,
+        "runs": 10000,
         "infeasible": 0,
-        "median": 10,
-        "p05": 10,
-        "p95": 10,
-        "min": 10,
-        "max": 10,
-        "capPinnedRate": 1,
-        "envelopeMissRate": 1,
-        "withinEnvelopeRate": 0
+        "median": 37,
+        "p05": 30,
+        "p95": 45,
+        "min": 30,
+        "max": 45,
+        "capPinnedRate": 0,
+        "envelopeMissRate": 0,
+        "withinEnvelopeRate": 1
       },
       "e2e": {
-        "runs": 1000,
-        "accepted": 1000,
+        "runs": 2000,
+        "accepted": 2000,
         "rejected": 0,
         "magnitudeMismatch": 0,
         "deltaMismatch": 0,
         "negativeBalance": 0
       },
       "sequential": {
-        "runs": 1000,
+        "runs": 200,
         "weeks": 20,
-        "medianBatch": 6.5,
-        "treasuryMin": 0,
+        "medianBatch": 35,
+        "treasuryMin": 1017.5,
         "laborExhaustionWeek": null,
-        "finalUnitSize": 193,
-        "finalMaxSize": 193
+        "finalUnitSize": 790,
+        "finalMaxSize": 790
       }
     },
     {
@@ -131,33 +131,33 @@
         "treasury": 3000
       },
       "pure": {
-        "runs": 100000,
+        "runs": 10000,
         "infeasible": 0,
-        "median": 10,
-        "p05": 10,
-        "p95": 10,
-        "min": 10,
-        "max": 10,
-        "capPinnedRate": 1,
-        "envelopeMissRate": 1,
-        "withinEnvelopeRate": 0
+        "median": 63,
+        "p05": 51,
+        "p95": 74,
+        "min": 50,
+        "max": 75,
+        "capPinnedRate": 0,
+        "envelopeMissRate": 0,
+        "withinEnvelopeRate": 1
       },
       "e2e": {
-        "runs": 1000,
-        "accepted": 1000,
+        "runs": 2000,
+        "accepted": 2000,
         "rejected": 0,
         "magnitudeMismatch": 0,
         "deltaMismatch": 0,
         "negativeBalance": 0
       },
       "sequential": {
-        "runs": 1000,
+        "runs": 200,
         "weeks": 20,
-        "medianBatch": 10,
-        "treasuryMin": 0,
+        "medianBatch": 55,
+        "treasuryMin": 2732,
         "laborExhaustionWeek": null,
-        "finalUnitSize": 293,
-        "finalMaxSize": 293
+        "finalUnitSize": 1233,
+        "finalMaxSize": 1233
       }
     },
     {
@@ -171,56 +171,56 @@
         "treasury": 10000
       },
       "pure": {
-        "runs": 100000,
+        "runs": 10000,
         "infeasible": 0,
-        "median": 10,
-        "p05": 10,
-        "p95": 10,
-        "min": 10,
-        "max": 10,
-        "capPinnedRate": 1,
-        "envelopeMissRate": 1,
-        "withinEnvelopeRate": 0
+        "median": 95,
+        "p05": 90,
+        "p95": 100,
+        "min": 90,
+        "max": 100,
+        "capPinnedRate": 0,
+        "envelopeMissRate": 0,
+        "withinEnvelopeRate": 1
       },
       "e2e": {
-        "runs": 1000,
-        "accepted": 1000,
+        "runs": 2000,
+        "accepted": 2000,
         "rejected": 0,
         "magnitudeMismatch": 0,
         "deltaMismatch": 0,
         "negativeBalance": 0
       },
       "sequential": {
-        "runs": 1000,
+        "runs": 200,
         "weeks": 20,
-        "medianBatch": 10,
-        "treasuryMin": 8,
+        "medianBatch": 95,
+        "treasuryMin": 9426,
         "laborExhaustionWeek": null,
-        "finalUnitSize": 300,
-        "finalMaxSize": 300
+        "finalUnitSize": 2002,
+        "finalMaxSize": 2002
       }
     }
   ],
   "acceptance": {
     "1_0_rejected": true,
-    "2_median_within_envelope": false,
-    "3_95_percent_within_envelope": false,
+    "2_median_within_envelope": true,
+    "3_95_percent_within_envelope": true,
     "4_max_within_caps": true,
     "5_treasury_labor_never_negative": true,
     "6_sanity_45_1": true,
     "7_determinism": true,
-    "8_runtime_60s": "90122ms > 60000ms",
-    "9_cap_dominance_flagged": "median==cap? true; capPinnedRate=1.000/1.000/1.000/1.000/1.000; recommended v0.2 balance candidate"
+    "8_runtime_60s": true,
+    "9_cap_dominance_flagged": "medianWithinEnvelope=true; capPinnedRate=0.000/0.000/0.000/0.000/0.000; v0.2 contextual scaling verified"
   },
   "determinism": {
     "verified": true,
     "sampleRuns": 200
   },
-  "runtimeMs": 90122.49500000001,
+  "runtimeMs": 55159.668900000004,
   "phaseTimesMs": {
-    "pure": 47834.550500000005,
-    "e2e": 23054.162300000004,
-    "sequential": 19011.45709999999,
-    "determinism": 222.47660000000542
+    "pure": 6019.952600000002,
+    "e2e": 43986.30550000001,
+    "sequential": 4885.602600000004,
+    "determinism": 267.9137999999821
   }
 }
