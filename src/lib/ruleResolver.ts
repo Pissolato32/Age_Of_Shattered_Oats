@@ -1,5 +1,6 @@
 import { searchCodex, CodexSearchResult, StructuredCodexNode } from './codexRetriever';
 import { CampaignState } from '../types';
+import { globalRNG } from '../core/RandomService';
 
 export interface RuleCondition {
   condition: string;

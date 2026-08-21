@@ -81,8 +81,8 @@ export function createObserverProjection(
   const relationships: NarrativeRelationship[] = [];
   const knownFacts: AuthorizedKnowledgeFact[] = [];
 
-  if (state.nobleHouses && Array.isArray(state.nobleHouses)) {
-    for (const house of state.nobleHouses) {
+  if (state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
+    for (const house of state.worldLedger.nobleHouses) {
       relationships.push({
         relationshipId: `rel_${state.character.house}_${house.name}`,
         sourceActorId: state.character.house,
@@ -119,12 +119,13 @@ export function createObserverProjection(
   }
 
   const recentEvents: RelevantEvent[] = [];
-  if (state.eventLog && Array.isArray(state.eventLog)) {
-    for (let i = 0; i < state.eventLog.length; i++) {
+  if (state.worldLedger?.majorEvents && Array.isArray(state.worldLedger.majorEvents)) {
+    for (let i = 0; i < state.worldLedger.majorEvents.length; i++) {
+      const evt = state.worldLedger.majorEvents[i];
       recentEvents.push({
         eventId: `evt_${i + 1}`,
         eventType: 'EVENT_LOG',
-        summary: state.eventLog[i],
+        summary: evt.event,
         week: state.weeklyLedger.week || 1,
         knowledgeTier: 'PLAYER_KNOWLEDGE'
       });

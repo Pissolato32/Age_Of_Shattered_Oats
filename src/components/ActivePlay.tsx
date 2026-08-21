@@ -6,6 +6,7 @@ import { LedgerViewer } from "./LedgerViewer";
 import { CodexSearchModal } from "./CodexSearchModal";
 import { ApiKeyModal } from "./ApiKeyModal";
 import { executeGameplayPipeline } from "../lib/gameplayPipeline";
+import { globalRNG } from "../core/RandomService";
 
 interface ActivePlayProps {
   initialState: CampaignState;
@@ -1030,7 +1031,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       const compromiseRoll = globalRNG.next();
       const threshold = targetSec.compromisedChance || 0.15;
       if (compromiseRoll < threshold) {
-        const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses);
+        const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses as any) as any;
         if (randomHouse) {
           adjustHouseOpinion(randomHouse, -1);
           outcomeLog = `SUSSURROS ESCASSOS (Espiões Expostos): Seus batedores conseguiram extrair poucos sussurros (+${progressGain}%), mas deixaram rastros na região. A Casa ${randomHouse.name} interceptou mensagens cifradas e sua opinião com você caiu para ${randomHouse.opinion}.`;
@@ -1046,7 +1047,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       outcomeTitle = `FALHA CRÍTICA (D20: ${d20} + ${spyMasterBonus} vs DC ${dc})`;
       const rollConsequence = globalRNG.nextInt(0, 2);
       if (rollConsequence === 0) {
-        const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses);
+        const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses as any) as any;
         if (randomHouse) {
           adjustHouseOpinion(randomHouse, -2);
         }
@@ -1149,7 +1150,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       
       const compromiseRoll = globalRNG.next();
       if (compromiseRoll < 0.3) {
-        const h = globalRNG.pick(s.worldLedger.nobleHouses);
+        const h = globalRNG.pick(s.worldLedger.nobleHouses as any) as any;
         if (h) {
           adjustHouseOpinion(h, -1);
           logMsg = `FALHA CRÍTICA NA CONSPIRAÇÃO (D20: ${d20} + ${spyMasterBonus} vs DC ${dc}): Seus agentes foram vistos nos arquivos da Catedral Real! Progresso caiu em -10% e a Casa ${h.name} suspeita do seu interesse heráldico (Opinião caiu para ${h.opinion}).`;

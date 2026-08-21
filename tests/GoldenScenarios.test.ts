@@ -7,7 +7,7 @@ import { CampaignState } from '../src/types';
  */
 export function runGoldenTests() {
   console.log("=== EXECUTANDO SUÍTE OFICIAL DE CENÁRIOS CANÔNICOS (GOLDEN REGRESSION SUITE) ===");
-  let state: CampaignState = createInitialState("Alric", "Stormcrest", "Noble Ruler");
+  let state: CampaignState = createInitialState("Noble Ruler", "Stormcrest");
 
   const scenarios = [
     { input: "Quero recrutar 10 infantarias", expectedIntent: "RECRUIT" },

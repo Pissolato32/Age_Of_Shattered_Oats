@@ -5,7 +5,7 @@ export function testDeterminismProof() {
   console.log("=== TESTANDO DETERMINISMO REAL (RUN 1 VS RUN 2) ===");
   
   // Execução 1
-  let state1 = createInitialState("Alric", "Stormcrest", "Noble Ruler");
+  let state1 = createInitialState("Noble Ruler", "Stormcrest");
   for (let w = 0; w < 52; w++) {
     const res = resolveWeeklyTurn(state1);
     state1 = res.updatedState;
@@ -13,7 +13,7 @@ export function testDeterminismProof() {
   const hash1 = crypto.createHash('sha256').update(JSON.stringify(state1)).digest('hex');
 
   // Execução 2 (mesmo estado inicial, sem alterar a seed do JS Math.random)
-  let state2 = createInitialState("Alric", "Stormcrest", "Noble Ruler");
+  let state2 = createInitialState("Noble Ruler", "Stormcrest");
   for (let w = 0; w < 52; w++) {
     const res = resolveWeeklyTurn(state2);
     state2 = res.updatedState;

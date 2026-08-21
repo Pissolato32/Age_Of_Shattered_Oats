@@ -29,11 +29,21 @@ export function createSliceState(): CampaignState {
 export function createSecretState(): CampaignState {
   const state = createSliceState();
   state.worldSecrets = [
-    { ...VAELMONT_SECRET },
+    {
+      id: VAELMONT_SECRET.id,
+      title: 'Conspiração de Vaelmont',
+      description: VAELMONT_SECRET.description,
+      revealed: false,
+      investigationProgress: 0,
+      category: 'Plot'
+    },
     {
       id: 'sec_revealed_1',
+      title: 'Rotas do Norte',
       description: 'As rotas comerciais do norte estão bloqueadas por bandidos.',
-      revealed: true
+      revealed: true,
+      investigationProgress: 100,
+      category: 'Military'
     }
   ];
   return state;

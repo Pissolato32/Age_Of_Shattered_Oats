@@ -76,12 +76,12 @@ export function runTreasuryAccumulationEngineIntegrationTests() {
     const state: CampaignState = createInitialState("Noble Ruler", "Central Plains");
     state.weeklyLedger.silverdew = 5; // very low treasury
     state.weeklyLedger.food = 100;
-    state.holdings.type = "Hamlet"; // low income (25 / 4 = 6.25 -> 6.25 SD)
+    state.holdings.type = "Bastion"; // base income 75 SD
     state.holdings.resourcePatches = []; // 0 patch income
     state.army.units = [
-      { id: "u1", name: "Infantry", type: "Infantry", size: 200, maxSize: 200, tier: 1, ac: 10, weapon: "Spear", mount: "None", morale: 5 }
+      { id: "u1", name: "Infantry", type: "Infantry", size: 1000, maxSize: 1000, tier: 1, ac: 10, weapon: "Spear", mount: "None", morale: 5 }
     ];
-    state.holdings.garrison = 100; // total military = 300 soldiers -> 150 SD wages
+    state.holdings.garrison = 500; // total military = 1500 soldiers -> 150 SD wages > 80 SD available
 
     const { updatedState } = resolveWeeklyTurn(state);
 
