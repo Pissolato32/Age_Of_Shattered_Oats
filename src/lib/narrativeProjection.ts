@@ -30,14 +30,22 @@ const DEFAULT_CONSTRAINTS: readonly NarrativeConstraint[] = [
   }
 ];
 
+/**
+ * Deny-by-default, allow-listed boundary that converts the raw CampaignState
+ * into an authoritative ObserverProjection strictly scoped to the observer's
+ * perspective, preventing information leakage (secrets, raw numbers, fog-of-war).
+ */
 export function createObserverProjection(
   state: CampaignState,
   observer: NarrativeObserver
 ): ObserverProjection {
   const isPlayerObserver =
     observer.kind === 'PLAYER' ||
-    (observer.kind === 'CHARACTER' && state?.character?.name && observer.observerId.toLowerCase() === state.character.name.toLowerCase());
+    (observer.kind === 'CHARACTER' &&
+      state?.character?.name &&
+      observer.observerId.toLowerCase() === state.character.name.toLowerCase());
 
+  // Non-player observer or uninitialized state receives a minimal, scoped projection
   if (!isPlayerObserver || !state || !state.character) {
     const unknownScene: NarrativeScene = {
       locationId: 'unknown',
@@ -49,7 +57,7 @@ export function createObserverProjection(
 
     return {
       contractVersion: NARRATIVE_CONTRACT_VERSION,
-      observer,
+      observer: { ...observer },
       scene: unknownScene,
       actors: [],
       relationships: [],
@@ -59,6 +67,7 @@ export function createObserverProjection(
     };
   }
 
+  // 1. Scene Construction (scoped to current location)
   const loc = state.character.location;
   const scene: NarrativeScene = {
     locationId: loc.landmark || loc.subregion || loc.region || 'Valenfort Citadel',
@@ -69,6 +78,7 @@ export function createObserverProjection(
     currentActivity: state.character.title
   };
 
+  // 2. Actors in Scope (Player character and visible local figures)
   const actors: NarrativeActor[] = [
     {
       actorId: state.character.name,
@@ -78,6 +88,7 @@ export function createObserverProjection(
     }
   ];
 
+  // 3. Relationships & Public Rumors
   const relationships: NarrativeRelationship[] = [];
   const knownFacts: AuthorizedKnowledgeFact[] = [];
 
@@ -103,9 +114,10 @@ export function createObserverProjection(
     }
   }
 
+  // 4. Secrets Boundary: ONLY revealed secrets are projected
   if (state.worldSecrets && Array.isArray(state.worldSecrets)) {
     for (const sec of state.worldSecrets) {
-      if (sec.revealed) {
+      if (sec.revealed === true) {
         knownFacts.push({
           factId: sec.id,
           statement: sec.description,
@@ -118,6 +130,7 @@ export function createObserverProjection(
     }
   }
 
+  // 5. Recent Events in Scope
   const recentEvents: RelevantEvent[] = [];
   if (state.worldLedger?.majorEvents && Array.isArray(state.worldLedger.majorEvents)) {
     for (let i = 0; i < state.worldLedger.majorEvents.length; i++) {
@@ -134,7 +147,7 @@ export function createObserverProjection(
 
   return {
     contractVersion: NARRATIVE_CONTRACT_VERSION,
-    observer,
+    observer: { ...observer },
     scene,
     actors,
     relationships,
