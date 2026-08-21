@@ -129,6 +129,26 @@ function codes(violations: readonly { code: string }[]): string[] {
 }
 
 // ---------------------------------------------------------------------------
+// QUANTITY_CONTRADICTION: quantidade de tropas divergente
+// ---------------------------------------------------------------------------
+{
+  const narrative = 'O recrutamento foi autorizado: 50 soldados incorporados às suas forças.';
+  const violations = validateNarrativeConsistency(baseReport(), undefined as never, narrative);
+  assert.ok(violations.some(v => v.code === 'QUANTITY_CONTRADICTION'), 'Tropa divergente deve ser flagrada');
+  console.log('[VALIDATOR-QUANTITY] 50 soldados vs 20 reais -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// CASUALTY_INVENTION: mortes inventadas sem fato mecânico
+// ---------------------------------------------------------------------------
+{
+  const narrative = 'O recrutamento foi feito, mas dezenas de mortos tombaram no caminho.';
+  const violations = validateNarrativeConsistency(baseReport(), undefined as never, narrative);
+  assert.ok(violations.some(v => v.code === 'CASUALTY_INVENTION'), 'Baixas inventadas devem ser flagradas');
+  console.log('[VALIDATOR-CASUALTY] Baixas inventadas detectadas -> OK');
+}
+
+// ---------------------------------------------------------------------------
 // Sanidade: narrativa fiel do mock não gera nenhuma violação
 // ---------------------------------------------------------------------------
 {
