@@ -223,4 +223,57 @@ const projection = buildObserverProjection(baseState, PLAYER_OBSERVER);
   console.log('  ✅ 6. Consulta de Recursos com Silêncio Mecânico preservado -> OK');
 }
 
-console.log('🎉 TODOS OS TESTES DA SUÍTE CONTRATUAL DO PROTOCOLO NARRATIVO PASSARAM COM SUCESSO!\n');
+// ---------------------------------------------------------------------------
+// TEST 7 — Silêncio Político como Escolha Válida (PART 122.9)
+// ---------------------------------------------------------------------------
+{
+  const llm = new GeminiNarrativeLLM();
+  const cmd = await llm.interpret({ playerInput: '...', projection });
+  assert.equal(cmd.action, 'DIPLOMACY');
+  assert.equal(cmd.stance, 'CAUTIOUS');
+  assert.ok(cmd.desiredOutcome?.includes('Silêncio'));
+  console.log('  ✅ 7. Silêncio Político reconhecido como escolha deliberada (PART 122.9) -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 8 — Classificação dos Estados de Cena (SceneState - PART 122.2, 122.5, 122.7)
+// ---------------------------------------------------------------------------
+{
+  // Cena regular (sem caravana ativa) -> Resolved
+  const regularState = JSON.parse(JSON.stringify(baseState));
+  regularState.caravanLedger = { activeCaravans: [] };
+  const regularProj = buildObserverProjection(regularState, PLAYER_OBSERVER);
+  assert.equal(regularProj.scene.sceneState, 'Resolved');
+
+  // Cena com conflito ativo e salários atrasados -> Interrupted
+  const crisisState = JSON.parse(JSON.stringify(baseState));
+  crisisState.worldLedger.activeConflicts = [{ conflictId: 'c1', name: 'Incursão Inimiga' }];
+  crisisState.weeklyLedger.unpaidWagesTicks = 2;
+  const crisisProj = buildObserverProjection(crisisState, PLAYER_OBSERVER);
+  assert.equal(crisisProj.scene.sceneState, 'Interrupted');
+
+  // Cena com caravana em viagem sem eventos imediatos -> Suspended
+  const travelState = JSON.parse(JSON.stringify(baseState));
+  travelState.caravanLedger = { activeCaravans: [{ id: 'car1', status: 'Em viagem' }] };
+  travelState.sessionLog = { pendingConsequences: [] };
+  travelState.weeklyLedger.famineTicks = 0;
+  travelState.weeklyLedger.unpaidWagesTicks = 0;
+  const travelProj = buildObserverProjection(travelState, PLAYER_OBSERVER);
+  assert.equal(travelProj.scene.sceneState, 'Suspended');
+
+  console.log('  ✅ 8. Classificação de SceneState (Resolved, Interrupted, Suspended) -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 9 — Cenas Multiator e Atribuição com Voz Única (PART 122.6)
+// ---------------------------------------------------------------------------
+{
+  assert.ok(projection.actors.length >= 3, 'Projeção de conselho deve incluir conselheiros nominalmente');
+  const actorNames = projection.actors.map(a => a.name);
+  assert.ok(actorNames.includes('Tobin'));
+  assert.ok(actorNames.includes('Gerold'));
+  assert.ok(actorNames.includes('Roric'));
+  console.log('  ✅ 9. Projeção Multiator e Atribuição Nominal (PART 122.6) -> OK');
+}
+
+console.log('🎉 TODOS OS 9 TESTES DO PROTOCOLO NARRATIVO PARTE 122 PASSARAM COM SUCESSO!\n');

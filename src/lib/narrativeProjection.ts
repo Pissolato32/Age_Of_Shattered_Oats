@@ -4,6 +4,7 @@ import {
   NarrativeObserver,
   ObserverProjection,
   NarrativeScene,
+  SceneState,
   NarrativeActor,
   NarrativeRelationship,
   AuthorizedKnowledgeFact,
@@ -87,12 +88,26 @@ export function createObserverProjection(
     immediateCircumstances.push('O pagamento dos soldados está atrasado, gerando inquietação.');
   }
 
+  // 1.1 Scene State Classification (PART 122.2, 122.5, 122.7)
+  let sceneState: SceneState = 'Resolved';
+  const hasActiveThreat = Boolean(state.worldLedger?.activeConflicts && state.worldLedger.activeConflicts.length > 0);
+  const isCaravanTraveling = Boolean(state.caravanLedger?.activeCaravans && state.caravanLedger.activeCaravans.length > 0);
+
+  if (hasActiveThreat && ((state.weeklyLedger?.unpaidWagesTicks ?? 0) > 1 || (state.weeklyLedger?.famineTicks ?? 0) > 1)) {
+    sceneState = 'Interrupted';
+  } else if (isCaravanTraveling && immediateCircumstances.length === 0) {
+    sceneState = 'Suspended';
+  } else {
+    sceneState = 'Resolved';
+  }
+
   const scene: NarrativeScene = {
     locationId: loc.landmark || loc.subregion || loc.region || 'Valenfort Citadel',
     regionName: loc.region || 'Unknown Region',
     environment: loc.subregion || loc.region || 'Settlement',
     weather: state.weeklyLedger.weather || 'Clear',
     season: state.weeklyLedger.season || 'Thawtide',
+    sceneState,
     currentActivity: state.character.title,
     immediateCircumstances: immediateCircumstances.length > 0 ? immediateCircumstances : undefined
   };

@@ -142,12 +142,15 @@ export interface ExecutionReport {
   readonly magnitude?: ResolvedMagnitude;
 }
 
+export type SceneState = 'Continuing' | 'Resolved' | 'Suspended' | 'Interrupted';
+
 export interface NarrativeScene {
   readonly locationId: string;
   readonly regionName: string;
   readonly environment: string;
   readonly weather: string;
   readonly season: string;
+  readonly sceneState?: SceneState;
   readonly currentActivity?: string;
   readonly immediateCircumstances?: readonly string[];
 }

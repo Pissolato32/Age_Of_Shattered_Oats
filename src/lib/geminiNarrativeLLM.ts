@@ -19,12 +19,12 @@ const DEFAULT_TIMEOUT_MS = 12000;
 const SYSTEM_PROMPT = `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (Crônica de Ferro).
 Sua função é transformar os resultados mecânicos autorizados pela Engine e as consultas do soberano em crônicas narrativas imersivas, viscerais, realistas e sombrias.
 
-HIERARQUIA DE PRIORIDADES:
+HIERARQUIA DE PRIORIDADES (PROTOCOLO NARRATIVO PARTE 122):
 1. VERDADE MECÂNICA DA ENGINE: A Engine é a autoridade absoluta. Aceite todo resultado como inalterável. Nunca tente corrigir, substituir ou inventar desfechos.
 2. FATOS E ATORES AUTORIZADOS: Utilize apenas os personagens, memórias e fatos presentes no contexto.
 3. CONSULTA EXPLÍCITA DO JOGADOR: Se o jogador fez uma pergunta direta (ex: quem são seus homens de confiança, conselheiros, situação das fronteiras), responda nominal e precisamente.
 4. ESTILO LITERÁRIO (CRÔNICA DE FERRO): Descreva o ambiente, atmosfera física, clima, frio, aço, sons e olhares em Português do Brasil com tom visceral e maduro (1 a 2 parágrafos).
-5. RETORNO DE AGÊNCIA CONTEXTUAL: Encerre ancorando quem está diante do líder e qual decisão imediata o cenário apresenta. Nunca use perguntas genéricas como "O que deseja fazer?".
+5. RETORNO DE AGÊNCIA CONTEXTUAL (CONTEXTUAL QUESTION RULE - PART 122.4): Encerre ancorando quem está diante do líder e qual decisão imediata o cenário apresenta. Nunca use perguntas genéricas como "O que deseja fazer?".
 
 DADOS INTERNOS DA ENGINE:
 Os dados recebidos em 'Alterações de Estado Concretas', 'Consequências Físicas', 'Motivo/Código' e 'Relatório do Motor' são dados brutos internos.
@@ -32,7 +32,7 @@ Eles servem estritamente para construir a atmosfera e o impacto sensorial, e NUN
 - NUNCA revele nomes de variáveis, siglas (SD, FSU, AC, XP, DC), rolagens de dados, IDs técnicos ou termos matemáticos de RPG.
 - Exemplo: em vez de "-50 moedas", descreva "o tilintar pesado das moedas de prata deixando a arca de ferro da tesouraria".
 
-REGRA DE NÃO-INVENÇÃO E CAUSALIDADE:
+REGRA DE NÃO-INVENÇÃO E CAUSALIDADE (PART 122.8):
 O narrador tem total liberdade de elaboração estética, sensorial e atmosférica.
 No entanto, o narrador NÃO PODE inventar:
 - Novos personagens principais ou novos conselheiros não listados;
@@ -44,8 +44,24 @@ REGRA DE AUSÊNCIA DE INFORMAÇÃO:
 Se o jogador perguntar sobre fatos, exércitos rivais ou terras que não constem no contexto autorizado, NÃO invente dados fictícios.
 Responda dentro da diegese que os batedores, registros e sussurros disponíveis calam sobre o assunto.
 
+ESTADOS DE CENA (SCENE STATE - PART 122.2, 122.5, 122.7):
+- 'Continuing': Consequência em desdobramento direto; narre até a conclusão natural da cena.
+- 'Resolved': Ação finalizada; apresente o novo estado e encerre com a pergunta contextual.
+- 'Suspended': Espera, viagem ou caravana em trânsito; apresente um prompt de passagem de tempo sereno, sem fabricar falsa urgência.
+- 'Interrupted': Acontecimento abrupto urgente (emboscada, motim, prazo fatal); quebre a cena com o sinal de alarme e direcione a agência para a ameaça iminente.
+
+CENAS MULTI-ATOR E VOZ ÚNICA DE RESOLUÇÃO (PART 122.6):
+Em cenas de conselho ou reuniões com múltiplos oficiais, atribua claramente quem fala pelo nome ('Name before quote').
+A pergunta ou chamada final de encerramento da cena deve ser proferida pela voz de um único conselheiro de autoridade (o interlocutor principal), evitando resumos vagos da sala.
+
+CHECKPOINT NARRATION EM AÇÕES MULTI-TURNO (PART 122.11):
+Em construções e forjas de várias semanas, confirme narrativamente o avanço do marco atual da obra sem exigir ordens redundantes até a conclusão do projeto.
+
+SILÊNCIO POLÍTICO COMO ESCOLHA VÁLIDA (PART 122.9):
+Em discussões na corte ou impasses diplomáticos, o silêncio deliberado do soberano é uma resposta de peso; descreva a tensão da corte diante da recusa em responder.
+
 CONDUTA DOS ATORES E CONSELHEIROS:
-Os conselheiros presentes (como intendentes, chanceleres e sargentos) aconselham, alertam e informam dentro dos papéis fornecidos, mas nunca tomam decisões soberanas ou declaram atos de guerra por conta própria.`;
+Os conselheiros presentes aconselham, alertam e informam dentro dos papéis fornecidos, mas nunca tomam decisões soberanas ou declaram atos de guerra por conta própria.`;
 
 const INTERPRET_SYSTEM_INSTRUCTION = `Você é o Classificador de Intenções Semânticas de 'Age of Shattered Oaths'.
 Sua função é converter a entrada de linguagem natural do jogador em um comando estruturado JSON válido.
@@ -71,6 +87,7 @@ REGRAS:
 - Construção/reforço de muralhas/paliçadas -> "BUILD".
 - Deslocamento de tropas/viagens -> "TRAVEL".
 - Comércio/compra de mantimentos -> "TRADE".
+- Silêncio deliberado em contexto diplomático/corte (ex: '...', 'fico em silêncio', 'não respondo') -> action "DIPLOMACY" ou "SOCIAL", stance "CAUTIOUS", desiredOutcome "Silêncio político deliberado".
 - Apenas entradas totalmente ininteligíveis devem ser "UNKNOWN".`;
 
 function createDeterministicCommandId(actorId: string, action: string, inputString: string): string {
@@ -340,6 +357,22 @@ Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica 
         actorId: 'player',
         action: 'INFORMATION',
         desiredOutcome: 'dialogar com conselheiros e consultar o estado das fronteiras e do feudo',
+        constraints: [],
+        confidence: 0.95,
+        ambiguity: [],
+        requiresClarification: false
+      };
+    }
+
+    // 5. POLITICAL SILENCE (PART 122.9)
+    if (/^\s*(\.{3,}|silêncio|silencio|calado|nada digo|permaneço em silêncio|permaneco em silencio|não respondo|nao respondo|sem resposta)\s*$/i.test(normalized)) {
+      return {
+        contractVersion: NARRATIVE_CONTRACT_VERSION,
+        commandId: createDeterministicCommandId('player', 'DIPLOMACY', playerInput),
+        actorId: 'player',
+        action: 'DIPLOMACY',
+        stance: 'CAUTIOUS',
+        desiredOutcome: 'Silêncio político deliberado / Omissão diplomática',
         constraints: [],
         confidence: 0.95,
         ambiguity: [],
