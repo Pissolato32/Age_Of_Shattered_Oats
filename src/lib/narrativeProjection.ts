@@ -9,7 +9,8 @@ import {
   NarrativeRelationship,
   AuthorizedKnowledgeFact,
   RelevantEvent,
-  NarrativeConstraint
+  NarrativeConstraint,
+  ResourceStandingTier
 } from './narrativeContracts';
 
 const DEFAULT_CONSTRAINTS: readonly NarrativeConstraint[] = [
@@ -30,6 +31,56 @@ const DEFAULT_CONSTRAINTS: readonly NarrativeConstraint[] = [
     instruction: 'Treat rumors as unconfirmed and maintain uncertainty in narrative presentation.'
   }
 ];
+
+export function classifyTreasuryStanding(silverdew: number): { tier: ResourceStandingTier; description: string } {
+  if (silverdew >= 400) {
+    return {
+      tier: 'ABUNDANT',
+      description: 'As arcas de ferro da tesouraria estão fartas e pesadas de moedas de prata, garantindo os soldos e contratações sem aperto.'
+    };
+  }
+  if (silverdew >= 150) {
+    return {
+      tier: 'ADEQUATE',
+      description: 'Os cofres da tesouraria guardam uma reserva moderada e equilibrada de moedas de prata para o custeio regular da companhia.'
+    };
+  }
+  if (silverdew >= 50) {
+    return {
+      tier: 'TIGHT',
+      description: 'Os cofres da tesouraria estão baixos e operam sob pressão, exigindo rigor no pagamento de soldos.'
+    };
+  }
+  return {
+    tier: 'CRITICAL',
+    description: 'As arcas da tesouraria encontram-se em nível crítico e quase vazias, com risco imediato de insolvência se houver novos gastos.'
+  };
+}
+
+export function classifyFoodStanding(food: number, famineTicks = 0): { tier: ResourceStandingTier; description: string } {
+  if (food >= 8) {
+    return {
+      tier: 'ABUNDANT',
+      description: 'Os celeiros e armazéns estão plenamente abastecidos de grãos e carne salgada, assegurando fartura para muitas semanas.'
+    };
+  }
+  if (food >= 3) {
+    return {
+      tier: 'ADEQUATE',
+      description: 'Os celeiros e fardos de provisões possuem rações regulares e suficientes para a alimentação da tropa.'
+    };
+  }
+  if (food >= 1 && famineTicks === 0) {
+    return {
+      tier: 'TIGHT',
+      description: 'As provisões nos celeiros estão justas e em declínio, exigindo atenção para evitar escassez.'
+    };
+  }
+  return {
+    tier: 'CRITICAL',
+    description: 'Os estoques de comida estão perigosamente escassos ou esgotados, impondo racionamento severo e risco de fome.'
+  };
+}
 
 /**
  * Deny-by-default, allow-listed boundary that converts the raw CampaignState
@@ -211,28 +262,18 @@ export function createObserverProjection(
     }
   }
 
-  // Material standing facts (qualitative state of treasury and food without raw numbers)
+  // Material standing facts derived via formal deterministic thresholds
   if (state.weeklyLedger) {
     const silverdew = state.weeklyLedger.silverdew ?? 0;
     const food = state.weeklyLedger.food ?? 0;
-    
-    let treasuryStanding = 'Os cofres da tesouraria guardam uma reserva moderada de moedas de prata para o custeio da companhia.';
-    if (silverdew >= 400) {
-      treasuryStanding = 'As arcas de ferro da tesouraria estão fartas e pesadas de moedas de prata, garantindo os soldos e contratações.';
-    } else if (silverdew < 100) {
-      treasuryStanding = 'As arcas da tesouraria encontram-se baixas e em nível crítico, exigindo cuidado estrito com cada moeda.';
-    }
+    const famineTicks = state.weeklyLedger.famineTicks ?? 0;
 
-    let foodStanding = 'Os celeiros e fardos de provisões possuem rações regulares para a alimentação da tropa.';
-    if (food >= 8) {
-      foodStanding = 'Os celeiros e armazéns estão plenamente abastecidos de grãos e carne salgada para muitas semanas.';
-    } else if (food < 2 || (state.weeklyLedger.famineTicks ?? 0) > 0) {
-      foodStanding = 'Os estoques de comida estão perigosamente escassos, impondo racionamento rigoroso aos homens.';
-    }
+    const treasury = classifyTreasuryStanding(silverdew);
+    const foodReport = classifyFoodStanding(food, famineTicks);
 
     knownFacts.push({
       factId: 'fact_treasury_standing',
-      statement: `[Situação do Tesouro] ${treasuryStanding}`,
+      statement: `[Situação do Tesouro: ${treasury.tier}] ${treasury.description}`,
       tier: 'CHARACTER_KNOWLEDGE',
       certainty: 'CONFIRMED',
       source: 'ENGINE'
@@ -240,7 +281,7 @@ export function createObserverProjection(
 
     knownFacts.push({
       factId: 'fact_food_standing',
-      statement: `[Situação dos Mantimentos] ${foodStanding}`,
+      statement: `[Situação dos Mantimentos: ${foodReport.tier}] ${foodReport.description}`,
       tier: 'CHARACTER_KNOWLEDGE',
       certainty: 'CONFIRMED',
       source: 'ENGINE'

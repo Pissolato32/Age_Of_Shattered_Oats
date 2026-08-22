@@ -63,7 +63,12 @@ Em cenas de conselho ou reuniões com múltiplos oficiais, atribua claramente qu
 A pergunta ou chamada final de encerramento da cena deve ser proferida pela voz de um único conselheiro de autoridade (o interlocutor principal), evitando resumos vagos da sala.
 
 CHECKPOINT NARRATION EM AÇÕES MULTI-TURNO (PART 122.11):
-Em construções e forjas de várias semanas, confirme narrativamente o avanço do marco atual da obra sem exigir ordens redundantes até a conclusão do projeto.
+Em construções e forjas de várias semanas, respeite estritamente o marco indicado em Checkpoint:
+- Se 'START_CHECKPOINT': narre o início dos trabalhos, assentamento de fundações e estaqueamento de madeira com o consumo inicial de materiais. NUNCA declare a muralha ou obra totalmente finalizada no primeiro turno de ordem.
+- Se 'COMPLETION_CHECKPOINT': confirme a finalização e guarnição da fortificação.
+
+REGRA DE PRECISÃO TEMPORAL E AÇÕES DE DESPACHO:
+Quando o soberano ordenar o envio de batedores, patrulhas ou emissários, narre a partida e o estabelecimento da missão no presente imediato ("os homens de Roric montam a cavalo e partem para vigiar os desfiladeiros do norte"). NUNCA narre o retorno ou fracasso futuro da patrulha no mesmo instante em que a ordem é dada, a menos que a Engine explicitamente forneça um fato descoberto em 'Informações Reveladas'.
 
 SILÊNCIO POLÍTICO COMO ESCOLHA VÁLIDA (PART 122.9):
 Em discussões na corte ou impasses diplomáticos, o silêncio deliberado do soberano é uma resposta de peso; descreva a tensão da corte diante da recusa em responder sem inventar inimigos ou cobranças artificiais.

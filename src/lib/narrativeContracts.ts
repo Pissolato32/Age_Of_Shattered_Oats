@@ -146,6 +146,15 @@ export interface ExecutionReport {
 
 export type CheckpointKind = 'START_CHECKPOINT' | 'MILESTONE_CHECKPOINT' | 'COMPLETION_CHECKPOINT';
 
+export type ResourceStandingTier = 'ABUNDANT' | 'ADEQUATE' | 'TIGHT' | 'CRITICAL';
+
+export interface ResourceStandingReport {
+  readonly treasuryStanding: ResourceStandingTier;
+  readonly treasuryDescription: string;
+  readonly foodStanding: ResourceStandingTier;
+  readonly foodDescription: string;
+}
+
 export interface CheckpointInfo {
   readonly kind: CheckpointKind;
   readonly projectType: string;

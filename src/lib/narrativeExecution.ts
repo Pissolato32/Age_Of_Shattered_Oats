@@ -339,13 +339,15 @@ function buildExecutionReport(
 
   let checkpoint: CheckpointInfo | undefined = undefined;
   if (status === 'ACCEPTED' && actionExecuted === 'BUILD') {
-    const isNewFortification = !inputState.holdings?.fortification || inputState.holdings.fortification.tier === 0;
+    const tierBefore = inputState.holdings?.fortification?.tier ?? 0;
+    const tierAfter = updatedState.holdings?.fortification?.tier ?? 0;
+    const isCompleted = tierAfter > tierBefore;
     checkpoint = {
-      kind: isNewFortification ? 'START_CHECKPOINT' : 'COMPLETION_CHECKPOINT',
+      kind: isCompleted ? 'COMPLETION_CHECKPOINT' : 'START_CHECKPOINT',
       projectType: command.objectId || 'Paliçada Defensiva',
-      progressDescription: isNewFortification
-        ? 'Fundação e estaqueamento de madeira iniciados nos limites do feudo.'
-        : 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
+      progressDescription: isCompleted
+        ? 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
+        : 'Fundações e estaqueamento de madeira iniciados nos limites do feudo, com alocação dos mestres de obra e materiais.'
     };
   }
 
@@ -448,13 +450,13 @@ export function resolveNarrativeCommand(
 
     let checkpoint: CheckpointInfo | undefined = undefined;
     if (isSuccess && command.action === 'BUILD') {
-      const isNewFortification = !state.holdings?.fortification || state.holdings.fortification.tier === 0;
+      const isCompleted = false;
       checkpoint = {
-        kind: isNewFortification ? 'START_CHECKPOINT' : 'COMPLETION_CHECKPOINT',
+        kind: isCompleted ? 'COMPLETION_CHECKPOINT' : 'START_CHECKPOINT',
         projectType: command.objectId || 'Paliçada Defensiva',
-        progressDescription: isNewFortification
-          ? 'Fundação e estaqueamento de madeira iniciados nos limites do feudo.'
-          : 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
+        progressDescription: isCompleted
+          ? 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
+          : 'Fundações e estaqueamento de madeira iniciados nos limites do feudo, com alocação dos mestres de obra e materiais.'
       };
     }
 
