@@ -339,15 +339,13 @@ function buildExecutionReport(
 
   let checkpoint: CheckpointInfo | undefined = undefined;
   if (status === 'ACCEPTED' && actionExecuted === 'BUILD') {
-    const tierBefore = inputState.holdings?.fortification?.tier ?? 0;
-    const tierAfter = updatedState.holdings?.fortification?.tier ?? 0;
-    const isCompleted = tierAfter > tierBefore;
+    const isNewFortification = !inputState.holdings?.fortification || inputState.holdings.fortification.tier === 0;
     checkpoint = {
-      kind: isCompleted ? 'COMPLETION_CHECKPOINT' : 'START_CHECKPOINT',
+      kind: isNewFortification ? 'START_CHECKPOINT' : 'COMPLETION_CHECKPOINT',
       projectType: command.objectId || 'Paliçada Defensiva',
-      progressDescription: isCompleted
-        ? 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
-        : 'Fundações e estaqueamento de madeira iniciados nos limites do feudo, com alocação dos mestres de obra e materiais.'
+      progressDescription: isNewFortification
+        ? 'Fundação e estaqueamento de madeira iniciados nos limites do feudo, com alocação dos mestres de obra e materiais.'
+        : 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
     };
   }
 
@@ -456,7 +454,7 @@ export function resolveNarrativeCommand(
         projectType: command.objectId || 'Paliçada Defensiva',
         progressDescription: isCompleted
           ? 'Reforço defensivo finalizado e guarnecido pelos homens de armas.'
-          : 'Fundações e estaqueamento de madeira iniciados nos limites do feudo, com alocação dos mestres de obra e materiais.'
+          : 'Fundação e estaqueamento de madeira iniciados nos limites do feudo, com alocação dos mestres de obra e materiais.'
       };
     }
 
@@ -538,6 +536,99 @@ export function resolveNarrativeCommand(
   }
 
   const resolution = resolveAction(phrase, state);
+  if (resolution.decision === 'NOT_FOUND' && !CANONICALLY_RESOLVED_DOMAINS.has(command.action)) {
+    const isSilenceAction =
+      (command.action === 'DIPLOMACY' || command.action === 'SOCIAL') &&
+      (command.desiredOutcome?.toLowerCase().includes('silêncio') || command.desiredOutcome?.toLowerCase().includes('silencio') || command.stance === 'CAUTIOUS');
+
+    if (isSilenceAction) {
+      const report: ExecutionReport = {
+        contractVersion: command.contractVersion,
+        reportId: `rep_silence_${rng.nextInt(100000, 999999)}`,
+        command: {
+          commandId: command.commandId,
+          actorId: command.actorId,
+          action: command.action,
+          targetId: command.targetId,
+          objectId: command.objectId,
+          locationId: command.locationId
+        },
+        status: 'ACCEPTED',
+        actionExecuted: command.action,
+        reasonCode: 'Silêncio político deliberado registrado perante a corte.',
+        affectedEntities: [{ entityId: 'player', entityType: 'CHARACTER', role: 'ACTOR' }],
+        stateChanges: [],
+        consequences: [
+          {
+            consequenceId: `csq_silence_${rng.nextInt(1000, 9999)}`,
+            kind: 'IMMEDIATE',
+            description: 'O líder manteve silêncio deliberado, avaliando a corte e as circunstâncias.',
+            authorized: true
+          }
+        ],
+        discoveredInformation: [],
+        hiddenInformationIds: [],
+        events: []
+      };
+      return { report, state, mutated: false };
+    }
+
+    const genericRes = resolveGenericPlausibleAction(
+      {
+        action: command.action,
+        targetId: command.targetId,
+        parameters: command.parameters as Record<string, unknown>
+      },
+      state,
+      rng
+    );
+
+    const isSuccess = genericRes.outcome === 'SUCCESS' || genericRes.outcome === 'PARTIAL_SUCCESS';
+    let updatedState = state;
+    let mutated = false;
+
+    if (genericRes.stateChanges.length > 0) {
+      updatedState = JSON.parse(JSON.stringify(state)) as CampaignState;
+      for (const sc of genericRes.stateChanges) {
+        if (sc.path === 'weeklyLedger.silverdew' && typeof sc.delta === 'number') {
+          updatedState.weeklyLedger.silverdew += sc.delta;
+          mutated = true;
+        } else if (sc.path === 'holdings.laborPool' && typeof sc.delta === 'number') {
+          updatedState.holdings.laborPool += sc.delta;
+          mutated = true;
+        }
+      }
+    }
+
+    const report: ExecutionReport = {
+      contractVersion: command.contractVersion,
+      reportId: `rep_gen_${rng.nextInt(100000, 999999)}`,
+      command: {
+        commandId: command.commandId,
+        actorId: command.actorId,
+        action: command.action,
+        targetId: command.targetId,
+        objectId: command.objectId,
+        locationId: command.locationId
+      },
+      status: isSuccess ? 'ACCEPTED' : 'REJECTED',
+      actionExecuted: command.action,
+      reasonCode: genericRes.reason,
+      affectedEntities: genericRes.stateChanges.map(sc => describeEntity(sc.path)),
+      stateChanges: genericRes.stateChanges,
+      consequences: genericRes.consequences,
+      discoveredInformation: [],
+      hiddenInformationIds: [],
+      events: []
+    };
+
+    return {
+      report,
+      state: updatedState,
+      mutated
+    };
+  }
+
   const { updatedState, mutated } = applyResolutionToState(state, resolution);
   const report = buildExecutionReport(command, resolution, state, updatedState, mutated, magnitude);
   const finalState = attachTemporalConsequencesAndEvents(report, updatedState, mutated, command);
