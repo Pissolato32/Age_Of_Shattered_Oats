@@ -96,11 +96,10 @@ export const CAMPAIGN_STRESS_TURNS: StressTurnInput[] = [
     stateMutator: (state) => {
       state.worldLedger.activeConflicts = [
         {
-          conflictId: 'conf_incursion_1',
-          sourceHouse: 'Bandos Sem Estandarte',
-          targetHouse: 'Stormcrest',
-          status: 'Active',
-          notes: 'Incursão hostil de incursores na fronteira de Fenwick.'
+          conflict: 'Incursão hostil de incursores na fronteira de Fenwick',
+          sides: 'Bandos Sem Estandarte vs Stormcrest',
+          startDate: 'Semana 3, Thawtide',
+          status: 'Active'
         }
       ];
     },
