@@ -95,4 +95,62 @@ const projection = buildObserverProjection(state, PLAYER_OBSERVER);
   console.log('[TEST 5] Determinismo estrito do interpretador -> OK');
 }
 
+// ---------------------------------------------------------------------------
+// TEST 6 — Operational Espionage Reconnaissance (Regression Test)
+// ---------------------------------------------------------------------------
+{
+  const spyInput = await mock.interpret({
+    playerInput: 'Roric, envie novamente os batedores para a velha ponte de pedra. Quero descobrir quem está acampado ali, mas mantenha-os ocultos e evite qualquer confronto.',
+    projection
+  });
+
+  assert.equal(spyInput.action, 'ESPIONAGE');
+  assert.equal(spyInput.locationId, 'velha ponte de pedra');
+  // Variação morfológica nominal ("aprofundar investigação na...")
+  const spyInput2 = await mock.interpret({
+    playerInput: 'Roric, aprofunde a investigação na velha ponte. Quero descobrir quem comanda aquele destacamento e a qual Casa ou senhor eles respondem. Continue evitando confronto e não envie mais homens do que o necessário.',
+    projection
+  });
+
+  assert.equal(spyInput2.action, 'ESPIONAGE');
+  assert.equal(spyInput2.locationId, 'velha ponte');
+  assert.equal(spyInput2.stance, 'CAUTIOUS');
+  assert.equal(spyInput2.requiresClarification, false);
+
+  console.log('[TEST 6] Reconhecimento e espionagem operacional classificados como ESPIONAGE com local derivado -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 7 — Formal Diplomatic Mission (Regression Test)
+// ---------------------------------------------------------------------------
+{
+  const diploInput = await mock.interpret({
+    playerInput: 'Tobin, envie uma comitiva formal à ponte velha sob bandeira de trégua. Quero exigir que os homens ali se identifiquem e informem sob qual autoridade estão operando. Não ofereça dinheiro nem faça ameaças.',
+    projection
+  });
+
+  assert.equal(diploInput.action, 'DIPLOMACY');
+  assert.equal(diploInput.targetId, 'ponte velha');
+  assert.equal(diploInput.requiresClarification, false);
+
+  console.log('[TEST 7] Missão diplomática formal e comitivas classificadas como DIPLOMACY -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 8 — Tactical Military Deployment (Regression Test)
+// ---------------------------------------------------------------------------
+{
+  const milInput = await mock.interpret({
+    playerInput: 'Roric, mobilize um pequeno destacamento para estabelecer um piquete na encruzilhada da estrada norte. Quero pressionar o acampamento e interromper seus suprimentos, mas não ataque nem tente tomar a ponte. Se houver resistência, recue.',
+    projection
+  });
+
+  assert.equal(milInput.action, 'MILITARY');
+  assert.equal(milInput.targetId, 'encruzilhada da estrada norte');
+  assert.equal(milInput.stance, 'CAUTIOUS');
+  assert.equal(milInput.requiresClarification, false);
+
+  console.log('[TEST 8] Mobilização tática e piquetes classificados como MILITARY com postura cautelosa -> OK');
+}
+
 console.log('SemanticInputContract test suite passed successfully.');

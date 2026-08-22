@@ -25,14 +25,15 @@ export function runTreasuryAccumulationEngineIntegrationTests() {
     const patchIncome = turnResult.incomeChanges.patches;
     const totalIncome = holdingIncome + patchIncome;
     const wagesPaid = turnResult.militaryChanges.wagesPaid;
+    const holdingMaintenance = updatedState.weeklyLedger.expenseDetail?.holdingMaintenance ?? 0;
 
-    const expectedSd = startingSd + totalIncome - wagesPaid;
+    const expectedSd = startingSd + totalIncome - wagesPaid - holdingMaintenance;
     assert.strictEqual(
       updatedState.weeklyLedger.silverdew,
       expectedSd,
       `Expected treasury to be ${expectedSd} SD, but got ${updatedState.weeklyLedger.silverdew} SD`
     );
-    assert.ok(updatedState.weeklyLedger.silverdew > startingSd || totalIncome < wagesPaid);
+    assert.strictEqual(holdingMaintenance, 70, "Holding maintenance for Bastion should be exactly 70 SD");
   }
 
   // 2. Multi-Week Accumulation Test: 10 consecutive weeks showing growth
@@ -49,15 +50,17 @@ export function runTreasuryAccumulationEngineIntegrationTests() {
     const initialSd = state.weeklyLedger.silverdew;
     let accumulatedIncome = 0;
     let accumulatedWages = 0;
+    let accumulatedMaintenance = 0;
 
     for (let week = 1; week <= 10; week++) {
       const turn = resolveWeeklyTurn(state);
       state = turn.updatedState;
       accumulatedIncome += turn.turnResult.incomeChanges.holdings + turn.turnResult.incomeChanges.patches;
       accumulatedWages += turn.turnResult.militaryChanges.wagesPaid;
+      accumulatedMaintenance += turn.updatedState.weeklyLedger.expenseDetail?.holdingMaintenance ?? 0;
     }
 
-    const expectedFinalSd = initialSd + accumulatedIncome - accumulatedWages;
+    const expectedFinalSd = initialSd + accumulatedIncome - accumulatedWages - accumulatedMaintenance;
     assert.strictEqual(
       state.weeklyLedger.silverdew,
       expectedFinalSd,
@@ -94,7 +97,8 @@ export function runTreasuryAccumulationEngineIntegrationTests() {
   console.log("  - Testing multi-week food reserve deduction and accumulation...");
   {
     let state: CampaignState = createInitialState("Noble Ruler", "Central Plains");
-    state.weeklyLedger.food = 100;
+    state.holdings.type = "Fortified Town"; // 100 FSU capacity (storage safe)
+    state.weeklyLedger.food = 40.0;
     state.weeklyLedger.silverdew = 1000;
     state.army.units = [
       { id: "u1", name: "Infantry", type: "Infantry", size: 100, maxSize: 100, tier: 1, ac: 10, weapon: "Spear", mount: "None", morale: 5 }
@@ -108,7 +112,7 @@ export function runTreasuryAccumulationEngineIntegrationTests() {
       state = turn.updatedState;
     }
 
-    // 5 weeks * 1.0 FSU = 5.0 FSU consumed
+    // 5 weeks * 1.0 FSU = 5.0 FSU consumed (zero spoilage since 40 FSU < 100 FSU capacity)
     assert.strictEqual(state.weeklyLedger.food, initialFood - 5.0);
     assert.strictEqual(state.weeklyLedger.famineTicks, 0);
   }

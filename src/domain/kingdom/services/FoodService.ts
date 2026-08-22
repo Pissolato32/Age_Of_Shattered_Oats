@@ -1,13 +1,42 @@
+/** Granary food storage capacity in FSU per holding type (Rule M18.3.B) */
+export const GRANARY_CAPACITY: Record<string, number> = {
+  'Bastion': 50.0,
+  'Fortified Town': 100.0,
+  'Castle': 150.0,
+  'Walled City': 300.0,
+};
+
 /**
  * FoodService
  * 
  * Centralized domain service for civilian food consumption, military rations,
- * and famine tracking rules.
+ * granary capacities, spoilage, and famine tracking rules.
  * 
  * @rule economy.weekly
  * @rule holdings.tiers
  */
 export class FoodService {
+  /**
+   * Returns the granary capacity in FSU for a given holding type.
+   */
+  public static getGranaryCapacity(holdingType: string): number {
+    return GRANARY_CAPACITY[holdingType] ?? 50.0;
+  }
+
+  /**
+   * Calculates weekly spoilage (25%) strictly on excess food exceeding granary capacity.
+   * If food <= capacity, spoilage is 0.
+   */
+  public static calculateExcessSpoilage(currentFood: number, capacity: number): { spoiledFsu: number; preservedFsu: number } {
+    if (currentFood <= capacity) {
+      return { spoiledFsu: 0, preservedFsu: currentFood };
+    }
+    const excess = currentFood - capacity;
+    const spoiledFsu = Math.round((excess * 0.25) * 100) / 100;
+    const preservedFsu = Math.round((currentFood - spoiledFsu) * 100) / 100;
+    return { spoiledFsu, preservedFsu };
+  }
+
   /**
    * Calculates the weekly food consumption (FSU) for a civilian population.
    * Rule A.32: 1 FSU per 1,000 civilians per week.

@@ -38,9 +38,10 @@ async function runTests() {
     assert.ok(turnResult.militaryChanges.wagesPaid > 0);
     assert.strictEqual(updatedState.weeklyLedger.unpaidWagesTicks, 0);
     const totalIncome = turnResult.incomeChanges.holdings + turnResult.incomeChanges.patches;
+    const holdingMaintenance = updatedState.weeklyLedger.expenseDetail?.holdingMaintenance ?? 0;
     assert.strictEqual(
       updatedState.weeklyLedger.silverdew,
-      initialSd + totalIncome - turnResult.militaryChanges.wagesPaid
+      initialSd + totalIncome - turnResult.militaryChanges.wagesPaid - holdingMaintenance
     );
 
     console.log("  ✅ Military Payroll Engine Integration Tests Passed Successfully!");

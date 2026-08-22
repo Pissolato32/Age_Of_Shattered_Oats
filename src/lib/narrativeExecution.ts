@@ -165,17 +165,17 @@ function rejectionReport(
 function toCanonicalPhrase(command: NarrativeCommand): string {
   switch (command.action) {
     case 'BUILD':
-      return 'construir palisada de madeira';
+      return command.objectId ? `construir ${command.objectId}` : 'construir palisada de madeira';
     case 'TRAVEL':
       return `viajar para ${command.targetId ?? 'fronteira'}`;
     case 'TRADE':
-      return `comprar ${command.objectId ?? 'mantimentos'}`;
+      return command.desiredOutcome || `comprar ${command.objectId ?? 'mantimentos'}`;
     case 'INFORMATION':
       return `quanto custa ${command.objectId ?? 'recrutamento'}`;
     case 'FLAVOR_QUERY':
       return 'protocolo de apresentacao';
     default:
-      return '';
+      return command.desiredOutcome || '';
   }
 }
 
@@ -215,6 +215,8 @@ function readResourceValue(state: CampaignState, path: string): number | undefin
   switch (path) {
     case 'weeklyLedger.silverdew':
       return state.weeklyLedger.silverdew;
+    case 'weeklyLedger.food':
+      return state.weeklyLedger.food;
     case 'holdings.laborPool':
       return state.holdings.laborPool;
     case 'materials.timber':
@@ -257,6 +259,8 @@ function describeEntity(path: string): AffectedEntity {
   switch (path) {
     case 'weeklyLedger.silverdew':
       return { entityId: 'silverdew', entityType: 'RESOURCE', role: 'AFFECTED' };
+    case 'weeklyLedger.food':
+      return { entityId: 'food', entityType: 'RESOURCE', role: 'AFFECTED' };
     case 'holdings.laborPool':
       return { entityId: 'laborPool', entityType: 'HOLDING', role: 'AFFECTED' };
     case 'materials.timber':
@@ -276,6 +280,8 @@ function describeConsequence(path: string, delta: number): string {
   switch (path) {
     case 'weeklyLedger.silverdew':
       return `Tesouro em silverdew ajustado em ${delta} SD.`;
+    case 'weeklyLedger.food':
+      return `Estoque de alimentos ajustado em ${delta} FSU.`;
     case 'holdings.laborPool':
       return `Mão de obra do feudo ajustada em ${delta} homens.`;
     case 'materials.timber':
@@ -535,8 +541,7 @@ export function resolveNarrativeCommand(
     phrase = `recrutar ${magnitude.value} soldados`;
   }
 
-  const resolution = resolveAction(phrase, state);
-  if (resolution.decision === 'NOT_FOUND' && !CANONICALLY_RESOLVED_DOMAINS.has(command.action)) {
+  if (!CANONICALLY_RESOLVED_DOMAINS.has(command.action)) {
     const isSilenceAction =
       (command.action === 'DIPLOMACY' || command.action === 'SOCIAL') &&
       (command.desiredOutcome?.toLowerCase().includes('silêncio') || command.desiredOutcome?.toLowerCase().includes('silencio') || command.stance === 'CAUTIOUS');
@@ -629,6 +634,7 @@ export function resolveNarrativeCommand(
     };
   }
 
+  const resolution = resolveAction(phrase, state);
   const { updatedState, mutated } = applyResolutionToState(state, resolution);
   const report = buildExecutionReport(command, resolution, state, updatedState, mutated, magnitude);
   const finalState = attachTemporalConsequencesAndEvents(report, updatedState, mutated, command);

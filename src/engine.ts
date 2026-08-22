@@ -916,6 +916,29 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
         s.family.children.forEach(c => c.age += 1);
       }
       turnResult.eventLog.push(`ANO NOVO: O ano ${nextYear} começa gélido nas terras despedaçadas. Todos os membros de sua linhagem envelhecem um ano.`);
+
+      // Royal Tithe / Wealth Friction (Rule M18.3.C: 8% on excess > 2000 SD)
+      const titheResult = TreasuryService.calculateRoyalTithe(s.weeklyLedger.silverdew);
+      if (titheResult.titheAmount > 0) {
+        s.weeklyLedger.silverdew = titheResult.remainingSilverdew;
+        if (!s.weeklyLedger.expenseDetail) {
+          s.weeklyLedger.expenseDetail = {
+            wages: 0,
+            garrison: 0,
+            foodPurchases: 0,
+            construction: 0,
+            recruitment: 0,
+            mercenaries: 0,
+            tributePaid: 0,
+            engineerWages: 0,
+            shipUpkeep: 0,
+            holdingMaintenance: 0,
+            other: 0
+          };
+        }
+        s.weeklyLedger.expenseDetail.tributePaid = (s.weeklyLedger.expenseDetail.tributePaid || 0) + titheResult.titheAmount;
+        turnResult.eventLog.push(`Dízimo Real da Coroa: -${titheResult.titheAmount} SD recolhidos em tributo imperial sobre o excedente da tesouraria.`);
+      }
     }
     nextMonth = MONTHS[nextMonthIdx];
   }
@@ -1069,6 +1092,14 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
       });
     }
 
+    // Granary Capacity & Excess Spoilage (Rule M18.3.B)
+    const granaryCap = FoodService.getGranaryCapacity(s.holdings.type);
+    const spoilageResult = FoodService.calculateExcessSpoilage(s.weeklyLedger.food, granaryCap);
+    if (spoilageResult.spoiledFsu > 0) {
+      s.weeklyLedger.food = spoilageResult.preservedFsu;
+      turnResult.eventLog.push(`Celeiros: ${spoilageResult.spoiledFsu.toFixed(1)} FSU de grãos deterioraram por falta de espaço coberto.`);
+    }
+
     const treasuryState = { treasurySd: s.weeklyLedger.silverdew };
     const treasuryOutcome = TreasuryService.deductExpenses(
       treasuryState,
@@ -1095,6 +1126,29 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
         turnResult.militaryChanges.desertions += actualDeserters;
         turnResult.eventLog.push(`Salários Atrasados: ${actualDeserters} soldados desertaram por falta de pagamento.`);
       }
+    }
+
+    // Holding Base Maintenance / Upkeep (Rule M18.3.A)
+    const holdingUpkeep = ProductionService.getHoldingUpkeepPerWeek(s.holdings.type);
+    if (!s.weeklyLedger.expenseDetail) {
+      s.weeklyLedger.expenseDetail = {
+        wages: 0,
+        garrison: 0,
+        foodPurchases: 0,
+        construction: 0,
+        recruitment: 0,
+        mercenaries: 0,
+        tributePaid: 0,
+        engineerWages: 0,
+        shipUpkeep: 0,
+        holdingMaintenance: 0,
+        other: 0
+      };
+    }
+    s.weeklyLedger.expenseDetail.holdingMaintenance = holdingUpkeep;
+    s.weeklyLedger.silverdew = Math.max(0, s.weeklyLedger.silverdew - holdingUpkeep);
+    if (holdingUpkeep > 0) {
+      turnResult.eventLog.push(`Manutenção Feudal: ${holdingUpkeep} SD despendidos na conservação de ${s.holdings.type}.`);
     }
   }
 

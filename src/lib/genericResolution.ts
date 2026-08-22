@@ -253,13 +253,18 @@ export function resolveGenericPlausibleAction(
   // Category 1: Infrastructure / Maintenance / Field Work
   // -------------------------------------------------------------------------
   if (
-    actionLower.includes('limpar') ||
-    actionLower.includes('estrada') ||
-    actionLower.includes('reparar') ||
-    actionLower.includes('manutenção') ||
-    actionLower.includes('infraestrutura') ||
-    actionLower.includes('escavar') ||
-    actionLower.includes('fortificar')
+    !actionLower.includes('patrulha') &&
+    !actionLower.includes('batedor') &&
+    !actionLower.includes('espi') &&
+    (
+      actionLower.includes('limpar') ||
+      actionLower.includes('estrada') ||
+      actionLower.includes('reparar') ||
+      actionLower.includes('manutenção') ||
+      actionLower.includes('infraestrutura') ||
+      actionLower.includes('escavar') ||
+      actionLower.includes('fortificar')
+    )
   ) {
     // Treasury capacity for operational tool/ration support: 1 SD supports up to 10 men
     // If treasury is 0, workforce is limited to minimal local volunteer effort (max 10 men)
@@ -445,7 +450,9 @@ export function resolveGenericPlausibleAction(
     const roll = rng.nextInt(1, 20);
     let outcome: GenericOutcome;
 
-    if (roll >= frictionThreshold + 5) {
+    if (roll === 1) {
+      outcome = 'CRITICAL_FAILURE';
+    } else if (roll >= frictionThreshold + 5) {
       outcome = 'SUCCESS';
     } else if (roll >= frictionThreshold) {
       outcome = 'PARTIAL_SUCCESS';
@@ -456,7 +463,7 @@ export function resolveGenericPlausibleAction(
     const stateChanges: StateChange[] = [];
 
     // Deduct treasury only if negotiation succeeded and coin was accepted
-    if (outcome !== 'FAILURE') {
+    if (outcome === 'SUCCESS' || outcome === 'PARTIAL_SUCCESS') {
       stateChanges.push({
         path: 'weeklyLedger.silverdew',
         before: treasurySd,
@@ -465,11 +472,14 @@ export function resolveGenericPlausibleAction(
       });
     }
 
+    const rawProb = (21 - frictionThreshold) / 20;
+    const probability = Number(Math.max(0.10, Math.min(0.85, rawProb)).toFixed(2));
+
     return {
       classification: 'PLAUSIBLE_UNMODELED',
       outcome,
       magnitude: bribeOffer,
-      probability: Number(((21 - frictionThreshold) / 20).toFixed(2)),
+      probability,
       source: 'ENGINE_CALCULATED',
       stateChanges,
       consequences: [
@@ -480,7 +490,9 @@ export function resolveGenericPlausibleAction(
             ? `Negociação aceita plenamente pelo alvo mediante oferta de ${bribeOffer} SD.`
             : outcome === 'PARTIAL_SUCCESS'
               ? `Acordo provisório aceito com concessões mútuas (${bribeOffer} SD).`
-              : `A proposta foi rejeitada pelo interlocutor.`,
+              : outcome === 'CRITICAL_FAILURE'
+                ? `A oferta foi tomada como ofensa grave pelo interlocutor, gerando desconfiança.`
+                : `A proposta foi rejeitada pelo interlocutor.`,
           authorized: true
         }
       ],
@@ -489,7 +501,335 @@ export function resolveGenericPlausibleAction(
   }
 
   // -------------------------------------------------------------------------
-  // Category 3: Generic Unmodeled Interaction
+  // Category 3: Specialized Domain — ESPIONAGE
+  // -------------------------------------------------------------------------
+  if (
+    actionLower.includes('espi') ||
+    actionLower.includes('infiltrar') ||
+    actionLower.includes('investigar') ||
+    actionLower.includes('boato') ||
+    actionLower.includes('inteligência') ||
+    actionLower.includes('vigiar feudo')
+  ) {
+    const costSd = 5;
+    if (treasurySd < costSd) {
+      return {
+        classification: 'PLAUSIBLE_UNMODELED',
+        outcome: 'FAILURE',
+        magnitude: 0,
+        probability: 0,
+        source: 'ENGINE_CALCULATED',
+        stateChanges: [],
+        consequences: [],
+        reason: `Tesouraria insuficiente (${treasurySd} SD). Operações de espionagem exigem ao menos ${costSd} SD para custear agentes e informantes.`
+      };
+    }
+
+    const commanderTier = state.character?.stats?.commanderTier ?? 1;
+    const repBonus = Math.min(3, Math.max(0, Math.floor((state.character?.reputation ?? 0) / 10)));
+    const hasSpymaster = state.advisors?.spyMasterName ? 1 : 0;
+    const baseFriction = 12;
+    const frictionThreshold = Math.max(2, Math.min(18, baseFriction - commanderTier - repBonus - hasSpymaster));
+
+    const roll = rng.nextInt(1, 20);
+    let outcome: GenericOutcome;
+
+    if (roll === 1) {
+      outcome = 'CRITICAL_FAILURE';
+    } else if (roll >= frictionThreshold + 5) {
+      outcome = 'SUCCESS';
+    } else if (roll >= frictionThreshold) {
+      outcome = 'PARTIAL_SUCCESS';
+    } else {
+      outcome = 'FAILURE';
+    }
+
+    const stateChanges: StateChange[] = [
+      {
+        path: 'weeklyLedger.silverdew',
+        before: treasurySd,
+        after: treasurySd - costSd,
+        delta: -costSd
+      }
+    ];
+
+    const rawProb = (21 - frictionThreshold) / 20;
+    const probability = Number(Math.max(0.10, Math.min(0.85, rawProb)).toFixed(2));
+
+    // Consequence on secrets
+    const unrevealedSecret = (state.worldSecrets || []).find(s => !s.revealed);
+    const consequences: ExecutionConsequence[] = [
+      {
+        consequenceId: `csq_espi_${rng.nextInt(1000, 9999)}`,
+        kind: 'IMMEDIATE',
+        description: outcome === 'SUCCESS'
+          ? (unrevealedSecret ? `Espião revelou com precisão um segredo: ${unrevealedSecret.description}` : `Rede de informantes colheu relatórios detalhados sobre as defesas do alvo.`)
+          : outcome === 'PARTIAL_SUCCESS'
+            ? `Informantes colheram rumores parciais sobre os movimentos de tropas vizinhas.`
+            : outcome === 'CRITICAL_FAILURE'
+              ? `O informante foi capturado e interrogado pelos guardas inimigos, expondo nossa presença.`
+              : `Informantes não encontraram movimentações atípicas e o rastro foi perdido.`,
+        authorized: true
+      }
+    ];
+
+    return {
+      classification: 'PLAUSIBLE_UNMODELED',
+      outcome,
+      magnitude: costSd,
+      probability,
+      source: 'ENGINE_CALCULATED',
+      stateChanges,
+      consequences,
+      reason: `Resolução de Espionagem: ${outcome} (roll=${roll}, atrito=${frictionThreshold}, custo=${costSd} SD).`
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Category 4: Specialized Domain — DIPLOMACY
+  // -------------------------------------------------------------------------
+  if (
+    actionLower.includes('diploma') ||
+    actionLower.includes('emissário') ||
+    actionLower.includes('aliança') ||
+    actionLower.includes('tratado') ||
+    actionLower.includes('pacto') ||
+    actionLower.includes('visita formal')
+  ) {
+    const costSd = 10;
+    if (treasurySd < costSd) {
+      return {
+        classification: 'PLAUSIBLE_UNMODELED',
+        outcome: 'FAILURE',
+        magnitude: 0,
+        probability: 0,
+        source: 'ENGINE_CALCULATED',
+        stateChanges: [],
+        consequences: [],
+        reason: `Tesouraria insuficiente (${treasurySd} SD). Missões diplomáticas exigem ao menos ${costSd} SD para presentes protocolares e custas de comitiva.`
+      };
+    }
+
+    const targetOpinion = getTargetOpinion(request.targetId, state);
+    const repBonus = Math.min(3, Math.max(0, Math.floor((state.character?.reputation ?? 0) / 10)));
+    const hasCounselor = state.advisors?.counselorName ? 1 : 0;
+    const baseFriction = 13;
+    const frictionThreshold = Math.max(2, Math.min(18, baseFriction - repBonus - hasCounselor - targetOpinion));
+
+    const roll = rng.nextInt(1, 20);
+    let outcome: GenericOutcome;
+
+    if (roll === 1) {
+      outcome = 'CRITICAL_FAILURE';
+    } else if (roll >= frictionThreshold + 5) {
+      outcome = 'SUCCESS';
+    } else if (roll >= frictionThreshold) {
+      outcome = 'PARTIAL_SUCCESS';
+    } else {
+      outcome = 'FAILURE';
+    }
+
+    const stateChanges: StateChange[] = [
+      {
+        path: 'weeklyLedger.silverdew',
+        before: treasurySd,
+        after: treasurySd - costSd,
+        delta: -costSd
+      }
+    ];
+
+    const rawProb = (21 - frictionThreshold) / 20;
+    const probability = Number(Math.max(0.10, Math.min(0.85, rawProb)).toFixed(2));
+
+    return {
+      classification: 'PLAUSIBLE_UNMODELED',
+      outcome,
+      magnitude: costSd,
+      probability,
+      source: 'ENGINE_CALCULATED',
+      stateChanges,
+      consequences: [
+        {
+          consequenceId: `csq_diplo_${rng.nextInt(1000, 9999)}`,
+          kind: 'IMMEDIATE',
+          description: outcome === 'SUCCESS'
+            ? `Emissários foram recebidos com honras e a Casa Nobre acolheu favoravelmente a proposta diplomática.`
+            : outcome === 'PARTIAL_SUCCESS'
+              ? `A corte vizinha aceitou ouvir nossos enviados, concordando com um pacto provisório de boa vizinhança.`
+              : outcome === 'CRITICAL_FAILURE'
+                ? `Houve um grave incidente protocolar; os emissários foram expulsos da fortaleza com insultos heráldicos.`
+                : `A proposta diplomática foi recusada com frieza pela Casa nobre.`,
+          authorized: true
+        }
+      ],
+      reason: `Resolução de Diplomacia: ${outcome} (roll=${roll}, atrito=${frictionThreshold}, custo=${costSd} SD, afinidade=${targetOpinion}).`
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Category 5: Specialized Domain — MILITARY (Batedores / Exercício / Patrulha)
+  // -------------------------------------------------------------------------
+  if (
+    actionLower.includes('patrulha') ||
+    actionLower.includes('batedor') ||
+    actionLower.includes('exercício militar') ||
+    actionLower.includes('treinar tropa') ||
+    actionLower.includes('manobra') ||
+    actionLower.includes('reconhecimento')
+  ) {
+    const laborCost = 15;
+    if (laborAvailable < laborCost && state.holdings.garrison < 10) {
+      return {
+        classification: 'PLAUSIBLE_UNMODELED',
+        outcome: 'FAILURE',
+        magnitude: 0,
+        probability: 0,
+        source: 'ENGINE_CALCULATED',
+        stateChanges: [],
+        consequences: [],
+        reason: 'Homens de armas e mão de obra insuficientes para mobilizar patrulhas ou exercícios táticos.'
+      };
+    }
+
+    const commanderTier = state.character?.stats?.commanderTier ?? 1;
+    const isWinter = state.weeklyLedger.season === 'Deepfrost';
+    const baseFriction = 10;
+    const frictionThreshold = Math.max(2, Math.min(18, baseFriction - commanderTier + (isWinter ? 3 : 0)));
+
+    const roll = rng.nextInt(1, 20);
+    let outcome: GenericOutcome;
+
+    if (roll === 1) {
+      outcome = 'CRITICAL_FAILURE';
+    } else if (roll >= frictionThreshold + 5) {
+      outcome = 'SUCCESS';
+    } else if (roll >= frictionThreshold) {
+      outcome = 'PARTIAL_SUCCESS';
+    } else {
+      outcome = 'FAILURE';
+    }
+
+    const stateChanges: StateChange[] = [];
+    if (laborAvailable >= laborCost) {
+      stateChanges.push({
+        path: 'holdings.laborPool',
+        before: laborAvailable,
+        after: laborAvailable - laborCost,
+        delta: -laborCost
+      });
+    }
+
+    const rawProb = (21 - frictionThreshold) / 20;
+    const probability = Number(Math.max(0.10, Math.min(0.85, rawProb)).toFixed(2));
+
+    return {
+      classification: 'PLAUSIBLE_UNMODELED',
+      outcome,
+      magnitude: laborCost,
+      probability,
+      source: 'ENGINE_CALCULATED',
+      stateChanges,
+      consequences: [
+        {
+          consequenceId: `csq_mil_${rng.nextInt(1000, 9999)}`,
+          kind: 'IMMEDIATE',
+          description: outcome === 'SUCCESS'
+            ? `Manobras militares executadas com maestria; moral e vigilância das fronteiras elevados.`
+            : outcome === 'PARTIAL_SUCCESS'
+              ? `Patrulha de reconhecimento concluiu a rota sob condições adversas sem perdas.`
+              : outcome === 'CRITICAL_FAILURE'
+                ? `Patrulha sofreu emboscada nas trilhas florestais, sofrendo baixas e desorganização.`
+                : `Manobras prejudicadas pelo terreno difícil e cansaço dos soldados.`,
+          authorized: true
+        }
+      ],
+      reason: `Resolução Militar: ${outcome} (roll=${roll}, atrito=${frictionThreshold}, mãoDeObra=${laborCost}).`
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Category 6: Specialized Domain — INTRIGUE (Sabotagem / Chantagem / Conspiração)
+  // -------------------------------------------------------------------------
+  if (
+    actionLower.includes('sabotar') ||
+    actionLower.includes('conspirar') ||
+    actionLower.includes('chantage') ||
+    actionLower.includes('intriga') ||
+    actionLower.includes('envenenar') ||
+    actionLower.includes('desinformação')
+  ) {
+    const costSd = 25;
+    if (treasurySd < costSd) {
+      return {
+        classification: 'PLAUSIBLE_UNMODELED',
+        outcome: 'FAILURE',
+        magnitude: 0,
+        probability: 0,
+        source: 'ENGINE_CALCULATED',
+        stateChanges: [],
+        consequences: [],
+        reason: `Tesouraria insuficiente (${treasurySd} SD). Operações de intriga e sabotagem exigem ao menos ${costSd} SD para suborno e aluguel de assassinos.`
+      };
+    }
+
+    const commanderTier = state.character?.stats?.commanderTier ?? 1;
+    const repBonus = Math.min(2, Math.max(0, Math.floor((state.character?.reputation ?? 0) / 15)));
+    const hasSpymaster = state.advisors?.spyMasterName ? 1 : 0;
+    const baseFriction = 14;
+    const frictionThreshold = Math.max(2, Math.min(18, baseFriction - commanderTier - repBonus - hasSpymaster));
+
+    const roll = rng.nextInt(1, 20);
+    let outcome: GenericOutcome;
+
+    if (roll === 1) {
+      outcome = 'CRITICAL_FAILURE';
+    } else if (roll >= frictionThreshold + 5) {
+      outcome = 'SUCCESS';
+    } else if (roll >= frictionThreshold) {
+      outcome = 'PARTIAL_SUCCESS';
+    } else {
+      outcome = 'FAILURE';
+    }
+
+    const stateChanges: StateChange[] = [
+      {
+        path: 'weeklyLedger.silverdew',
+        before: treasurySd,
+        after: treasurySd - costSd,
+        delta: -costSd
+      }
+    ];
+
+    const rawProb = (21 - frictionThreshold) / 20;
+    const probability = Number(Math.max(0.10, Math.min(0.85, rawProb)).toFixed(2));
+
+    return {
+      classification: 'PLAUSIBLE_UNMODELED',
+      outcome,
+      magnitude: costSd,
+      probability,
+      source: 'ENGINE_CALCULATED',
+      stateChanges,
+      consequences: [
+        {
+          consequenceId: `csq_intrigue_${rng.nextInt(1000, 9999)}`,
+          kind: 'IMMEDIATE',
+          description: outcome === 'SUCCESS'
+            ? `A intriga foi semeada com discrição nas cortes vizinhas, enfraquecendo a aliança rival.`
+            : outcome === 'PARTIAL_SUCCESS'
+              ? `A desinformação circulou nos salões nobres, criando desconfiança entre os capitães do alvo.`
+              : outcome === 'CRITICAL_FAILURE'
+                ? `A conspiração foi descoberta e ligada diretamente à nossa fortaleza, gerando fúria na corte.`
+                : `A manobra foi frustrada pelos espiões da corte rival sem causar danos visíveis.`,
+          authorized: true
+        }
+      ],
+      reason: `Resolução de Intriga: ${outcome} (roll=${roll}, atrito=${frictionThreshold}, custo=${costSd} SD).`
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Category 7: Generic Unmodeled Interaction (Fallback with Clamp)
   // -------------------------------------------------------------------------
   const frictionThreshold = calculateContextualFriction(10, state, {
     useLeadership: true,
@@ -500,7 +840,9 @@ export function resolveGenericPlausibleAction(
   const roll = rng.nextInt(1, 20);
   let outcome: GenericOutcome;
 
-  if (roll >= frictionThreshold + 5) {
+  if (roll === 1) {
+    outcome = 'CRITICAL_FAILURE';
+  } else if (roll >= frictionThreshold + 5) {
     outcome = 'SUCCESS';
   } else if (roll >= frictionThreshold) {
     outcome = 'PARTIAL_SUCCESS';
@@ -508,11 +850,14 @@ export function resolveGenericPlausibleAction(
     outcome = 'FAILURE';
   }
 
+  const rawProb = (21 - frictionThreshold) / 20;
+  const probability = Number(Math.max(0.10, Math.min(0.85, rawProb)).toFixed(2));
+
   return {
     classification: 'PLAUSIBLE_UNMODELED',
     outcome,
     magnitude: 1,
-    probability: Number(((21 - frictionThreshold) / 20).toFixed(2)),
+    probability,
     source: 'ENGINE_CALCULATED',
     stateChanges: [],
     consequences: [

@@ -408,7 +408,22 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
   // --------------------------------------------------------------------------
   // CASO E: Intenção TRADE / TAXES (Coleta de Impostos, Comércio, Compras)
   // --------------------------------------------------------------------------
-  if (lowerAction.includes('imposto') || lowerAction.includes('coletar') || lowerAction.includes('silverdew semanal') || lowerAction.includes('comprar') || lowerAction.includes('trocar') || lowerAction.includes('vender') || lowerAction.includes('comercio')) {
+  if (
+    lowerAction.includes('imposto') ||
+    lowerAction.includes('coletar') ||
+    lowerAction.includes('silverdew semanal') ||
+    lowerAction.includes('comprar') ||
+    lowerAction.includes('compra') ||
+    lowerAction.includes('compre') ||
+    lowerAction.includes('trocar') ||
+    lowerAction.includes('vender') ||
+    lowerAction.includes('venda') ||
+    lowerAction.includes('vende') ||
+    lowerAction.includes('negociar') ||
+    lowerAction.includes('negocie') ||
+    lowerAction.includes('comercio') ||
+    lowerAction.includes('comércio')
+  ) {
     const codexMatches = searchCodex("Part 70 WEEKLY INCOME ECONOMIC CYCLE", { limit: 3 });
     const topNode = codexMatches.length > 0 ? codexMatches[0].node : null;
 
@@ -425,9 +440,50 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
       type: m.node.type
     }));
 
+    let effects: RuleEffect[] = [];
+    let decisionReason = `Operação comercial ou coleta autorizada pela Part 70 do Codex Canon (Págs 212-218).`;
+    let allowed = true;
+    const conditions: RuleCondition[] = [
+      { condition: "Part 70 Weekly Income Rules Present", result: true }
+    ];
+
+    if (lowerAction.includes('imposto') || lowerAction.includes('coletar')) {
+      effects = [{ resource: 'weeklyLedger.silverdew', delta: 50 }];
+    } else if (lowerAction.includes('vender') || lowerAction.includes('venda')) {
+      // Venda de Grãos / Alimentos
+      const numMatch = userAction.match(/\b(\d+)\b/);
+      const qty = numMatch ? parseInt(numMatch[1], 10) : 10;
+      const unitPrice = 2.5;
+      const totalSd = Math.floor(qty * unitPrice);
+
+      if (worldState) {
+        const curFood = worldState.weeklyLedger.food;
+        const hasFood = curFood >= qty;
+        conditions.push({
+          condition: `Estoque de Comida (${curFood.toFixed(1)} FSU) >= ${qty} FSU`,
+          result: hasFood
+        });
+        if (hasFood) {
+          effects = [
+            { resource: 'weeklyLedger.food', delta: -qty },
+            { resource: 'weeklyLedger.silverdew', delta: totalSd }
+          ];
+          decisionReason = `Venda comercial autorizada: ${qty} FSU de grãos convertidos em +${totalSd} SD.`;
+        } else {
+          allowed = false;
+          decisionReason = `Venda RECUSADA (DENIED). Estoque de comida insuficiente (${curFood.toFixed(1)} FSU < ${qty} FSU).`;
+        }
+      } else {
+        effects = [
+          { resource: 'weeklyLedger.food', delta: -qty },
+          { resource: 'weeklyLedger.silverdew', delta: totalSd }
+        ];
+      }
+    }
+
     return {
       intent: 'TRADE',
-      decision: 'ALLOWED',
+      decision: allowed ? 'ALLOWED' : 'DENIED',
       authority: 'CODEX',
       canonRule: topNode ? {
         id: topNode.id,
@@ -436,11 +492,11 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
         title: topNode.title,
         book: topNode.book
       } : undefined,
-      conditions: [{ condition: "Part 70 Weekly Income Rules Present", result: true }],
-      effects: lowerAction.includes('imposto') || lowerAction.includes('coletar') ? [{ resource: 'weeklyLedger.silverdew', delta: 50 }] : [],
+      conditions,
+      effects,
       evidence,
-      mechanicalAllowed: true,
-      decisionReason: `Operação comercial ou coleta autorizada pela Part 70 do Codex Canon (Págs 212-218).`,
+      mechanicalAllowed: allowed,
+      decisionReason,
       webFlavorAllowed: true
     };
   }
@@ -563,6 +619,8 @@ export function applyResolutionToState(
 
     if (effect.resource === 'weeklyLedger.silverdew') {
       newState.weeklyLedger.silverdew += effect.delta;
+    } else if (effect.resource === 'weeklyLedger.food') {
+      newState.weeklyLedger.food = Math.max(0, newState.weeklyLedger.food + effect.delta);
     } else if (effect.resource === 'holdings.laborPool') {
       newState.holdings.laborPool += effect.delta;
     } else if (effect.resource === 'materials.timber') {

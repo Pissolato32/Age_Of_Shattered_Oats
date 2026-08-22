@@ -35,6 +35,14 @@ export const FORTIFICATION_INCOME_PER_DAY: Record<number, number> = {
   7: 125,    // Citadel
 };
 
+/** Holding base maintenance/upkeep cost per week in SD (Rule M18.3.A) */
+export const HOLDING_UPKEEP_PER_WEEK: Record<string, number> = {
+  'Bastion': 70,
+  'Fortified Town': 130,
+  'Castle': 190,
+  'Walled City': 300,
+};
+
 export type ResourcePatchType =
   | 'grain_field'
   | 'iron_mine'
@@ -164,6 +172,13 @@ export class ProductionService {
       holdingFSU: daily.holdingFSU * 30,
       seasonalPenaltyApplied: daily.seasonalPenaltyApplied,
     };
+  }
+
+  /**
+   * Returns the weekly holding upkeep in SD for a given holding type.
+   */
+  public static getHoldingUpkeepPerWeek(holdingType: string): number {
+    return HOLDING_UPKEEP_PER_WEEK[holdingType] ?? 0;
   }
 
   /**

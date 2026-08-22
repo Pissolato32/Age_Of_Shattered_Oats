@@ -166,14 +166,22 @@ console.log('=== TESTES UNITÁRIOS DE RESOLUÇÃO GENÉRICA CONTEXTUAL (v0.2) ==
 
   const req: GenericResolutionRequest = { action: 'Subornar guarda', targetId: 'Enemy_Clan', parameters: { amount: 80 } };
 
-  // Seed producing roll 1
-  const mockRng: RandomService = {
+  // Seed producing roll 1 (Critical Failure)
+  const mockCritRng: RandomService = {
     nextInt: () => 1
   } as unknown as RandomService;
 
-  const res = resolveGenericPlausibleAction(req, state, mockRng);
-  assert.equal(res.outcome, 'FAILURE');
-  assert.equal(res.stateChanges.length, 0, 'Falha em suborno não pode deduzir prata');
+  const resCrit = resolveGenericPlausibleAction(req, state, mockCritRng);
+  assert.equal(resCrit.outcome, 'CRITICAL_FAILURE');
+  assert.equal(resCrit.stateChanges.length, 0, 'Falha crítica em suborno não deduz prata sem consentimento');
+
+  // Seed producing regular Failure (e.g. roll 5 with friction 10)
+  const mockFailRng: RandomService = {
+    nextInt: () => 7
+  } as unknown as RandomService;
+  const resFail = resolveGenericPlausibleAction(req, state, mockFailRng);
+  assert.equal(resFail.outcome, 'FAILURE');
+  assert.equal(resFail.stateChanges.length, 0, 'Falha em suborno não pode deduzir prata');
 
   console.log('[ACCOUNTING] Invariantes contábeis preservadas sem deduções em falha -> OK');
 }
