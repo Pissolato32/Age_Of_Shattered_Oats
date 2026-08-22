@@ -17,7 +17,7 @@ import {
 } from './narrativeContracts';
 import { applyResolutionToState, resolveAction, RuleResolutionResult } from './ruleResolver';
 import { resolveMagnitude } from './magnitudeResolution';
-import { classifyNarrativeCommand } from './actionClassifier';
+import { classifyNarrativeCommand, CANONICALLY_RESOLVED_DOMAINS } from './actionClassifier';
 import { resolveGenericPlausibleAction } from './genericResolution';
 
 /**
