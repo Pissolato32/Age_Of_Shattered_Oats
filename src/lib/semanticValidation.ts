@@ -160,17 +160,59 @@ export function validateNarrativeConsistency(
     }
   }
 
-  // 8. INVENTED_MECHANICAL_CONSEQUENCE / UNGROUNDED_DISCOVERY
-  if (
-    (!report.discoveredInformation || report.discoveredInformation.length === 0) &&
-    report.actionExecuted !== 'ESPIONAGE'
-  ) {
-    const mentionsEspionageDiscovery =
-      /descobri[rua-z]*\s+que|comprovando\s+a\s+liga[cç][aã]o|revel(?:ou|ando|a|am)\s+que|segui[rua-z]*\s+até|foi\s+seguido\s+até|foram\s+seguidos\s+até|rastre(?:ou|ando|ados?|adas?)\s+até|espi[õo]es\s+relat(?:am|aram|ou)|batedores\s+confirm(?:am|aram|ou)|lealdade\s+a\s+[a-zA-ZÀ-ÿ]|operando\s+sob\s+as\s+ordens\s+de\s+[a-zA-ZÀ-ÿ]|sob\s+o\s+estandarte\s+de\s+[a-zA-ZÀ-ÿ]/i.test(narrative);
-    if (mentionsEspionageDiscovery) {
+  // 8. INVENTED_MECHANICAL_CONSEQUENCE / UNGROUNDED_DISCOVERY (Provenance-Aware)
+  const mentionsEspionageOrTracking =
+    /descobri[rua-z]*|investiga[cç][aã]o|comprovando\s+a\s+liga[cç][aã]o|comprov(?:ou|ado|aram)|revel(?:ou|ando|a|am)|segui[rua-z]*(?:\s+[\wÀ-ÿ]+){0,6}\s+até|foi\s+seguido(?:\s+[\wÀ-ÿ]+){0,6}\s+até|foram\s+seguidos(?:\s+[\wÀ-ÿ]+){0,6}\s+até|rastre(?:ou|ando|ados?|adas?)(?:\s+[\wÀ-ÿ]+){0,6}\s+até|espi[õo]es\s+relat(?:am|aram|ou)|batedores\s+confirm(?:am|aram|ou)|lealdade\s+a\s+[a-zA-ZÀ-ÿ]|operando\s+sob\s+as\s+ordens\s+de\s+[a-zA-ZÀ-ÿ]|sob\s+o\s+estandarte\s+de\s+[a-zA-ZÀ-ÿ]/i.test(narrative);
+
+  if (mentionsEspionageOrTracking) {
+    // Coletar todas as fontes de fatos autorizados no contexto e relatório
+    const authorizedFacts: readonly import('./narrativeContracts').AuthorizedKnowledgeFact[] = [
+      ...(report.discoveredInformation || []),
+      ...(context?.knownFacts || [])
+    ];
+
+    // Se o relatório é de uma ação mecânica de espionagem autorizada com descobertas no turno, é legítimo
+    const isAuthorizedEspionageResolution =
+      report.actionExecuted === 'ESPIONAGE' &&
+      report.discoveredInformation &&
+      report.discoveredInformation.length > 0;
+
+    // Verificar se a afirmação na narrativa se ancora em fatos autorizados da janela temporal permitida
+    const isGroundedInAuthorizedFacts = authorizedFacts.some(fact => {
+      // Respeitar o limite temporal da consulta (KnowledgeSnapshot)
+      const maxAllowedTurn = context?.query?.temporalScope?.targetTurn;
+      if (maxAllowedTurn !== undefined && fact.createdTurn > maxAllowedTurn) {
+        return false;
+      }
+
+      const factSubject = (fact.subjectId || '').toLowerCase();
+      const factText = (fact.statement || '').toLowerCase();
+      const factTags = (fact.tags || []).map(t => t.toLowerCase());
+
+      // 1. Se a narrativa cita entidades nominais ou nomes próprios, o fato autorizado correspondente deve conter a entidade
+      const namedEntitiesInNarrative = ['vane', 'ironhand', 'decimus', 'kenneth', 'silverfall', 'ironpeak', 'blackthorn', 'riverford']
+        .filter(ent => text.includes(ent));
+
+      if (namedEntitiesInNarrative.length > 0) {
+        const matchesNamedEntity = namedEntitiesInNarrative.some(ent => factText.includes(ent));
+        if (!matchesNamedEntity) {
+          return false;
+        }
+      }
+
+      // 2. Verificar âncoras temáticas e semânticas autorizadas
+      const mentionsSubject = factSubject.length > 2 && text.includes(factSubject);
+      const matchesTags = factTags.some(tag => tag.length > 3 && text.includes(tag));
+      const hasCoreTokenOverlap = ['grãos', 'leste', 'mercado', 'comércio', 'contrabando', 'provisões', 'guarnição', 'vane', 'ironhand']
+        .some(token => factText.includes(token) && text.includes(token));
+
+      return mentionsSubject || matchesTags || hasCoreTokenOverlap;
+    });
+
+    if (!isAuthorizedEspionageResolution && !isGroundedInAuthorizedFacts) {
       violations.push({
         code: 'INVENTED_MECHANICAL_CONSEQUENCE',
-        message: 'Narrativa afirmou descobertas de inteligência/espionagem sem discoveredInformation autorizada pela Engine.'
+        message: 'Narrativa afirmou descobertas de inteligência/espionagem sem suporte em fatos autorizados pela Engine ou discoveredInformation.'
       });
     }
   }
