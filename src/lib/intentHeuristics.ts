@@ -63,7 +63,7 @@ export function extractLocationOrTarget(input: string): string | undefined {
 
 export function extractStance(input: string): NarrativeCommand['stance'] {
   if (/agressiv|ameaç|ameac|força|forca|hostil/i.test(input)) return 'AGGRESSIVE';
-  if (/cautel|cuidad|prudente|ocult|evit|recu|defensiv|não\s+ataque|nao\s+ataque|sem\s+combate|sem\s+se\s+envolver|apenas\s+observe|sem\s+ser\s+notad|patrulh/i.test(input)) return 'CAUTIOUS';
+  if (/cautel|cuidad|prudente|ocult|evit|recu|defensiv|não\s+ataque|nao\s+ataque|sem\s+combate|sem\s+se\s+envolver|apenas\s+observe|sem\s+ser\s+notad|patrulh|discret|não\s+provoque|nao\s+provoque|sem\s+confronto/i.test(input)) return 'CAUTIOUS';
   if (/diploma|acordo|negoci|amig[aá]vel|tr[eé]gua/i.test(input)) return 'DIPLOMATIC';
   if (/escond|furtiv|dissimul|mentir/i.test(input)) return 'DECEPTIVE';
   if (/honra|justo|leal/i.test(input)) return 'HONORABLE';
@@ -91,12 +91,12 @@ export function parseSemanticInput(playerInput: string): SemanticParsedInput {
   const actionLemmas: SemanticParsedInput['actionLemmas'] = {
     commerce: /\b(compr|adquir|pag|desembols|abaste[cç]|vend|tro[cq]|arremat|comercio|comércio|buy|sell|despach)[a-z]*\b/i.test(normalizedForActions),
     construction: /\b(constru|repar|refor[çc]|reform|edifi[cq]|conser|ergu|fortifi[cq]|nivel|empalissad)[a-z]*\b/i.test(normalizedForActions),
-    espionage: /\b(espi|infiltr|rastre|sond|averig|investig|vigi|avist|observ|acompanh|reconhec)[a-z]*\b|\bencalço\b|\bencalco\b|\bpegadas\b/i.test(normalizedForActions),
+    espionage: (!/\b(?:n[aã]o|nao)\s+(?:fa[cç]a\s+)?(?:uma\s+|nenhuma\s+)?(?:nova\s+)?(?:investig|espion)[a-z]*/i.test(normalized)) && (!/\bsem\s+(?:uma\s+|nenhuma\s+)?(?:nova\s+)?(?:investig|espion)[a-z]*/i.test(normalized)) && (/\b(espi|infiltr|rastre|sond|averig|investig|vigi|avist|observ|acompanh|reconhec)[a-z]*\b|\bencalço\b|\bencalco\b|\bpegadas\b/i.test(normalizedForActions)),
     diplomacy: /\b(negoci|acord|tratad|pact|alian[çc]|tr[eé]gu|emiss[aá]ri|represent|delega[çc]|diploma)[a-z]*\b|\bsolu[cç][aã]o amig[aá]vel\b|\bcarta formal\b|\bmensagem formal\b|\bsalva-conduto\b/i.test(normalizedForActions),
     military: /\b(guarne[cç]|bloque|cer[cq]|embosc|assalt|piquet|manobra militar|mobiliz)[a-z]*\b|\blinha_contencao\b|\bposi[cç][aã]o t[aá]tic[a-z]*\b|\b(atac|ataqu|combater|enfrentar)[a-z]*\b/i.test(normalizedForActions),
     recruit: /\b(recrut|alist|contrat)[a-z]*\b/i.test(normalizedForActions),
     travel: /\b(viaj|march|desloc)[a-z]*\b/i.test(normalizedForActions),
-    information: /\b(inform|relat|inspec|avali|consult)[a-z]*\b/i.test(normalizedForActions)
+    information: /\b(inform|relat|inspec|avali|consult|compar|diga-me|me diga|qual era|o que sabemos)[a-z]*\b/i.test(normalizedForActions)
   };
 
   // 3. Resources and Entities
@@ -121,8 +121,8 @@ export function parseSemanticInput(playerInput: string): SemanticParsedInput {
   const isImpossible = /\bmato o rei\b|\bmatar o rei\b|\bkill the king\b/i.test(normalized);
   const requiresClarification = /\bquero falar com ele\b|\bfalar com algu[eé]m\b/i.test(normalized);
   const isQuestion = /\?/.test(raw);
-  const hasCostInquiry = /quanto custa|qual o custo|como funciona|how much|qual regra|o que fazer|como estamos|qual a situa[cç][aã]o/i.test(normalized);
-  const hasExplicitNegation = /n[aã]o inicie|sem iniciar|apenas informe|sem mover tropas|sem iniciar obras|apenas relate|fa[cç]a a inspe[cç][aã]o/i.test(normalized);
+  const hasCostInquiry = /quanto custa|qual o custo|como funciona|how much|qual regra|o que fazer|como estamos|qual a situa[cç][aã]o|como est[aá] a situa[cç][aã]o|o que sabemos/i.test(normalized);
+  const hasExplicitNegation = /n[aã]o inicie|sem iniciar|apenas informe|sem mover tropas|sem iniciar obras|apenas relate|fa[cç]a a inspe[cç][aã]o|n[aã]o fa[cç]a (?:uma\s+|nenhuma\s+)?(?:nova\s+)?investiga|sem (?:uma\s+|nenhuma\s+)?(?:nova\s+)?investiga|apenas compare|compare apenas|recuperar o conhecimento|recuperar um assunto|qual era a situa[cç][aã]o/i.test(normalized);
 
   return {
     raw,
@@ -323,7 +323,23 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
     }, playerInput);
   }
 
-  // 10. Ação Verbal Explícita: ESPIONAGE (exclui patrulhas armadas de tropas regulares)
+  // 10. Ação Verbal Explícita: TRAVEL
+  if (actionLemmas.travel) {
+    if (!/central plains|fronteira/i.test(normalized)) {
+      return buildCommand('TRAVEL', {
+        requiresClarification: true,
+        ambiguity: ['destino da viagem não identificado'],
+        confidence: 0.6
+      }, playerInput);
+    }
+    const loc = extractLocationOrTarget(playerInput);
+    return buildCommand('TRAVEL', {
+      locationId: loc || 'Central Plains',
+      confidence: 0.9
+    }, playerInput);
+  }
+
+  // 11. Ação Verbal Explícita: ESPIONAGE (exclui patrulhas armadas de tropas regulares)
   if (actionLemmas.espionage && (!entities.hasMilitaryTroops || /batedor|espi|infiltr|sond|rastre/i.test(normalized))) {
     const loc = extractLocationOrTarget(playerInput);
     if (!loc && !addressee) {
@@ -343,7 +359,7 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
     }, playerInput);
   }
 
-  // 11. Desambiguação de Mobilização: MILITARY vs BUILD
+  // 12. Desambiguação de Mobilização: MILITARY vs BUILD
   if (actionLemmas.military) {
     // Se mobilização explícita for de trabalhadores civis sem tropas militares -> BUILD
     if (entities.hasCivilianWorkers && !entities.hasMilitaryTroops && !actionLemmas.military) {
@@ -364,22 +380,6 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
       stance,
       confidence: 0.95,
       desiredOutcome: playerInput
-    }, playerInput);
-  }
-
-  // 12. Ação Verbal Explícita: TRAVEL
-  if (actionLemmas.travel) {
-    if (!/central plains|fronteira/i.test(normalized)) {
-      return buildCommand('TRAVEL', {
-        requiresClarification: true,
-        ambiguity: ['destino da viagem não identificado'],
-        confidence: 0.6
-      }, playerInput);
-    }
-    const loc = extractLocationOrTarget(playerInput);
-    return buildCommand('TRAVEL', {
-      locationId: loc || 'Central Plains',
-      confidence: 0.9
     }, playerInput);
   }
 
