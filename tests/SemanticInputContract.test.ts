@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { MockNarrativeLLM } from '../src/lib/mockNarrativeLLM';
 import { buildObserverProjection, createInitialState } from '../src/engine';
 import { createSliceState, PLAYER_OBSERVER } from './fixtures/narrativeSlice.fixtures';
-import { NARRATIVE_CONTRACT_VERSION } from '../src/lib/narrativeContracts';
+import { NARRATIVE_CONTRACT_VERSION, ExecutionReport } from '../src/lib/narrativeContracts';
 
 const mock = new MockNarrativeLLM();
 const state = createSliceState();
@@ -372,6 +372,55 @@ const projection = buildObserverProjection(state, PLAYER_OBSERVER);
   assert.ok(resT08.traceEntry.llmResponse.includes('vulneráveis'), 'Narrativa deve recuperar as vulnerabilidades registradas');
 
   console.log('[TEST 14] Persistência factual e recuperação estrita de memória do CampaignState (PT-009) -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 15 — Regression for PT-011 (Passive Voice Espionage) and PT-012 (Coin Cost Contradiction)
+// ---------------------------------------------------------------------------
+{
+  const { validateNarrativeConsistency } = await import('../src/lib/semanticValidation');
+
+  const reportMilitary: ExecutionReport = {
+    contractVersion: NARRATIVE_CONTRACT_VERSION,
+    reportId: 'rpt_test_15_mil',
+    command: {
+      commandId: 'cmd_test_15_mil',
+      actorId: 'player',
+      action: 'MILITARY'
+    },
+    status: 'ACCEPTED',
+    actionExecuted: 'MILITARY',
+    affectedEntities: [],
+    discoveredInformation: [],
+    hiddenInformationIds: [],
+    events: [],
+    reasonCode: 'Manobra militar autorizada.',
+    consequences: [],
+    stateChanges: [{ path: 'weeklyLedger.silverdew', before: 300, after: 250, delta: -50 }]
+  };
+
+  // PT-011: Detecção de espionagem não-autorizada em voz passiva
+  const passiveEspionageNarrative = 'Os soldados marcharam até a ponte e o mensageiro foi seguido até a fortaleza de Ironpeak.';
+  const violationsPassive = validateNarrativeConsistency(reportMilitary, null, passiveEspionageNarrative);
+  assert.ok(
+    violationsPassive.some(v => v.code === 'INVENTED_MECHANICAL_CONSEQUENCE'),
+    'Validador deve capturar espionagem não-autorizada em voz passiva (PT-011)'
+  );
+
+  // PT-012: Detecção de divergência de custo em moedas / moedas de prata
+  const wrongCoinCostNarrative = 'Os capitães concluíram as obras pagando o valor de 100 moedas de prata aos artesãos.';
+  const violationsCost = validateNarrativeConsistency(reportMilitary, null, wrongCoinCostNarrative);
+  assert.ok(
+    violationsCost.some(v => v.code === 'DELTA_CONTRADICTION'),
+    'Validador deve capturar custo divergente em moedas de prata (PT-012)'
+  );
+
+  // Verificação de delegação diplomática em intentHeuristics
+  const { interpretIntentHeuristically } = await import('../src/lib/intentHeuristics');
+  const delegationCmd = interpretIntentHeuristically('Quero uma delegação para negociar paz com os vizinhos');
+  assert.equal(delegationCmd.action, 'DIPLOMACY', 'Delegação para negociar paz deve classificar como DIPLOMACY');
+
+  console.log('[TEST 15] Validações de regressão PT-011 (voz passiva) e PT-012 (custos em moedas) -> OK');
 }
 
 console.log('SemanticInputContract test suite passed successfully.');

@@ -91,8 +91,8 @@ export function validateNarrativeConsistency(
   }
 
   // 4. DELTA & QUANTITY CONTRADICTION
-  // Check SD cost mentioned in narrative
-  const costMatch = narrative.match(/custo total de (\d+)\s*SD/i);
+  // Check explicit currency / resource mentions if any
+  const costMatch = narrative.match(/(?:custo(?:\s+total)?\s+de|gastando(?:\s+o\s+valor\s+de)?|consumindo(?:\s+o\s+valor\s+de)?|pagando(?:\s+o\s+valor\s+de)?|pago(?:\s+o\s+valor\s+de)?|ao\s+custo\s+de|\bvalor\s+de)\s+(\d+)\s*(?:sd|moedas(?:\s+de\s+prata)?|peças\s+de\s+prata|moedas)/i);
   if (costMatch) {
     const statedCost = parseInt(costMatch[1], 10);
     const sdChange = report.stateChanges.find(sc => sc.path === 'weeklyLedger.silverdew');
@@ -101,7 +101,7 @@ export function validateNarrativeConsistency(
       if (statedCost !== realCost) {
         violations.push({
           code: 'DELTA_CONTRADICTION',
-          message: `Narrativa cita custo de ${statedCost} SD divergente do delta real de ${realCost} SD.`
+          message: `Narrativa cita custo explícito de ${statedCost} moedas/SD divergente do delta real de ${realCost} SD.`
         });
       }
     }
@@ -166,7 +166,7 @@ export function validateNarrativeConsistency(
     report.actionExecuted !== 'ESPIONAGE'
   ) {
     const mentionsEspionageDiscovery =
-      /descobriu que|comprovando a ligação|revelou que respondem|seguiu até|lealdade a\s+[a-zA-ZÀ-ÿ]|operando sob as ordens de\s+[a-zA-ZÀ-ÿ]/i.test(narrative);
+      /descobriu que|descobriu-se que|comprovando a ligação|revelou que respondem|revelando que|seguiu até|foi seguido até|foram seguidos até|rastreado até|rastreados até|espiões relataram|batedores confirmaram|lealdade a\s+[a-zA-ZÀ-ÿ]|operando sob as ordens de\s+[a-zA-ZÀ-ÿ]|sob o estandarte de\s+[a-zA-ZÀ-ÿ]/i.test(narrative);
     if (mentionsEspionageDiscovery) {
       violations.push({
         code: 'INVENTED_MECHANICAL_CONSEQUENCE',
