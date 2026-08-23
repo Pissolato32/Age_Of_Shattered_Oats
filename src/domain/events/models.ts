@@ -83,19 +83,17 @@ export interface DescriptionContext {
  * Record representing a deterministic event selected by RNG.
  */
 export interface EventRecord {
-  eventId: string;
-  magnitude: WorldEventMagnitude;
-  timeCost: TimeCost;
-  descriptionContext: DescriptionContext;
+  readonly eventId: string;
+  readonly magnitude: WorldEventMagnitude;
+  readonly timeCost: TimeCost;
+  readonly descriptionContext: DescriptionContext;
   // No narrative field – this is supplied later by Gemini.
-  mutations: readonly EventMutation[]; // empty if no mechanical consequence
-  causalParentEventId?: string; // optional link to a preceding event
-  // Added fields for C2 processing
-  turnOccurred: number;
-  slotIndex: number;
-  domain: string;
-  // Optional scene placeholder for future use
-  scene?: any;
+  readonly mutations: readonly EventMutation[]; // empty if no mechanical consequence
+  readonly causalParentEventId?: string; // optional link to a preceding event
+  readonly turnOccurred: number;
+  readonly slotIndex: number;
+  readonly domain: string;
+  readonly scene?: SceneState;
 }
 
 /**
@@ -107,42 +105,45 @@ export type SceneStatus = 'OPEN' | 'RESOLVED' | 'INTERRUPTED' | 'EXPIRED';
  * Player choice within a scene.
  */
 export interface SceneChoice {
-  choiceId: string;
-  label: string;
+  readonly choiceId: string;
+  readonly label: string;
   // Optional additional time cost for this choice
-  additionalTimeCost?: TimeCost;
+  readonly additionalTimeCost?: TimeCost;
   // Mutations that apply if this choice is taken
-  mutations: readonly EventMutation[];
+  readonly mutations: readonly EventMutation[];
 }
 
 /**
  * Outcome of a scene after player interaction.
  */
 export interface SceneOutcome {
-  sceneId: string;
-  status: SceneStatus;
+  readonly sceneId: string;
+  readonly status: SceneStatus;
   // Mutations resulting from the resolved scene (or empty)
-  mutations: readonly EventMutation[];
+  readonly mutations: readonly EventMutation[];
   // Optional chosen branch identifier for tracking
-  chosenChoiceId?: string;
+  readonly chosenChoiceId?: string;
+  // Optional time cost applied by the choice
+  readonly timeCostApplied?: TimeCost;
 }
 
 /**
  * Mechanical representation of a scene in progress.
  */
 export interface SceneState {
-  sceneId: string;
-  status: SceneStatus;
+  readonly sceneId: string;
+  readonly eventId: string;
+  readonly status: SceneStatus;
   // Available choices while the scene is OPEN
-  choices: readonly SceneChoice[];
+  readonly choices: readonly SceneChoice[];
   // Remaining budget for this scene (optional – can be used by engine)
-  timeBudget?: TimeCost;
+  readonly timeBudget?: TimeCost;
 }
 
 /**
  * Budget for how much time can be spent in a scene.
  */
 export interface SceneTimeBudget {
-  max: TimeCost;
-  used: TimeCost;
+  readonly max: TimeCost;
+  readonly used: TimeCost;
 }

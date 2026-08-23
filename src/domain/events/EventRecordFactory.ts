@@ -1,5 +1,6 @@
 import { EventOpportunity } from './EventOpportunityEngine';
-import { EventRecord, DescriptionContext, TimeCost, EventMutation } from './models';
+import { EventRecord, DescriptionContext, TimeCost, EventMutation, SceneState } from './models';
+import { SceneFactory } from './SceneFactory';
 
 export interface CreateEventRecordOptions {
   readonly mutations?: readonly EventMutation[];
@@ -7,7 +8,7 @@ export interface CreateEventRecordOptions {
   readonly locationId?: string;
   readonly actorIds?: readonly string[];
   readonly causalParentEventId?: string;
-  readonly scene?: any;
+  readonly scene?: SceneState | null;
 }
 
 export function mapTimeCostHintToTimeCost(hint: 'NONE' | 'HOURS' | 'DAY' | 'DAYS' | 'WEEK'): TimeCost {
@@ -43,6 +44,10 @@ export function createEventRecord(
     ...(options?.actorIds && options.actorIds.length > 0 ? { actorIds: [...options.actorIds] } : {})
   };
 
+  const scene = options?.scene !== undefined
+    ? (options.scene === null ? undefined : options.scene)
+    : SceneFactory.createSceneForOpportunity(opportunity, eventId);
+
   const record: EventRecord = {
     eventId,
     magnitude: opportunity.magnitude,
@@ -53,7 +58,7 @@ export function createEventRecord(
     slotIndex,
     domain,
     ...(options?.causalParentEventId ? { causalParentEventId: options.causalParentEventId } : {}),
-    ...(options?.scene !== undefined ? { scene: options.scene } : {})
+    ...(scene ? { scene } : {})
   };
 
   return record;

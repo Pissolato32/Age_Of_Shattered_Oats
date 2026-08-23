@@ -99,6 +99,7 @@ evRec.narrative = 'some text';
 // ----- SceneState and transitions -----
 const sceneOpen: SceneState = {
   sceneId: 'sc_001',
+  eventId: 'ev_001',
   status: 'OPEN',
   choices: [
     {
