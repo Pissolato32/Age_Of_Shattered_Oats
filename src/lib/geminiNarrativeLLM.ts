@@ -2,8 +2,11 @@ import { NarrativeLLM, InterpretInput } from './narrativeLLM';
 import {
   NarrativeContext,
   NarrativeCommand,
+  NarrativeAction,
   NARRATIVE_CONTRACT_VERSION
 } from './narrativeContracts';
+import { CANONICAL_DOMAINS } from './actionClassifier';
+import { interpretIntentHeuristically } from './intentHeuristics';
 
 export interface GeminiConfig {
   readonly apiKey?: string;
@@ -12,8 +15,8 @@ export interface GeminiConfig {
   readonly fetchFn?: typeof fetch;
 }
 
-const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
-const CANDIDATE_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+export const GEMINI_DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+export const GEMINI_CANDIDATE_MODELS: readonly string[] = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-2.5-flash'];
 const DEFAULT_TIMEOUT_MS = 12000;
 
 const SYSTEM_PROMPT = `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (Crônica de Ferro).
@@ -121,7 +124,7 @@ export class GeminiNarrativeLLM implements NarrativeLLM {
 
   constructor(config: GeminiConfig = {}) {
     this.apiKey = config.apiKey || (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
-    this.modelId = config.modelId || DEFAULT_MODEL;
+    this.modelId = config.modelId || GEMINI_DEFAULT_MODEL;
     this.timeoutMs = config.timeoutMs || DEFAULT_TIMEOUT_MS;
     this.fetchFn = config.fetchFn || (typeof fetch !== 'undefined' ? fetch : (undefined as never));
   }
@@ -138,7 +141,7 @@ export class GeminiNarrativeLLM implements NarrativeLLM {
 ${input.playerInput}
 </PLAYER_INPUT>`;
 
-      const responseText = await this.callGemini(userPrompt, INTERPRET_SYSTEM_INSTRUCTION);
+      const responseText = await this.callGemini(userPrompt, INTERPRET_SYSTEM_INSTRUCTION, { temperature: 0.0 });
       
       // Robust JSON block extraction
       let jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -149,7 +152,10 @@ ${input.playerInput}
       }
 
       const parsed = JSON.parse(jsonString);
-      const action = parsed.action || 'UNKNOWN';
+      const candidateAction = typeof parsed.action === 'string' ? parsed.action.trim().toUpperCase() : 'UNKNOWN';
+      const action: NarrativeAction = CANONICAL_DOMAINS.has(candidateAction as NarrativeAction)
+        ? (candidateAction as NarrativeAction)
+        : 'UNKNOWN';
 
       return {
         contractVersion: NARRATIVE_CONTRACT_VERSION,
@@ -222,12 +228,16 @@ Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica 
     }
   }
 
-  private async callGemini(userPrompt: string, systemInstructionText?: string): Promise<string> {
-    const modelsToTry = [this.modelId, ...CANDIDATE_MODELS.filter(m => m !== this.modelId)];
+  private async callGemini(
+    userPrompt: string, 
+    systemInstructionText?: string,
+    generationConfig?: { temperature?: number }
+  ): Promise<string> {
+    const modelsToTry = [this.modelId, ...GEMINI_CANDIDATE_MODELS.filter(m => m !== this.modelId)];
     
     let lastError: Error | null = null;
     for (const model of modelsToTry) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -249,9 +259,18 @@ Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica 
           };
         }
 
+        if (generationConfig) {
+          payload.generationConfig = generationConfig;
+        }
+
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (this.apiKey) {
+          headers['x-goog-api-key'] = this.apiKey;
+        }
+
         const res = await this.fetchFn(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(payload),
           signal: controller.signal
         });
@@ -283,153 +302,7 @@ Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica 
   }
 
   private fallbackInterpret(playerInput: string): NarrativeCommand {
-    if (playerInput.trim().length === 0) {
-      return {
-        contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: createDeterministicCommandId('player', 'UNKNOWN', playerInput),
-        actorId: 'player',
-        action: 'UNKNOWN',
-        constraints: [],
-        confidence: 0.0,
-        ambiguity: ['Nenhuma ordem inserida pelo jogador'],
-        requiresClarification: true
-      };
-    }
-
-    const normalized = ` ${playerInput.trim().toLowerCase()} `;
-    const quantityMatch = /\b(\d+)\b/.exec(playerInput);
-    const quantity = quantityMatch ? parseInt(quantityMatch[1], 10) : undefined;
-
-    // 1. RECRUIT
-    if (/recrut|soldad|infantaria|homens|tropa|convo/i.test(normalized)) {
-      return {
-        contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: createDeterministicCommandId('player', 'RECRUIT', playerInput),
-        actorId: 'player',
-        action: 'RECRUIT',
-        magnitude: quantity ? { mode: 'FIXED', value: quantity } : { mode: 'ENGINE_DETERMINED' },
-        constraints: [],
-        confidence: 0.85,
-        ambiguity: [],
-        requiresClarification: false
-      };
-    }
-
-    // 2. BUILD
-    if (/constru|palisad|palisade|muralha|pedra|stone|erguer|oficina|torre/i.test(normalized)) {
-      const structure = /palisad|palisade/.test(normalized)
-        ? 'palisade'
-        : /muralha|pedra|stone/.test(normalized)
-          ? 'stone_wall'
-          : undefined;
-
-      if (structure === undefined) {
-        return {
-          contractVersion: NARRATIVE_CONTRACT_VERSION,
-          commandId: createDeterministicCommandId('player', 'BUILD', playerInput),
-          actorId: 'player',
-          action: 'BUILD',
-          constraints: [],
-          confidence: 0.6,
-          ambiguity: ['estrutura a construir não identificada'],
-          requiresClarification: true
-        };
-      }
-
-      return {
-        contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: createDeterministicCommandId('player', 'BUILD', playerInput),
-        actorId: 'player',
-        action: 'BUILD',
-        objectId: structure,
-        desiredOutcome: `construir ${structure === 'palisade' ? 'palisada de madeira' : 'muralha de pedra'}`,
-        constraints: [],
-        confidence: 0.9,
-        ambiguity: [],
-        requiresClarification: false
-      };
-    }
-
-    // 3. TRAVEL
-    if (/viajar|marchar|viagem|travel|march|deslocar|ir para/i.test(normalized)) {
-      return {
-        contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: createDeterministicCommandId('player', 'TRAVEL', playerInput),
-        actorId: 'player',
-        action: 'TRAVEL',
-        locationId: 'Central Plains',
-        constraints: [],
-        confidence: 0.85,
-        ambiguity: [],
-        requiresClarification: false
-      };
-    }
-
-    // 4. TRADE
-    if (/comprar|vender|trocar|comercio|comércio|buy|sell|caravana|mercado/i.test(normalized)) {
-      const goods = ['mantimentos', 'comida', 'madeira', 'ferro', 'pedra', 'racao', 'ração'].find(g =>
-        normalized.includes(g)
-      );
-
-      return {
-        contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: createDeterministicCommandId('player', 'TRADE', playerInput),
-        actorId: 'player',
-        action: 'TRADE',
-        objectId: goods ?? 'mantimentos',
-        constraints: [],
-        confidence: 0.85,
-        ambiguity: [],
-        requiresClarification: false
-      };
-    }
-
-    // 5. INFORMATION / COUNSELOR DIALOGUE / SITUATION / EXPLORATION
-    if (
-      /\?/.test(playerInput) ||
-      /mara|ren|baldur|roric|gerold|aldren|conselh|chancel|marechal|senhor|lorde/i.test(normalized) ||
-      /fronteir|hosti|ameac|ameaç|perig|batedor|patrulh|guarda|acao|ação|passo|atencao|atenção|demanda|moviment/i.test(normalized) ||
-      /avaliar|situacao|situação|diplomacia|inimig|necessidade|povo|popula|como estamos|o que fazer|relatorio|relatório|inform|quanto custa|qual o custo|como funciona|how much|qual regra|quem|como|onde|qual|quando|por que|porque|o que|quais/i.test(normalized)
-    ) {
-      return {
-        contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: createDeterministicCommandId('player', 'INFORMATION', playerInput),
-        actorId: 'player',
-        action: 'INFORMATION',
-        desiredOutcome: 'dialogar com conselheiros e consultar o estado das fronteiras e do feudo',
-        constraints: [],
-        confidence: 0.95,
-        ambiguity: [],
-        requiresClarification: false
-      };
-    }
-
-    // 5. POLITICAL SILENCE (PART 122.9)
-    if (/^\s*\.{3,}\s*$|sil[eê]ncio|calado|nada digo|n[aã]o respondo|sem resposta/i.test(normalized)) {
-      return {
-        contractVersion: NARRATIVE_CONTRACT_VERSION,
-        commandId: createDeterministicCommandId('player', 'DIPLOMACY', playerInput),
-        actorId: 'player',
-        action: 'DIPLOMACY',
-        stance: 'CAUTIOUS',
-        desiredOutcome: 'Silêncio político deliberado / Omissão diplomática',
-        constraints: [],
-        confidence: 0.95,
-        ambiguity: [],
-        requiresClarification: false
-      };
-    }
-
-    return {
-      contractVersion: NARRATIVE_CONTRACT_VERSION,
-      commandId: createDeterministicCommandId('player', 'UNKNOWN', playerInput),
-      actorId: 'player',
-      action: 'UNKNOWN',
-      constraints: [],
-      confidence: 0.5,
-      ambiguity: [],
-      requiresClarification: false
-    };
+    return interpretIntentHeuristically(playerInput);
   }
 
   private fallbackNarrate(context: NarrativeContext): string {
