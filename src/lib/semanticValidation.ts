@@ -92,7 +92,7 @@ export function validateNarrativeConsistency(
 
   // 4. DELTA & QUANTITY CONTRADICTION
   // Check explicit currency / resource mentions if any
-  const costMatch = narrative.match(/(?:custo(?:\s+total)?\s+de|gastando(?:\s+o\s+valor\s+de)?|consumindo(?:\s+o\s+valor\s+de)?|pagando(?:\s+o\s+valor\s+de)?|pago(?:\s+o\s+valor\s+de)?|ao\s+custo\s+de|\bvalor\s+de)\s+(\d+)\s*(?:sd|moedas(?:\s+de\s+prata)?|peças\s+de\s+prata|moedas)/i);
+  const costMatch = narrative.match(/(?:custo(?:\s+total)?\s+de|gast(?:ou|ando|ar|aram)(?:\s+o\s+valor\s+de)?|consum(?:iu|indo|ir|iram)(?:\s+o\s+valor\s+de)?|pag(?:ou|ando|ar|aram)(?:\s+o\s+valor\s+de)?|pago(?:\s+o\s+valor\s+de)?|ao\s+custo\s+de|\bvalor\s+de)\s+(\d+)\s*(?:sd|moedas(?:\s+de\s+prata)?|peças\s+de\s+prata|moedas)/i);
   if (costMatch) {
     const statedCost = parseInt(costMatch[1], 10);
     const sdChange = report.stateChanges.find(sc => sc.path === 'weeklyLedger.silverdew');
@@ -166,7 +166,7 @@ export function validateNarrativeConsistency(
     report.actionExecuted !== 'ESPIONAGE'
   ) {
     const mentionsEspionageDiscovery =
-      /descobriu que|descobriu-se que|comprovando a ligação|revelou que respondem|revelando que|seguiu até|foi seguido até|foram seguidos até|rastreado até|rastreados até|espiões relataram|batedores confirmaram|lealdade a\s+[a-zA-ZÀ-ÿ]|operando sob as ordens de\s+[a-zA-ZÀ-ÿ]|sob o estandarte de\s+[a-zA-ZÀ-ÿ]/i.test(narrative);
+      /descobri[rua-z]*\s+que|comprovando\s+a\s+liga[cç][aã]o|revel(?:ou|ando|a|am)\s+que|segui[rua-z]*\s+até|foi\s+seguido\s+até|foram\s+seguidos\s+até|rastre(?:ou|ando|ados?|adas?)\s+até|espi[õo]es\s+relat(?:am|aram|ou)|batedores\s+confirm(?:am|aram|ou)|lealdade\s+a\s+[a-zA-ZÀ-ÿ]|operando\s+sob\s+as\s+ordens\s+de\s+[a-zA-ZÀ-ÿ]|sob\s+o\s+estandarte\s+de\s+[a-zA-ZÀ-ÿ]/i.test(narrative);
     if (mentionsEspionageDiscovery) {
       violations.push({
         code: 'INVENTED_MECHANICAL_CONSEQUENCE',
