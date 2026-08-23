@@ -105,6 +105,10 @@ export interface AuthorizedKnowledgeFact {
   readonly certainty: KnowledgeCertainty;
   readonly source: 'ENGINE' | 'PLAYER_REPORT' | 'RUMOR' | 'INFERENCE';
   readonly subjectId?: string;
+  readonly createdTurn?: number;
+  readonly createdDate?: string;
+  readonly supersedes?: string;
+  readonly tags?: readonly string[];
 }
 
 export interface RelevantEvent {
