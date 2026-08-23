@@ -171,7 +171,7 @@ function toCanonicalPhrase(command: NarrativeCommand): string {
     case 'TRADE':
       return command.desiredOutcome || `comprar ${command.objectId ?? 'mantimentos'}`;
     case 'INFORMATION':
-      return `quanto custa ${command.objectId ?? 'recrutamento'}`;
+      return command.desiredOutcome || `quanto custa ${command.objectId ?? 'recrutamento'}`;
     case 'FLAVOR_QUERY':
       return 'protocolo de apresentacao';
     default:
@@ -371,7 +371,7 @@ function buildExecutionReport(
     affectedEntities,
     stateChanges,
     consequences,
-    discoveredInformation: [],
+    discoveredInformation: resolution.discoveredFacts || [],
     hiddenInformationIds: [],
     events,
     reasonCode: resolution.decisionReason,
@@ -652,9 +652,10 @@ function attachTemporalConsequencesAndEvents(
   mutated: boolean,
   command: NarrativeCommand
 ): CampaignState {
-  if (!mutated) return state;
+  const hasDiscoveredFacts = report.discoveredInformation && report.discoveredInformation.length > 0;
+  if (!mutated && !hasDiscoveredFacts) return state;
 
-  const targetState: CampaignState = state;
+  const targetState: CampaignState = mutated ? state : (JSON.parse(JSON.stringify(state)) as CampaignState);
   const curDate = targetState.worldLedger?.currentDate;
   const absoluteTurn = curDate?.year !== undefined
     ? getAbsoluteCampaignTurn(curDate.year, curDate.month, curDate.week)
@@ -680,6 +681,26 @@ function attachTemporalConsequencesAndEvents(
         });
       }
     });
+  }
+
+  // Persist discovered facts into character memories (Long-Horizon Factual Continuity)
+  if (report.discoveredInformation && report.discoveredInformation.length > 0) {
+    if (!targetState.character.memories) {
+      targetState.character.memories = [];
+    }
+    for (const fact of report.discoveredInformation) {
+      const exists = targetState.character.memories.some(m => m.id === fact.factId);
+      if (!exists) {
+        targetState.character.memories.push({
+          id: fact.factId,
+          ownerId: 'player',
+          subjectId: fact.subjectId || 'general_knowledge',
+          description: fact.statement,
+          importance: 5,
+          tickRegistered: targetState.worldLedger?.currentDate?.week || 1
+        });
+      }
+    }
   }
 
   // Record command resolution in EventStore

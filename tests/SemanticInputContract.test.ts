@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { MockNarrativeLLM } from '../src/lib/mockNarrativeLLM';
-import { buildObserverProjection } from '../src/engine';
+import { buildObserverProjection, createInitialState } from '../src/engine';
 import { createSliceState, PLAYER_OBSERVER } from './fixtures/narrativeSlice.fixtures';
 import { NARRATIVE_CONTRACT_VERSION } from '../src/lib/narrativeContracts';
 
@@ -151,6 +151,227 @@ const projection = buildObserverProjection(state, PLAYER_OBSERVER);
   assert.equal(milInput.requiresClarification, false);
 
   console.log('[TEST 8] Mobilização tática e piquetes classificados como MILITARY com postura cautelosa -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 9 — Factual Grounding Violation Prevention (P0-B)
+// ---------------------------------------------------------------------------
+{
+  const { validateNarrativeConsistency } = await import('../src/lib/semanticValidation');
+
+  const ungroundedNarrative = 'Os batedores seguiram o rastro pelas ravinas e o mensageiro seguiu até Ironpeak, comprovando a ligação com a Casa Ironhand.';
+  const report: import('../src/lib/narrativeContracts').ExecutionReport = {
+    reportId: 'rep_test_9',
+    contractVersion: NARRATIVE_CONTRACT_VERSION,
+    status: 'ACCEPTED',
+    actionExecuted: 'MILITARY',
+    command: {
+      commandId: 'cmd_test_9',
+      actorId: 'player',
+      action: 'MILITARY'
+    },
+    reasonCode: 'Resolução genérica contextual executada: SUCCESS (roll=12, atrito=7).',
+    discoveredInformation: [],
+    affectedEntities: [],
+    hiddenInformationIds: [],
+    events: [],
+    consequences: [
+      {
+        consequenceId: 'csq_test_9',
+        kind: 'IMMEDIATE',
+        description: 'O destacamento militar manobrou no terreno e estabeleceu a posição tática ordenada.',
+        authorized: true
+      }
+    ],
+    stateChanges: []
+  };
+
+  const violations = validateNarrativeConsistency(report, null, ungroundedNarrative, {
+    excludedSecretStatements: ['Ironpeak', 'Barão Valerius']
+  });
+
+  assert.ok(violations.length > 0, 'Validador deve rejeitar narrativa com descobertas não autorizadas');
+  assert.ok(violations.some(v => v.code === 'SECRET_LEAKAGE' || v.code === 'INVENTED_MECHANICAL_CONSEQUENCE'));
+
+  console.log('[TEST 9] Grounding factual estrito: alucinações de espionagem/segredos em ações militares barradas -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 10 — Authoritative Weekly Turn Persistence in Playtest Runner (P0-A)
+// ---------------------------------------------------------------------------
+{
+  const { executePlaytestTurnPristine, loadOrCreatePlaytestState, savePlaytestState } = await import('../src/tools/PlaytestSessionRunner');
+
+  const testState = createInitialState('Landed Knight', 'Central Plains');
+  testState.weeklyLedger.silverdew = 300.0;
+  testState.weeklyLedger.food = 40.0;
+  testState.worldLedger.currentDate = { day: 1, month: 'Bloom', year: 342, week: 1 };
+  savePlaytestState(testState);
+
+  const res = await executePlaytestTurnPristine('Roric, mantenha a vigilância na fronteira.');
+
+  const persistedState = loadOrCreatePlaytestState();
+
+  // Check that persisted state exactly matches the trace entry and week progressed
+  assert.equal(persistedState.weeklyLedger.silverdew, res.traceEntry.stateAfter.silverdew);
+  assert.equal(persistedState.worldLedger.currentDate.week, 2);
+  assert.equal(res.traceEntry.turn, 2);
+
+  console.log('[TEST 10] Runner persiste e aplica ciclo econômico e avanço de semana canônico -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 11 — Imperative Material Purchasing Resolution (TRADE)
+// ---------------------------------------------------------------------------
+{
+  const { executePlaytestTurnPristine, loadOrCreatePlaytestState, savePlaytestState } = await import('../src/tools/PlaytestSessionRunner');
+
+  const testState = createInitialState('Landed Knight', 'Central Plains');
+  testState.weeklyLedger.month = 'Greening';
+  testState.weeklyLedger.season = 'Thawtide';
+  testState.weeklyLedger.silverdew = 314.5;
+  testState.weeklyLedger.materials.timber = 0;
+  testState.worldLedger.currentDate = { day: 1, month: 'Greening', year: 342, week: 2 };
+  savePlaytestState(testState);
+
+  const res = await executePlaytestTurnPristine(
+    'Gerold, compre madeira seca suficiente para os reparos urgentes identificados por Aldren. Negocie com os comboios fluviais pelo melhor preço possível.'
+  );
+
+  assert.equal(res.traceEntry.classifiedAction, 'TRADE');
+  assert.equal(res.traceEntry.engineResult.actionExecuted, 'TRADE');
+  assert.equal(res.traceEntry.engineResult.mutated, true);
+
+  const persistedState = loadOrCreatePlaytestState();
+  // Cost: -15 SD, Timber: +20. Weekly delta: +92.5 - 70 - 8 = +14.5 SD -> Final: 314.5 - 15 + 14.5 = 314.0 SD
+  assert.equal(persistedState.weeklyLedger.materials.timber, 20);
+  assert.equal(persistedState.weeklyLedger.silverdew, 314.0);
+
+  console.log('[TEST 11] Compra imperativa de materiais resolve TRADE e credita estoque mecânico -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 12 — Contextual Mobilization Disambiguation & Mechanical Build (PT-008)
+// ---------------------------------------------------------------------------
+{
+  const { MockNarrativeLLM } = await import('../src/lib/mockNarrativeLLM');
+  const mockLLM = new MockNarrativeLLM();
+
+  const cmdWorkerPalisade = await mockLLM.interpret({ playerInput: 'Mobilize 20 trabalhadores para reparar a paliçada', projection });
+  assert.equal(cmdWorkerPalisade.action, 'BUILD', 'Mobilização de trabalhadores para paliçada deve ser BUILD');
+
+  const cmdSoldierPatrol = await mockLLM.interpret({ playerInput: 'Mobilize 20 soldados para patrulhar a estrada', projection });
+  assert.equal(cmdSoldierPatrol.action, 'MILITARY', 'Mobilização de soldados para patrulha deve ser MILITARY');
+
+  const cmdWorkerTower = await mockLLM.interpret({ playerInput: 'Mobilize trabalhadores para construir uma torre defensiva', projection });
+  assert.equal(cmdWorkerTower.action, 'BUILD', 'Mobilização de trabalhadores para torre deve ser BUILD');
+
+  const { executePlaytestTurnPristine, loadOrCreatePlaytestState, savePlaytestState } = await import('../src/tools/PlaytestSessionRunner');
+
+  const testState = createInitialState('Landed Knight', 'Central Plains');
+  testState.weeklyLedger.month = 'Greening';
+  testState.weeklyLedger.season = 'Thawtide';
+  testState.weeklyLedger.silverdew = 314.0;
+  testState.weeklyLedger.materials.timber = 40;
+  testState.holdings.laborPool = 395;
+  testState.worldLedger.currentDate = { day: 1, month: 'Greening', year: 342, week: 3 };
+  savePlaytestState(testState);
+
+  const res = await executePlaytestTurnPristine(
+    'Aldren, inicie os reparos urgentes identificados na inspeção. Use apenas a madeira necessária para reparar o trecho norte da paliçada e reforçar estruturalmente a torre leste. Mobilize os 20 trabalhadores necessários, mas não realize outras obras além dessas duas. Se os materiais forem insuficientes, pare e informe o que falta.'
+  );
+
+  assert.equal(res.traceEntry.classifiedAction, 'BUILD');
+  assert.equal(res.traceEntry.engineResult.actionExecuted, 'BUILD');
+  assert.equal(res.traceEntry.engineResult.mutated, true);
+
+  const persistedState = loadOrCreatePlaytestState();
+  // Timber: 40 - 20 = 20
+  assert.equal(persistedState.weeklyLedger.materials.timber, 20);
+  // Action delta: 20 workers mobilized
+  const laborActionDelta = res.traceEntry.actionDeltas.find(d => d.path === 'holdings.laborPool');
+  assert.equal(laborActionDelta?.delta, -20);
+  // Silverdew: 314.0 - 50 (build wages) + 14.5 (weekly net) = 278.5 SD
+  assert.equal(persistedState.weeklyLedger.silverdew, 278.5);
+
+  console.log('[TEST 12] Desambiguação contextual de mobilização (trabalhadores->BUILD vs soldados->MILITARY) -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 13 — GeminiNarrativeLLM Offline Parity & Schema Validation
+// ---------------------------------------------------------------------------
+{
+  const { GeminiNarrativeLLM } = await import('../src/lib/geminiNarrativeLLM');
+
+  // Modo offline (sem API key)
+  const offlineGemini = new GeminiNarrativeLLM({ apiKey: undefined });
+
+  // 1. "aprofunde a investigação" NÃO deve cair em INFORMATION por substring "ação"
+  const cmdInvest = await offlineGemini.interpret({ playerInput: 'aprofunde a investigação na velha ponte de pedra', projection });
+  assert.equal(cmdInvest.action, 'ESPIONAGE', 'Fallback offline deve classificar investigação como ESPIONAGE');
+
+  // 2. "comitiva formal sob trégua" deve ser DIPLOMACY
+  const cmdDiplo = await offlineGemini.interpret({ playerInput: 'enviar comitiva formal sob trégua', projection });
+  assert.equal(cmdDiplo.action, 'DIPLOMACY', 'Fallback offline deve classificar comitiva como DIPLOMACY');
+
+  // 3. "compre madeira pelo melhor preço" deve ser TRADE
+  const cmdTrade = await offlineGemini.interpret({ playerInput: 'Gerold, compre madeira seca pelo melhor preço possível', projection });
+  assert.equal(cmdTrade.action, 'TRADE', 'Fallback offline deve classificar compra como TRADE');
+
+  // 4. "mobilize 20 trabalhadores para reparar a paliçada" deve ser BUILD
+  const cmdBuild = await offlineGemini.interpret({ playerInput: 'Aldren, mobilize 20 trabalhadores para reparar a paliçada', projection });
+  assert.equal(cmdBuild.action, 'BUILD', 'Fallback offline deve classificar mobilização de trabalhadores como BUILD');
+
+  // 5. "Roric, avalie militarmente a posição" deve ser INFORMATION
+  const cmdInfo = await offlineGemini.interpret({ playerInput: 'Roric, avalie militarmente a posição na velha ponte sem mover tropas', projection });
+  assert.equal(cmdInfo.action, 'INFORMATION', 'Fallback offline deve classificar consulta como INFORMATION');
+
+  // 6. Schema validation: Modelo retornando ação não-canônica "ATTACK" deve ser sanitizado para UNKNOWN
+  const fakeFetch = () => Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      candidates: [{ content: { parts: [{ text: JSON.stringify({ action: 'ATTACK', confidence: 0.9 }) }] } }]
+    })
+  } as unknown as Response);
+
+  const onlineMockGemini = new GeminiNarrativeLLM({ apiKey: 'fake-key', fetchFn: fakeFetch as unknown as typeof fetch });
+  const cmdSanitized = await onlineMockGemini.interpret({ playerInput: 'atacar a guarnição', projection });
+  assert.equal(cmdSanitized.action, 'UNKNOWN', 'Ação não-canônica ATTACK deve ser sanitizada para UNKNOWN');
+
+  console.log('[TEST 13] Paridade total offline do GeminiNarrativeLLM e validação de schema -> OK');
+}
+
+// ---------------------------------------------------------------------------
+// TEST 14 — Factual Persistence and Retrieval Without Conversation Context (PT-009)
+// ---------------------------------------------------------------------------
+{
+  const { executePlaytestTurnPristine, loadOrCreatePlaytestState, savePlaytestState } = await import('../src/tools/PlaytestSessionRunner');
+  const { MockNarrativeLLM } = await import('../src/lib/mockNarrativeLLM');
+
+  // 1. Executa inspeção de defesas (T07)
+  const testState = createInitialState('Landed Knight', 'Central Plains');
+  testState.weeklyLedger.silverdew = 302.0;
+  testState.worldLedger.currentDate = { day: 1, month: 'Highsun_1', year: 342, week: 3 };
+  savePlaytestState(testState);
+
+  const resT07 = await executePlaytestTurnPristine('Aldren, faça uma nova inspeção das defesas de Ravens Watch e registre quais estruturas ainda apresentam vulnerabilidades, mas não inicie nenhuma obra.');
+
+  assert.equal(resT07.traceEntry.classifiedAction, 'INFORMATION');
+  assert.ok(resT07.traceEntry.engineResult.discoveredInformation, 'ExecutionReport deve conter discoveredInformation');
+  assert.ok(resT07.traceEntry.engineResult.discoveredInformation.length > 0, 'Deve emitir fatos de inspeção autorizados');
+
+  const persistedAfterT07 = loadOrCreatePlaytestState();
+  assert.ok(persistedAfterT07.character.memories, 'Memórias do personagem devem estar presentes');
+  assert.ok(persistedAfterT07.character.memories.some(m => m.subjectId === 'holdings.fortification'), 'Fato de inspeção deve ser persistido no estado');
+
+  // 2. Executa pergunta de recuperação (T08) sem contexto anterior
+  const resT08 = await executePlaytestTurnPristine("Aldren, retome o último relatório de inspeção das defesas de Raven's Watch. Sem realizar nova inspeção, diga-me quais estruturas foram consideradas vulneráveis.");
+
+  assert.equal(resT08.traceEntry.classifiedAction, 'INFORMATION');
+  assert.ok(resT08.traceEntry.llmResponse.includes('paliçada defensiva') || resT08.traceEntry.llmResponse.includes('Paliçada'), 'Narrativa deve recuperar o fato persistido na memória');
+  assert.ok(resT08.traceEntry.llmResponse.includes('vulneráveis'), 'Narrativa deve recuperar as vulnerabilidades registradas');
+
+  console.log('[TEST 14] Persistência factual e recuperação estrita de memória do CampaignState (PT-009) -> OK');
 }
 
 console.log('SemanticInputContract test suite passed successfully.');

@@ -154,9 +154,24 @@ export function validateNarrativeConsistency(
       ) {
         violations.push({
           code: 'SECRET_LEAKAGE',
-          message: `Narrativa vazou segredo excluído: "${secret}"`
+          message: `Narrativa vazou segredo excluído ou não descoberto: "${secret}"`
         });
       }
+    }
+  }
+
+  // 8. INVENTED_MECHANICAL_CONSEQUENCE / UNGROUNDED_DISCOVERY
+  if (
+    (!report.discoveredInformation || report.discoveredInformation.length === 0) &&
+    report.actionExecuted !== 'ESPIONAGE'
+  ) {
+    const mentionsEspionageDiscovery =
+      /descobriu que|comprovando a ligação|revelou que respondem|seguiu até|lealdade a\s+[a-zA-ZÀ-ÿ]|operando sob as ordens de\s+[a-zA-ZÀ-ÿ]/i.test(narrative);
+    if (mentionsEspionageDiscovery) {
+      violations.push({
+        code: 'INVENTED_MECHANICAL_CONSEQUENCE',
+        message: 'Narrativa afirmou descobertas de inteligência/espionagem sem discoveredInformation autorizada pela Engine.'
+      });
     }
   }
 

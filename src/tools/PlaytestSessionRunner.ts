@@ -17,6 +17,7 @@ export interface CausalTraceLogEntry {
     actionExecuted: string;
     reasonCode: string;
     mutated: boolean;
+    discoveredInformation?: readonly any[];
   };
   stateBefore: {
     silverdew: number;
@@ -30,6 +31,9 @@ export interface CausalTraceLogEntry {
     laborPool: number;
     garrison: number;
   };
+  actionDeltas: Array<{ path: string; before: unknown; after: unknown; delta?: number }>;
+  weeklyDeltas: Record<string, number>;
+  totalDeltas: Record<string, number>;
   stateDeltas: Array<{ path: string; before: unknown; after: unknown; delta?: number }>;
   weeklyFinancials: {
     income: number;
@@ -47,8 +51,8 @@ export interface CausalTraceLogEntry {
   semanticValidationViolations: string[];
 }
 
-const PLAYTEST_STATE_FILE = path.join(__dirname, '../../artifacts/playtest_campaign_state.json');
-const PLAYTEST_TRACE_FILE = path.join(__dirname, '../../artifacts/playtest_causal_traces.jsonl');
+const PLAYTEST_STATE_FILE = path.resolve(process.cwd(), 'artifacts/playtest_campaign_state.json');
+const PLAYTEST_TRACE_FILE = path.resolve(process.cwd(), 'artifacts/playtest_causal_traces.jsonl');
 
 export function loadOrCreatePlaytestState(): CampaignState {
   if (fs.existsSync(PLAYTEST_STATE_FILE)) {
@@ -135,40 +139,62 @@ export async function executePlaytestTurnPristine(playerInput: string): Promise<
 
   // 2. Authoritative Weekly Turn Resolution (Turn, Economy, Upkeep, Spoilage, Seasons)
   const weeklyReport = resolveWeeklyTurn(stateAfterAction);
+  const finalState = weeklyReport.updatedState;
 
-  // Save the modified state
-  savePlaytestState(stateAfterAction);
+  // Save the modified authoritative final state
+  savePlaytestState(finalState);
 
   const stateAfter = {
-    silverdew: stateAfterAction.weeklyLedger.silverdew,
-    food: Number(stateAfterAction.weeklyLedger.food.toFixed(1)),
-    laborPool: stateAfterAction.holdings.laborPool,
-    garrison: stateAfterAction.holdings.garrison
+    silverdew: Number(finalState.weeklyLedger.silverdew.toFixed(1)),
+    food: Number(finalState.weeklyLedger.food.toFixed(1)),
+    laborPool: finalState.holdings.laborPool,
+    garrison: finalState.holdings.garrison
   };
 
+  const actionDeltas = cycleResult.report.stateChanges.map(sc => ({
+    path: sc.path,
+    before: sc.before,
+    after: sc.after,
+    delta: sc.delta
+  }));
+
+  const weeklyDeltas: Record<string, number> = {
+    'weeklyLedger.silverdew': Number((finalState.weeklyLedger.silverdew - stateAfterAction.weeklyLedger.silverdew).toFixed(1)),
+    'weeklyLedger.food': Number((finalState.weeklyLedger.food - stateAfterAction.weeklyLedger.food).toFixed(1))
+  };
+
+  const totalDeltas: Record<string, number> = {
+    'weeklyLedger.silverdew': Number((finalState.weeklyLedger.silverdew - stateBefore.silverdew).toFixed(1)),
+    'weeklyLedger.food': Number((finalState.weeklyLedger.food - stateBefore.food).toFixed(1))
+  };
+  for (const ad of actionDeltas) {
+    if (ad.delta !== undefined && !totalDeltas[ad.path]) {
+      totalDeltas[ad.path] = ad.delta;
+    }
+  }
+
   const traceEntry: CausalTraceLogEntry = {
-    turn: stateAfterAction.worldLedger.currentDate.week,
-    date: `${stateAfterAction.worldLedger.currentDate.month}, Ano ${stateAfterAction.worldLedger.currentDate.year}, Semana ${stateAfterAction.worldLedger.currentDate.week}`,
+    turn: finalState.worldLedger.currentDate.week,
+    date: `${finalState.worldLedger.currentDate.month}, Ano ${finalState.worldLedger.currentDate.year}, Semana ${finalState.worldLedger.currentDate.week}`,
     playerInput,
     classifiedAction: cycleResult.command.action,
     engineResult: {
       status: cycleResult.report.status,
       actionExecuted: cycleResult.report.actionExecuted,
       reasonCode: cycleResult.report.reasonCode,
-      mutated: cycleResult.report.stateChanges.length > 0
+      mutated: cycleResult.report.stateChanges.length > 0,
+      discoveredInformation: cycleResult.report.discoveredInformation
     },
     stateBefore,
     stateAfter,
-    stateDeltas: cycleResult.report.stateChanges.map(sc => ({
-      path: sc.path,
-      before: sc.before,
-      after: sc.after,
-      delta: sc.delta
-    })),
+    actionDeltas,
+    weeklyDeltas,
+    totalDeltas,
+    stateDeltas: actionDeltas,
     weeklyFinancials: {
       income: 92.5,
       holdingMaintenance: 70,
-      garrisonCost: 4,
+      garrisonCost: 8,
       excessSpoilage: Number((weeklyReport.turnResult.foodChanges < 0 ? Math.abs(weeklyReport.turnResult.foodChanges) : 0).toFixed(1)),
       finalSilverdew: stateAfter.silverdew,
       finalFood: stateAfter.food

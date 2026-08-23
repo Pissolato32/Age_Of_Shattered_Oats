@@ -521,7 +521,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
     army: {
       units: [
         isNecro 
-          ? { id: `levy_${globalRNG.nextInt(0, 1000000)}`, name: "Skeleton Guards", size: 10, maxSize: 10, tier: 1, ac: 3, weapon: "Fists", mount: "None", morale: 6, type: "Skeletons" }
+          ? { id: "levy_skeleton_1", name: "Skeleton Guards", size: 10, maxSize: 10, tier: 1, ac: 3, weapon: "Fists", mount: "None", morale: 6, type: "Skeletons" }
           : { id: "u_1", name: "Landed Levy", size: 60, maxSize: 60, tier: 1, ac: 3, weapon: "Spears", mount: "None", morale: 4, type: "Levy" }
       ],
       garrisonSize: isNecro ? 0 : 40

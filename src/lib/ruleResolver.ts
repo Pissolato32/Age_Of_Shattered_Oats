@@ -1,6 +1,7 @@
 import { searchCodex, CodexSearchResult, StructuredCodexNode } from './codexRetriever';
 import { CampaignState } from '../types';
 import { globalRNG } from '../core/RandomService';
+import { AuthorizedKnowledgeFact } from './narrativeContracts';
 
 export interface RuleCondition {
   condition: string;
@@ -44,6 +45,7 @@ export interface RuleResolutionResult {
   mechanicalAllowed: boolean;
   decisionReason: string;
   webFlavorAllowed: boolean;
+  discoveredFacts?: AuthorizedKnowledgeFact[];
 }
 
 /**
@@ -160,7 +162,32 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
   // --------------------------------------------------------------------------
   // CASO INFORMATIVO: Consultas de Preço/Regra (Sem dedução de saldos)
   // --------------------------------------------------------------------------
-  if (lowerAction.includes('quanto') || lowerAction.includes('preco') || lowerAction.includes('como funciona') || lowerAction.includes('saber quanto')) {
+  const isExplicitInterrogative =
+    lowerAction.includes('quanto') ||
+    lowerAction.includes('como funciona') ||
+    lowerAction.includes('saber quanto') ||
+    lowerAction.includes('qual o preco') ||
+    lowerAction.includes('qual o custo') ||
+    lowerAction.includes('qual e o preco') ||
+    lowerAction.includes('qual e o custo') ||
+    userAction.includes('?');
+
+  const isInspectionOrReport =
+    lowerAction.includes('inspe') ||
+    lowerAction.includes('vulnerab') ||
+    lowerAction.includes('relat') ||
+    lowerAction.includes('avaliar');
+
+  const hasImperativeAction =
+    lowerAction.includes('comprar') ||
+    lowerAction.includes('compre') ||
+    lowerAction.includes('compra') ||
+    lowerAction.includes('vender') ||
+    lowerAction.includes('venda') ||
+    lowerAction.includes('recrutar') ||
+    lowerAction.includes('construir');
+
+  if ((isExplicitInterrogative || isInspectionOrReport) && !hasImperativeAction) {
     const codexMatches = searchCodex(userAction, { limit: 3 });
     const topNode = codexMatches.length > 0 ? codexMatches[0].node : null;
     const evidence: EvidenceItem[] = codexMatches.map(m => ({
@@ -176,6 +203,23 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
       type: m.node.type
     }));
 
+    let discoveredFacts: AuthorizedKnowledgeFact[] | undefined = undefined;
+    if (lowerAction.includes('inspe') || lowerAction.includes('defes') || lowerAction.includes('vulnerab') || lowerAction.includes('palisad') || lowerAction.includes('relat')) {
+      const fortType = worldState?.holdings?.fortification?.type || 'Wooden Palisade';
+      const fortTier = worldState?.holdings?.fortification?.tier || 1;
+      const week = worldState?.worldLedger?.currentDate?.week || 1;
+      discoveredFacts = [
+        {
+          factId: `fact_defense_inspection_${week}`,
+          statement: `Inspeção estrutural de Raven's Watch: A paliçada defensiva (${fortType} Tier ${fortTier}) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.`,
+          tier: 'CHARACTER_KNOWLEDGE',
+          certainty: 'CONFIRMED',
+          source: 'ENGINE',
+          subjectId: 'holdings.fortification'
+        }
+      ];
+    }
+
     return {
       intent: 'INFORMATION',
       decision: 'ALLOWED',
@@ -186,7 +230,8 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
       evidence,
       mechanicalAllowed: true,
       decisionReason: "Consulta informativa de regras do Codex Canon. Nenhuma alteração mecânica de saldo foi realizada.",
-      webFlavorAllowed: true
+      webFlavorAllowed: true,
+      discoveredFacts
     };
   }
 
@@ -332,7 +377,8 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
 
     const isStoneWall = lowerAction.includes('pedra') || lowerAction.includes('muralha');
     const reqTimber = isStoneWall ? 40 : 20;
-    const reqStone = isStoneWall ? 50 : 10;
+    const reqStone = isStoneWall ? 50 : 0;
+    const reqLabor = 20;
     const reqSD = isStoneWall ? 200 : 50;
 
     const evidence: EvidenceItem[] = codexMatches.map(m => ({
@@ -351,13 +397,25 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
     if (worldState) {
       const curTimber = worldState.weeklyLedger.materials.timber;
       const curStone = worldState.weeklyLedger.materials.stone;
+      const curLabor = worldState.holdings.laborPool;
       const curSD = worldState.weeklyLedger.silverdew;
 
       const condTimber = { condition: `Madeira (${curTimber}) >= ${reqTimber}`, result: curTimber >= reqTimber };
       const condStone = { condition: `Pedra (${curStone}) >= ${reqStone}`, result: curStone >= reqStone };
+      const condLabor = { condition: `Mão de Obra (${curLabor}) >= ${reqLabor}`, result: curLabor >= reqLabor };
       const condSD = { condition: `Silverdew (${curSD} SD) >= ${reqSD} SD`, result: curSD >= reqSD };
 
-      const allowed = condTimber.result && condStone.result && condSD.result;
+      const allowed = condTimber.result && condStone.result && condLabor.result && condSD.result;
+
+      const effects: RuleEffect[] = allowed ? [
+        { resource: 'materials.timber', delta: -reqTimber },
+        { resource: 'holdings.laborPool', delta: -reqLabor },
+        { resource: 'weeklyLedger.silverdew', delta: -reqSD }
+      ] : [];
+
+      if (allowed && reqStone > 0) {
+        effects.push({ resource: 'materials.stone', delta: -reqStone });
+      }
 
       return {
         intent: 'BUILD',
@@ -370,17 +428,13 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
           title: topNode.title,
           book: topNode.book
         } : undefined,
-        conditions: [condTimber, condStone, condSD],
-        effects: allowed ? [
-          { resource: 'materials.timber', delta: -reqTimber },
-          { resource: 'materials.stone', delta: -reqStone },
-          { resource: 'weeklyLedger.silverdew', delta: -reqSD }
-        ] : [],
+        conditions: [condTimber, condStone, condLabor, condSD],
+        effects,
         evidence,
         mechanicalAllowed: allowed,
         decisionReason: allowed 
-          ? `Construção AUTORIZADA pela Part 54 do Codex.`
-          : `Construção RECUSADA (DENIED). Materiais insuficientes no World Ledger (Requer: ${reqTimber} madeira, ${reqStone} pedra, ${reqSD} SD).`,
+          ? `Construção/Reparo de fortificação AUTORIZADA pela Part 54 do Codex. Consumidos: ${reqTimber} madeira, ${reqLabor} trabalhadores, ${reqSD} SD.`
+          : `Construção RECUSADA (DENIED). Recursos insuficientes no World Ledger (Requer: ${reqTimber} madeira, ${reqLabor} trabalhadores, ${reqSD} SD).`,
         webFlavorAllowed: true
       };
     }
@@ -449,7 +503,107 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
 
     if (lowerAction.includes('imposto') || lowerAction.includes('coletar')) {
       effects = [{ resource: 'weeklyLedger.silverdew', delta: 50 }];
-    } else if (lowerAction.includes('vender') || lowerAction.includes('venda')) {
+    } else if (lowerAction.includes('comprar') || lowerAction.includes('compra') || lowerAction.includes('compre')) {
+      const numMatch = userAction.match(/\b(\d+)\b/);
+      const isTimber = lowerAction.includes('madeira') || lowerAction.includes('tora') || lowerAction.includes('wood') || lowerAction.includes('timber');
+      const isStone = lowerAction.includes('pedra') || lowerAction.includes('stone');
+      const isIron = lowerAction.includes('ferro') || lowerAction.includes('iron');
+
+      if (isTimber) {
+        // Preço canônico de madeira: 0.75 SD/unidade (ou lote padrão de 20 por 15 SD)
+        const qty = numMatch ? parseInt(numMatch[1], 10) : 20;
+        const totalSd = Math.ceil(qty * 0.75);
+
+        if (worldState) {
+          const curSD = worldState.weeklyLedger.silverdew;
+          const hasSD = curSD >= totalSd;
+          conditions.push({
+            condition: `Tesouro (${curSD.toFixed(1)} SD) >= ${totalSd} SD para compra de ${qty} madeira`,
+            result: hasSD
+          });
+          if (hasSD) {
+            effects = [
+              { resource: 'weeklyLedger.silverdew', delta: -totalSd },
+              { resource: 'materials.timber', delta: qty }
+            ];
+            decisionReason = `Compra de materiais autorizada: ${qty} unidades de madeira adquiridas por ${totalSd} SD.`;
+          } else {
+            allowed = false;
+            decisionReason = `Compra RECUSADA (DENIED). Tesouro insuficiente (${curSD.toFixed(1)} SD < ${totalSd} SD).`;
+          }
+        } else {
+          effects = [
+            { resource: 'weeklyLedger.silverdew', delta: -totalSd },
+            { resource: 'materials.timber', delta: qty }
+          ];
+        }
+      } else if (isStone) {
+        const qty = numMatch ? parseInt(numMatch[1], 10) : 10;
+        const totalSd = Math.ceil(qty * 1.0);
+        if (worldState) {
+          const curSD = worldState.weeklyLedger.silverdew;
+          const hasSD = curSD >= totalSd;
+          conditions.push({ condition: `Tesouro >= ${totalSd} SD`, result: hasSD });
+          if (hasSD) {
+            effects = [
+              { resource: 'weeklyLedger.silverdew', delta: -totalSd },
+              { resource: 'materials.stone', delta: qty }
+            ];
+            decisionReason = `Compra de pedra autorizada: ${qty} unidades de pedra adquiridas por ${totalSd} SD.`;
+          } else {
+            allowed = false;
+            decisionReason = `Compra RECUSADA (DENIED). Tesouro insuficiente (${curSD.toFixed(1)} SD < ${totalSd} SD).`;
+          }
+        }
+      } else if (isIron) {
+        const qty = numMatch ? parseInt(numMatch[1], 10) : 5;
+        const totalSd = Math.ceil(qty * 2.0);
+        if (worldState) {
+          const curSD = worldState.weeklyLedger.silverdew;
+          const hasSD = curSD >= totalSd;
+          conditions.push({ condition: `Tesouro >= ${totalSd} SD`, result: hasSD });
+          if (hasSD) {
+            effects = [
+              { resource: 'weeklyLedger.silverdew', delta: -totalSd },
+              { resource: 'materials.iron', delta: qty }
+            ];
+            decisionReason = `Compra de ferro autorizada: ${qty} unidades de ferro adquiridas por ${totalSd} SD.`;
+          } else {
+            allowed = false;
+            decisionReason = `Compra RECUSADA (DENIED). Tesouro insuficiente (${curSD.toFixed(1)} SD < ${totalSd} SD).`;
+          }
+        }
+      } else {
+        // Compra de Grãos / Alimentos (1.5 SD por FSU)
+        const qty = numMatch ? parseInt(numMatch[1], 10) : 10;
+        const unitPrice = 1.5;
+        const totalSd = Math.ceil(qty * unitPrice);
+
+        if (worldState) {
+          const curSD = worldState.weeklyLedger.silverdew;
+          const hasSD = curSD >= totalSd;
+          conditions.push({
+            condition: `Tesouro (${curSD.toFixed(1)} SD) >= ${totalSd} SD`,
+            result: hasSD
+          });
+          if (hasSD) {
+            effects = [
+              { resource: 'weeklyLedger.food', delta: qty },
+              { resource: 'weeklyLedger.silverdew', delta: -totalSd }
+            ];
+            decisionReason = `Compra de suprimentos autorizada: ${qty} FSU de grãos adquiridos por ${totalSd} SD.`;
+          } else {
+            allowed = false;
+            decisionReason = `Compra RECUSADA (DENIED). Tesouro insuficiente (${curSD.toFixed(1)} SD < ${totalSd} SD).`;
+          }
+        } else {
+          effects = [
+            { resource: 'weeklyLedger.food', delta: qty },
+            { resource: 'weeklyLedger.silverdew', delta: -totalSd }
+          ];
+        }
+      }
+    } else if (lowerAction.includes('vender') || lowerAction.includes('venda') || lowerAction.includes('vende')) {
       // Venda de Grãos / Alimentos
       const numMatch = userAction.match(/\b(\d+)\b/);
       const qty = numMatch ? parseInt(numMatch[1], 10) : 10;
