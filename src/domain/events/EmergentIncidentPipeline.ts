@@ -129,9 +129,9 @@ export function resolveEmergentIncidents(
       continue;
     }
 
-    // Register cooldown for selected opportunity
+    // Register cooldown for selected opportunity (keyed by eventType to match EventOpportunityEngine lookup)
     const cooldownDuration = DEFAULT_EVENT_COOLDOWNS[selectedOpp.eventType] ?? 4;
-    currentState.sessionLog.eventCooldowns[selectedOpp.opportunityId] = cooldownDuration;
+    currentState.sessionLog.eventCooldowns[selectedOpp.eventType] = cooldownDuration;
 
     // Create deterministic EventRecord
     const eventRecord = createEventRecord(selectedOpp, absoluteTurn, slotIndex, domain);

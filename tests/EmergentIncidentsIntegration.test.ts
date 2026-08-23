@@ -224,6 +224,14 @@ console.log('--- TEST SUITE: EmergentIncidentsIntegration (M18.9-C4) ---');
   const activeCooldownKeys = Object.keys(cooldownsAfterTurn1);
   assert.ok(activeCooldownKeys.length >= 0);
 
+  // Verify cooldown keys are eventType strings (not opportunityId strings like 'opp_...')
+  for (const key of activeCooldownKeys) {
+    assert.ok(
+      !key.startsWith('opp_'),
+      `Cooldown key must be an eventType, not an opportunityId. Got: "${key}"`
+    );
+  }
+
   // If a scene was opened, resolve it before proceeding
   if (state.sessionLog.activeScene && state.sessionLog.activeScene.status === 'OPEN') {
     const choiceId = state.sessionLog.activeScene.choices[0].choiceId;
@@ -256,6 +264,28 @@ console.log('--- TEST SUITE: EmergentIncidentsIntegration (M18.9-C4) ---');
       assert.equal(state.sessionLog.eventCooldowns?.[key], cooldownsAfterTurn1[key] - 1);
     }
   }
+
+  // Verify EventOpportunityEngine actually sees and respects cooldowns registered by Pipeline
+  // by confirming that any event type in cooldown is marked ineligible by the Engine
+  if (activeCooldownKeys.length > 0) {
+    const { EventOpportunityEngine } = await import('../src/domain/events/EventOpportunityEngine');
+    const context = {
+      activity: 'TRAVEL' as const,
+      currentTurn: 2,
+      eventCooldowns: state.sessionLog.eventCooldowns
+    };
+    const evaluated = EventOpportunityEngine.evaluateOpportunities(state, context);
+    for (const eventType of activeCooldownKeys) {
+      if ((state.sessionLog.eventCooldowns?.[eventType] ?? 0) > 0) {
+        const opp = evaluated.find(o => o.eventType === eventType);
+        if (opp) {
+          assert.equal(opp.eligible, false, `Event "${eventType}" must be ineligible while in cooldown`);
+          assert.equal(opp.weight, 0, `Event "${eventType}" weight must be 0 while in cooldown`);
+        }
+      }
+    }
+  }
+
   console.log('✓ Hard Gate C4-D Passed: Cooldowns dynamically tracked and decremented');
 }
 
