@@ -1,23 +1,57 @@
-# Matriz de Cobertura de Domínios do Playtest
+# Matriz de Cobertura de Domínios e Resolução Semântica por Papéis (M18.4)
 
-Acompanhamento da cobertura dos **13 domínios canônicos** e suas variantes operacionais durante o playtest.
+Este documento mapeia a relação canônica entre **Agente**, **Verbo de Ação**, **Objeto/Recurso** e o **Domínio Mecânico Resultante**.
 
 ---
 
-## 📊 Matriz de Cobertura
+## 🏛️ 1. Hierarquia Canônica de Decisão (Semantic Arbiter)
 
-| Domínio | Interpretação | Execução | Mutação Real | Restrições Negativas | Postura Semântica | Grounding Factual | Status Geral |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`INFORMATION`** | ✅ | ✅ | ✅ (Zero delta) | ✅ | ✅ `NEUTRAL` | ✅ 100% | 🟢 **Validado** |
-| **`TRADE`** | ✅ | ✅ | ✅ (Madeira/Grãos) | ✅ | ✅ `CAUTIOUS` | ✅ 100% | 🟢 **Validado** |
-| **`ESPIONAGE`** | ✅ | ✅ | ✅ (-5 SD, SUCCESS & FAILURE testados) | ✅ | ✅ `CAUTIOUS` | ✅ 100% (Fog of War) | 🟢 **Validado** |
-| **`DIPLOMACY`** | ✅ | ✅ | ✅ (-10 SD) | ✅ | ✅ `DIPLOMATIC` | ✅ 100% | 🟢 **Validado** |
-| **`MILITARY`** | ✅ | ✅ | ✅ (Piquete tático) | ✅ | ✅ `CAUTIOUS` | ✅ 100% | 🟢 **Validado** |
-| **`BUILD`** | ✅ | ✅ | ✅ (Integração TRADE->BUILD: -20 timber, -20 labor, -50 SD) | ✅ | ✅ `CAUTIOUS` | ✅ 100% | 🟢 **Validado** |
-| **`RECRUIT`** | ✅ | ✅ | ✅ (Magnitude ótima: 9 tropas, -27 SD, +9 levies) | ✅ | ✅ `CAUTIOUS` | ✅ 100% | 🟢 **Validado** |
-| **`TRAVEL`** | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ *Pendente* |
-| **`EXPLORATION`** | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ *Pendente* |
-| **`INTRIGUE`** | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ *Pendente* |
-| **`SOCIAL`** | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ *Pendente* |
-| **`CRAFT`** | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ *Pendente* |
-| **`FLAVOR_QUERY`**| ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ *Pendente* |
+```text
+1. Silêncio Político Deliberado (PART 122.9) → DIPLOMACY (CAUTIOUS)
+2. Violação Impossível / Clarificação Vazia → UNKNOWN (Segurança)
+3. Negação Rígida + Observação → ESPIONAGE (CAUTIOUS)
+4. Consultas Puras / Custo / Regras → INFORMATION
+5. Ação Verbal Explícita (Prevalece sobre Recursos e Agentes):
+   - Ação Comercial (comprar, adquirir, vender, negociar preço) → TRADE
+   - Ação Construtiva (reparar, reforçar, edificar, consertar) → BUILD
+   - Ação de Espionagem (espiar, vigiar, rastrear, no encalço) → ESPIONAGE
+   - Ação Diplomática (trégua, tratado, emissário, comitiva, paz) → DIPLOMACY
+   - Ação Militar (guarnecer, piquet, bloquear, cercar, atacar) → MILITARY
+   - Ação de Recrutamento (recrutar, alistar) → RECRUIT
+   - Ação de Viagem (viajar, marchar para destino) → TRAVEL
+6. Conflitos Contextuais e Cláusulas Compostas
+7. Agent Affordance Desempate (Apenas quando não houver verbo de ação explícito)
+8. Fallback Seguro → UNKNOWN
+```
+
+---
+
+## 🔬 2. Matriz de Variação de Verbos sobre o Mesmo Objeto
+
+Demonstração prática de que o substantivo **não** determina o domínio de forma isolada:
+
+| Objeto / Recurso | Frase de Entrada | Verbo Governante | Domínio Resultante | Justificativa Canônica |
+| :--- | :--- | :--- | :---: | :--- |
+| **Madeira** | `"Compre madeira seca no entreposto"` | `Comprar` | `TRADE` | Verbo de comércio transitivo |
+| **Madeira** | `"Venda madeira dos nossos depósitos"` | `Vender` | `TRADE` | Verbo de comércio transitivo |
+| **Madeira** | `"Use madeira para fortificar o pátio"` | `Fortificar` | `BUILD` | Obra e engenharia estrutural |
+| **Madeira** | `"Inspecione a madeira estocada"` | `Inspecionar` | `INFORMATION` | Consulta / diagnóstico sem mutação |
+| **Madeira** | `"Quanto custa a madeira na região?"` | `Quanto custa` | `INFORMATION` | Interrogação pura de custo |
+| **Cavalos** | `"Compre 10 cavalos para os mensageiros"` | `Comprar` | `TRADE` | Aquisição comercial de montarias |
+| **Cavalos** | `"Roric, use os cavalos para patrulhar a fronteira"` | `Patrulhar / Vigiar` | `ESPIONAGE` | Reconhecimento de batedor |
+| **Cavalos** | `"Mobilize cavaleiros para atacar o acampamento"` | `Atacar / Mobilizar` | `MILITARY` | Desdobramento tático armado |
+| **Cavalos** | `"Qual a condição dos cavalos nas estrebarias?"` | `Qual a condição` | `INFORMATION` | Inquérito informativo de estado |
+
+---
+
+## ⚔️ 3. Conflitos Deliberados (Agente vs Ação)
+
+Demonstração de que a **Ação Explícita** prevalece sobre a **Affordance do Agente**:
+
+| Entrada do Jogador | Agente | Prior Semântico | Ação Verbal Explícita | Domínio Efetivo |
+| :--- | :---: | :---: | :--- | :---: |
+| `"Roric, compre madeira para construir uma torre"` | Roric | `ESPIONAGE` | `Comprar` | `TRADE` |
+| `"Aldren, use madeira para reparar a torre"` | Aldren | `BUILD` | `Reparar` | `BUILD` |
+| `"Gerold, negocie com o Barão"` | Gerold | `TRADE` | `Negociar (político)` | `DIPLOMACY` |
+| `"Roric, não ataque a ponte; apenas observe os movimentos"` | Roric | `ESPIONAGE` | `Observar (após negação)` | `ESPIONAGE` |
+| `"Aldren, apenas inspecione as defesas sem iniciar obras"` | Aldren | `BUILD` | `Inspecionar (sem obras)` | `INFORMATION` |

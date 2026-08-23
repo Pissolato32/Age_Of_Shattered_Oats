@@ -4,32 +4,146 @@ import {
   NARRATIVE_CONTRACT_VERSION
 } from './narrativeContracts';
 
-export const RECRUIT_KEYWORDS = ['recrutar', 'recrute', 'recruta', 'contratar', 'contrate', 'contrata', 'alistar', 'homens de armas', 'soldados para a guarda'];
-export const BUILD_KEYWORDS = ['construir', 'construa', 'construi', 'reparar', 'repare', 'erguer', 'fortificar', 'edificar', 'reforcar', 'reforçar', 'paliçada', 'palisade', 'muralha'];
-export const TRAVEL_KEYWORDS = ['viajar', 'marchar', 'viagem', 'travel', 'march'];
-export const TRADE_KEYWORDS = ['comprar', 'compre', 'compra', 'vender', 'venda', 'vende', 'trocar', 'comercio', 'comércio', 'buy', 'sell'];
-export const ESPIONAGE_KEYWORDS = ['espi', 'infiltr', 'batedor', 'investig', 'sond', 'reconhecimento', 'vigi', 'aprofund', 'levantamento', 'averig'];
-export const DIPLOMACY_KEYWORDS = ['comitiva', 'emissário', 'emissario', 'delegação', 'delegacao', 'diploma', 'trégua', 'tregua', 'pacto', 'aliança', 'alianca', 'tratado', 'negociar paz', 'acordo de paz', 'carta formal', 'mensagem formal'];
-export const MILITARY_KEYWORDS = ['mobiliz', 'piquete', 'bloqueio', 'bloquear', 'cercar', 'cerco', 'emboscada', 'manobra militar', 'atacar', 'ataque', 'batalha', 'assalto', 'destacamento'];
-export const IMPOSSIBLE_KEYWORDS = ['mato o rei', 'matar o rei', 'kill the king'];
-export const CLARIFY_KEYWORDS = ['quero falar com ele', 'falar com alguém', 'falar com alguem'];
-export const INFO_KEYWORDS = ['informe', 'relato', 'relate', 'conselho', 'situacao', 'situação', 'perfil', 'resumo', 'inspecione', 'inspecao', 'inspeção', 'avaliar', 'avaliacao', 'avaliação'];
+export interface SemanticParsedInput {
+  raw: string;
+  normalized: string;
+  addressee?: 'roric' | 'aldren' | 'gerold' | 'tobin' | 'ren' | 'mara';
+  actionLemmas: {
+    commerce: boolean;
+    construction: boolean;
+    espionage: boolean;
+    diplomacy: boolean;
+    military: boolean;
+    recruit: boolean;
+    travel: boolean;
+    information: boolean;
+  };
+  entities: {
+    material?: 'timber' | 'stone' | 'iron' | 'food' | 'mounts';
+    structure?: 'palisade' | 'stone_wall' | 'gate' | 'tower';
+    hasCivilianWorkers: boolean;
+    hasMilitaryTroops: boolean;
+  };
+  modifiers: {
+    isQuestion: boolean;
+    hasCostInquiry: boolean;
+    hasExplicitNegation: boolean;
+    isSilence: boolean;
+    isImpossible: boolean;
+    requiresClarification: boolean;
+  };
+}
 
 export function extractLocationOrTarget(input: string): string | undefined {
-  const cleaned = input.replace(/\b(?:uma?\s+)?(?:comitiva(?:\s+formal)?|mensagem(?:\s+formal)?|carta(?:\s+formal)?|pequeno\s+destacamento|destacamento|piquete|investigação|investigacao|espionagem|patrulha|sondagem|missão|missao|ação|acao)\b/gi, '');
-  const match = /(?:(?:\b(?:para|em|na|no|ao)\b)|(?:\s+à\s+))\s*(?:a|o|as|os|um|uma)?\s*([a-zA-Z0-9À-ÿ\s]{3,30}?)(?:\.|\,|[;:]|$|\bsob\b|\bcom\b|\bquero\b|\bmas\b|\bevite\b|\bsem\b|\bcontinue\b|\bnão\b|\bnao\b)/i.exec(cleaned);
-  if (!match) return undefined;
-  const loc = match[1].trim();
-  return loc.length >= 3 ? loc : undefined;
+  // 1. Primary: Prepositional location/target extraction (e.g., "na encruzilhada da estrada norte", "na velha ponte de pedra")
+  const cleaned = input.replace(/\b(?:uma?\s+)?(?:comitiva(?:\s+formal)?|mensagem(?:\s+formal)?|carta(?:\s+formal)?|pequeno\s+destacamento|destacamento|piquete|investigação|investigacao|espionagem|patrulha|sondagem|missão|missao|ação|acao|linha\s+de\s+contenção|movimentos|observadores)\b/gi, '');
+  const match = /(?:(?:\b(?:em|na|no|ao|sobre|junto\s+a|junto\s+aos|da|do|das|dos|rumo\s+a|para(?!\s+[a-z]+(?:ar|er|ir)))\b)|(?:\s+à\s+))\s*(?:a|o|as|os|um|uma)?\s*([a-zA-Z0-9À-ÿ\s]{3,35}?)(?:\.|\,|[;:]|$|\bsob\b|\bcom\b|\bquero\b|\bmas\b|\bevite\b|\bsem\b|\bcontinue\b|\bnão\b|\bnao\b)/i.exec(cleaned);
+  if (match) {
+    const loc = match[1].trim();
+    if (loc.length >= 3) return loc;
+  }
+
+  // 2. Fallback: Known landmarks and regions
+  const landmarkMatch = input.match(/\b(?:velha\s+ponte\s+de\s+pedra|ponte\s+de\s+pedra|velha\s+ponte|ponte\s+velha|ponte)\b/i);
+  if (landmarkMatch) return landmarkMatch[0].trim();
+  if (/\bironpeak\b/i.test(input)) return 'Ironpeak';
+  if (/\bcentral\s+plains\b/i.test(input)) return 'Central Plains';
+  if (/\bdesfiladeiro\b/i.test(input)) return 'desfiladeiro';
+  if (/\bestrada\s+(?:norte|real|sul|leste|oeste)\b/i.test(input)) {
+    const m = input.match(/\bestrada\s+(?:norte|real|sul|leste|oeste)\b/i);
+    return m ? m[0] : undefined;
+  }
+  if (/\bfronteira\s+(?:norte|sul|leste|oeste)\b/i.test(input)) {
+    const m = input.match(/\bfronteira\s+(?:norte|sul|leste|oeste)\b/i);
+    return m ? m[0] : undefined;
+  }
+
+  return undefined;
 }
 
 export function extractStance(input: string): NarrativeCommand['stance'] {
   if (/agressiv|ameaç|ameac|força|forca|hostil/i.test(input)) return 'AGGRESSIVE';
-  if (/cautel|cuidad|prudente|ocult|evit|recu|defensiv|não\s+ataque|nao\s+ataque/i.test(input)) return 'CAUTIOUS';
-  if (/diploma|acordo|negoci/i.test(input)) return 'DIPLOMATIC';
+  if (/cautel|cuidad|prudente|ocult|evit|recu|defensiv|não\s+ataque|nao\s+ataque|sem\s+combate|sem\s+se\s+envolver|apenas\s+observe|sem\s+ser\s+notad|patrulh/i.test(input)) return 'CAUTIOUS';
+  if (/diploma|acordo|negoci|amig[aá]vel|tr[eé]gua/i.test(input)) return 'DIPLOMATIC';
   if (/escond|furtiv|dissimul|mentir/i.test(input)) return 'DECEPTIVE';
   if (/honra|justo|leal/i.test(input)) return 'HONORABLE';
   return 'NEUTRAL';
+}
+
+export function parseSemanticInput(playerInput: string): SemanticParsedInput {
+  const raw = playerInput.trim();
+  const normalized = ` ${raw.toLowerCase()} `;
+
+  // 1. Addressee Detection (Agents)
+  let addressee: SemanticParsedInput['addressee'] = undefined;
+  if (/\broric\b/i.test(normalized)) addressee = 'roric';
+  else if (/\baldren\b/i.test(normalized)) addressee = 'aldren';
+  else if (/\bgerold\b/i.test(normalized)) addressee = 'gerold';
+  else if (/\btobin\b/i.test(normalized)) addressee = 'tobin';
+  else if (/\b(?:marechal|ren)\b/i.test(normalized)) addressee = 'ren';
+  else if (/\bmara\b/i.test(normalized)) addressee = 'mara';
+
+  // 2. Functional Action Lemmas (Morphological families with c/ç, c/qu, g/gu alternations)
+  const normalizedForActions = normalized
+    .replace(/\b(?:torre|posto|cabana)\s+de\s+vigia\b/gi, 'torre_vigia')
+    .replace(/\blinha\s+de\s+conten[cç][aã]o\b/gi, 'linha_contencao');
+
+  const actionLemmas: SemanticParsedInput['actionLemmas'] = {
+    commerce: /\b(compr|adquir|pag|desembols|abaste[cç]|vend|tro[cq]|arremat|comercio|comércio|buy|sell|despach)[a-z]*\b/i.test(normalizedForActions),
+    construction: /\b(constru|repar|refor[çc]|reform|edifi[cq]|conser|ergu|fortifi[cq]|nivel|empalissad)[a-z]*\b/i.test(normalizedForActions),
+    espionage: /\b(espi|infiltr|rastre|sond|averig|investig|vigi|avist|observ|acompanh|reconhec)[a-z]*\b|\bencalço\b|\bencalco\b|\bpegadas\b/i.test(normalizedForActions),
+    diplomacy: /\b(negoci|acord|tratad|pact|alian[çc]|tr[eé]gu|emiss[aá]ri|represent|delega[çc]|diploma)[a-z]*\b|\bsolu[cç][aã]o amig[aá]vel\b|\bcarta formal\b|\bmensagem formal\b|\bsalva-conduto\b/i.test(normalizedForActions),
+    military: /\b(guarne[cç]|bloque|cer[cq]|embosc|assalt|piquet|manobra militar|mobiliz)[a-z]*\b|\blinha_contencao\b|\bposi[cç][aã]o t[aá]tic[a-z]*\b|\b(atac|ataqu|combater|enfrentar)[a-z]*\b/i.test(normalizedForActions),
+    recruit: /\b(recrut|alist|contrat)[a-z]*\b/i.test(normalizedForActions),
+    travel: /\b(viaj|march|desloc)[a-z]*\b/i.test(normalizedForActions),
+    information: /\b(inform|relat|inspec|avali|consult)[a-z]*\b/i.test(normalizedForActions)
+  };
+
+  // 3. Resources and Entities
+  let material: SemanticParsedInput['entities']['material'] = undefined;
+  if (/\b(madeira|tora|wood|timber)[a-z]*\b/i.test(normalized)) material = 'timber';
+  else if (/\b(pedra|stone|cantaria)[a-z]*\b/i.test(normalized)) material = 'stone';
+  else if (/\b(ferro|iron|min[eé]rio)[a-z]*\b/i.test(normalized)) material = 'iron';
+  else if (/\b(gr[aã]o|centeio|trigo|comida|suprimento|food|grain|mantimento|carregamento)[a-z]*\b/i.test(normalized)) material = 'food';
+  else if (/\b(cavalo|horse|destrier|courser|rouncey)[a-z]*\b/i.test(normalized)) material = 'mounts';
+
+  let structure: SemanticParsedInput['entities']['structure'] = undefined;
+  if (/\b(palisad|paliçada|palisade|estacada)[a-z]*\b/i.test(normalized)) structure = 'palisade';
+  else if (/\b(muralha|muro|stone_wall)[a-z]*\b/i.test(normalized)) structure = 'stone_wall';
+  else if (/\b(port[aã]o|gate)[a-z]*\b/i.test(normalized)) structure = 'gate';
+  else if (/\b(torre|tower)[a-z]*\b/i.test(normalized)) structure = 'tower';
+
+  const hasCivilianWorkers = /\b(trabalhador|artes[aã]o|carpinteiro|pedreiro|m[aã]o de obra)[a-z]*\b/i.test(normalized);
+  const hasMilitaryTroops = /\b(soldado|tropa|lanceiro|infantaria|guarda|homens de armas|piquete|patrulha)[a-z]*\b/i.test(normalized);
+
+  // 4. Modifiers & Edge Cases
+  const isSilence = /^\s*\.{3,}\s*$|sil[eê]ncio|calado|nada digo|n[aã]o respondo|sem resposta/i.test(normalized);
+  const isImpossible = /\bmato o rei\b|\bmatar o rei\b|\bkill the king\b/i.test(normalized);
+  const requiresClarification = /\bquero falar com ele\b|\bfalar com algu[eé]m\b/i.test(normalized);
+  const isQuestion = /\?/.test(raw);
+  const hasCostInquiry = /quanto custa|qual o custo|como funciona|how much|qual regra|o que fazer|como estamos|qual a situa[cç][aã]o/i.test(normalized);
+  const hasExplicitNegation = /n[aã]o inicie|sem iniciar|apenas informe|sem mover tropas|sem iniciar obras|apenas relate|fa[cç]a a inspe[cç][aã]o/i.test(normalized);
+
+  return {
+    raw,
+    normalized,
+    addressee,
+    actionLemmas,
+    entities: {
+      material,
+      structure,
+      hasCivilianWorkers,
+      hasMilitaryTroops
+    },
+    modifiers: {
+      isQuestion,
+      hasCostInquiry,
+      hasExplicitNegation,
+      isSilence,
+      isImpossible,
+      requiresClarification
+    }
+  };
 }
 
 export function buildCommand(
@@ -61,8 +175,8 @@ export function buildCommand(
 }
 
 /**
- * Single Source of Truth para Heurísticas Canônicas de Interpretação Offline.
- * Utilizado de forma idêntica por MockNarrativeLLM e GeminiNarrativeLLM.fallbackInterpret().
+ * Single Source of Truth para Resolução Semântica por Papéis (Semantic Role Resolution).
+ * Separação estrita entre Agente, Verbo de Ação, Objeto/Recurso e Alvo.
  */
 export function interpretIntentHeuristically(playerInput: string): NarrativeCommand {
   if (playerInput.trim().length === 0) {
@@ -73,10 +187,11 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
     }, playerInput);
   }
 
-  const normalized = ` ${playerInput.trim().toLowerCase()} `;
+  const parsed = parseSemanticInput(playerInput);
+  const { normalized, addressee, actionLemmas, entities, modifiers } = parsed;
 
   // 1. Silêncio Político Deliberado (PART 122.9)
-  if (/^\s*\.{3,}\s*$|sil[eê]ncio|calado|nada digo|n[aã]o respondo|sem resposta/i.test(normalized)) {
+  if (modifiers.isSilence) {
     return buildCommand('DIPLOMACY', {
       stance: 'CAUTIOUS',
       desiredOutcome: 'Silêncio político deliberado / Omissão diplomática',
@@ -85,13 +200,13 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
     }, playerInput);
   }
 
-  // 2. Ações Impossíveis / Violações
-  if (IMPOSSIBLE_KEYWORDS.some(k => normalized.includes(k))) {
+  // 2. Ações Impossíveis / Violações Rígidas
+  if (modifiers.isImpossible) {
     return buildCommand('UNKNOWN', {}, playerInput);
   }
 
   // 3. Ambiguidade explícita
-  if (CLARIFY_KEYWORDS.some(k => normalized.includes(k))) {
+  if (modifiers.requiresClarification) {
     return buildCommand('UNKNOWN', {
       requiresClarification: true,
       ambiguity: ['alvo da conversa não identificado'],
@@ -99,111 +214,84 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
     }, playerInput);
   }
 
-  // 4. Precedência Semântica: Consultas de Custo, Perguntas e Negações Rígidas -> INFORMATION
-  const isQuestionOrCostInquiry =
-    /\?/.test(playerInput) ||
-    /quanto custa|qual o custo|como funciona|how much|qual regra|o que fazer|como estamos|qual a situa[cç][aã]o/.test(normalized);
-
-  const hasPrimaryAction =
-    ESPIONAGE_KEYWORDS.some(k => normalized.includes(k)) ||
-    TRADE_KEYWORDS.some(k => normalized.includes(k)) ||
-    RECRUIT_KEYWORDS.some(k => normalized.includes(k)) ||
-    TRAVEL_KEYWORDS.some(k => normalized.includes(k)) ||
-    DIPLOMACY_KEYWORDS.some(k => normalized.includes(k)) ||
-    MILITARY_KEYWORDS.some(k => normalized.includes(k));
-
-  const hasExplicitNegation = /n[aã]o inicie|sem iniciar|apenas informe|sem mover tropas|sem iniciar obras|apenas relate|fa[cç]a a inspe[cç][aã]o/i.test(normalized);
-
-  if (isQuestionOrCostInquiry || hasExplicitNegation || (!hasPrimaryAction && /relat[oó]rio|informe-me|informe|inspe[cç][aã]o/i.test(normalized))) {
-    return buildCommand('INFORMATION', { 
-      confidence: 0.95,
-      desiredOutcome: playerInput
-    }, playerInput);
-  }
-
-  // 5. ESPIONAGE
-  if (ESPIONAGE_KEYWORDS.some(k => normalized.includes(k))) {
-    const loc = extractLocationOrTarget(playerInput);
-    if (!loc) {
+  // 4. Cláusulas Compostas com Negação Rígida + Ação de Observação
+  // Ex: "Roric, não ataque a ponte; apenas observe os movimentos" -> ESPIONAGE (CAUTIOUS)
+  if (modifiers.hasExplicitNegation || /n[aã]o ataque|sem combate|sem lutar/i.test(normalized)) {
+    if (actionLemmas.espionage || /apenas observe|apenas vigie/i.test(normalized)) {
+      const loc = extractLocationOrTarget(playerInput);
       return buildCommand('ESPIONAGE', {
-        requiresClarification: true,
-        ambiguity: ['alvo ou local de espionagem não identificado'],
-        confidence: 0.6
+        locationId: loc,
+        targetId: loc,
+        stance: 'CAUTIOUS',
+        confidence: 0.95,
+        desiredOutcome: playerInput
       }, playerInput);
     }
-    const stance = /cautel|sem combate|evit|vigia|sem se envolver/i.test(normalized) ? 'CAUTIOUS' : 'NEUTRAL';
-    return buildCommand('ESPIONAGE', {
-      locationId: loc,
-      targetId: loc,
-      stance,
+  }
+
+  // 5. Consultas Puras de Custo, Regras ou Negação de Obras -> INFORMATION
+  const hasSubstantiveAction =
+    actionLemmas.commerce ||
+    actionLemmas.construction ||
+    actionLemmas.espionage ||
+    actionLemmas.diplomacy ||
+    actionLemmas.military ||
+    actionLemmas.recruit ||
+    actionLemmas.travel;
+
+  if (
+    modifiers.isQuestion ||
+    modifiers.hasCostInquiry ||
+    modifiers.hasExplicitNegation ||
+    (!hasSubstantiveAction && actionLemmas.information)
+  ) {
+    return buildCommand('INFORMATION', {
       confidence: 0.95,
       desiredOutcome: playerInput
     }, playerInput);
   }
 
-  // 6. DIPLOMACY
-  if (DIPLOMACY_KEYWORDS.some(k => normalized.includes(k))) {
+  // 6. Ação Verbal Explícita: DIPLOMACY vs COMMERCE
+  // Prevalece DIPLOMACY se houver termos políticos (barão, corte, trégua, tratado, emissário, aliança, paz)
+  const isPoliticalDiplomacy = /\b(bar[aã]o|lorde|rei|corte|tr[eé]gua|alian[çc]|pacto|tratado|nobre|fronteira|paz|emiss[aá]ri|represent|delega[çc]|diploma|salva-conduto)\b/i.test(normalized);
+  const isCommercialNegotiation = actionLemmas.commerce || /\b(pre[cç]o|valor|custo|moeda|mercado|comboio|carregamento|saca|mantimento)\b/i.test(normalized);
+
+  if (actionLemmas.diplomacy && isPoliticalDiplomacy) {
     const loc = extractLocationOrTarget(playerInput);
     return buildCommand('DIPLOMACY', {
       targetId: loc || 'destacamento da ponte',
       locationId: loc,
-      stance: 'DIPLOMATIC',
+      stance: extractStance(playerInput) === 'NEUTRAL' ? 'DIPLOMATIC' : extractStance(playerInput),
       confidence: 0.95,
       desiredOutcome: playerInput
     }, playerInput);
   }
 
-  const isWorkerOrBuildMobilization =
-    (normalized.includes('trabalhador') ||
-     normalized.includes('mao de obra') ||
-     normalized.includes('aldren') ||
-     normalized.includes('repar') ||
-     normalized.includes('constru') ||
-     normalized.includes('palisad') ||
-     normalized.includes('torre') ||
-     normalized.includes('madeira')) &&
-    !normalized.includes('soldado') &&
-    !normalized.includes('tropa') &&
-    !normalized.includes('guarnicao') &&
-    !normalized.includes('patrulha') &&
-    !normalized.includes('roric') &&
-    !normalized.includes('marechal') &&
-    !/\bren\b/i.test(normalized);
-
-  // 7. MILITARY (exclui obras de trabalhadores)
-  if (MILITARY_KEYWORDS.some(k => normalized.includes(k)) && !isWorkerOrBuildMobilization) {
-    const loc = extractLocationOrTarget(playerInput);
-    const stance = /cautel|patrulh|bloqueio|piquete|defens|n[aã]o ataque/i.test(normalized) ? 'CAUTIOUS' : 'AGGRESSIVE';
-    return buildCommand('MILITARY', {
-      targetId: loc || 'destacamento da ponte',
-      locationId: loc,
-      stance,
-      confidence: 0.95,
-      desiredOutcome: playerInput
-    }, playerInput);
-  }
-
-  // 8. TRADE (Compras e Vendas imperativas)
-  if (TRADE_KEYWORDS.some(k => normalized.includes(k))) {
-    const material = /madeira|tora|wood|timber/.test(normalized)
-      ? 'timber'
-      : /pedra|stone/.test(normalized)
-        ? 'stone'
-        : /ferro|iron/.test(normalized)
-          ? 'iron'
-          : /gr[aã]o|comida|suprimento|food|grain/.test(normalized)
-            ? 'food'
-            : undefined;
-
+  // 7. Ação Verbal Explícita: COMMERCE / TRADE
+  // Prevalece sobre recursos isolados e agentes (ex: "Roric, compre madeira...", "Adquira toras...", "Negocie o preço")
+  if (actionLemmas.commerce || (actionLemmas.diplomacy && isCommercialNegotiation)) {
+    const obj = entities.material || 'mantimentos';
     return buildCommand('TRADE', {
-      objectId: material || 'mantimentos',
+      objectId: obj,
       desiredOutcome: playerInput,
       confidence: 0.95
     }, playerInput);
   }
 
-  // 9. RECRUIT
-  if (RECRUIT_KEYWORDS.some(k => normalized.includes(k))) {
+  // 7b. DIPLOMACY Fallback (para outros termos diplomáticos sem menção política explícita)
+  if (actionLemmas.diplomacy) {
+    const loc = extractLocationOrTarget(playerInput);
+    return buildCommand('DIPLOMACY', {
+      targetId: loc || 'destacamento da ponte',
+      locationId: loc,
+      stance: extractStance(playerInput) === 'NEUTRAL' ? 'DIPLOMATIC' : extractStance(playerInput),
+      confidence: 0.95,
+      desiredOutcome: playerInput
+    }, playerInput);
+  }
+
+  // 8. Ação Verbal Explícita: RECRUIT
+  if (actionLemmas.recruit) {
     const numMatch = normalized.match(/\b(\d+)\b/);
     const magnitude = numMatch
       ? { mode: 'FIXED' as const, value: parseInt(numMatch[1], 10) }
@@ -216,14 +304,11 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
     }, playerInput);
   }
 
-  // 10. BUILD
-  if (BUILD_KEYWORDS.some(k => normalized.includes(k)) || isWorkerOrBuildMobilization) {
-    const structure = /palisad|palisade|torre|reparo|reforma/.test(normalized)
-      ? 'palisade'
-      : /muralha|pedra|stone/.test(normalized)
-        ? 'stone_wall'
-        : undefined;
-    if (structure === undefined) {
+  // 9. Ação Verbal Explícita: CONSTRUCTION / BUILD
+  // Prevalece se houver verbo de construção ou reparo
+  if (actionLemmas.construction) {
+    const structure = entities.structure || (entities.material === 'timber' ? 'palisade' : entities.material === 'stone' ? 'stone_wall' : undefined);
+    if (!structure) {
       return buildCommand('BUILD', {
         requiresClarification: true,
         ambiguity: ['estrutura a construir não identificada'],
@@ -233,33 +318,122 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
     return buildCommand('BUILD', {
       commandId: `mock-build-${structure}`,
       objectId: structure,
-      desiredOutcome: `construir ${structure === 'palisade' ? 'palisada de madeira' : 'muralha de pedra'}`,
+      desiredOutcome: `construir ${structure}`,
       confidence: 0.95
     }, playerInput);
   }
 
-  // 11. TRAVEL
-  if (TRAVEL_KEYWORDS.some(k => normalized.includes(k))) {
-    if (!/central plains|fronteira/.test(normalized)) {
+  // 10. Ação Verbal Explícita: ESPIONAGE (exclui patrulhas armadas de tropas regulares)
+  if (actionLemmas.espionage && (!entities.hasMilitaryTroops || /batedor|espi|infiltr|sond|rastre/i.test(normalized))) {
+    const loc = extractLocationOrTarget(playerInput);
+    if (!loc && !addressee) {
+      return buildCommand('ESPIONAGE', {
+        requiresClarification: true,
+        ambiguity: ['alvo ou local de espionagem não identificado'],
+        confidence: 0.6
+      }, playerInput);
+    }
+    const stance = extractStance(playerInput);
+    return buildCommand('ESPIONAGE', {
+      locationId: loc,
+      targetId: loc,
+      stance,
+      confidence: 0.95,
+      desiredOutcome: playerInput
+    }, playerInput);
+  }
+
+  // 11. Desambiguação de Mobilização: MILITARY vs BUILD
+  if (actionLemmas.military) {
+    // Se mobilização explícita for de trabalhadores civis sem tropas militares -> BUILD
+    if (entities.hasCivilianWorkers && !entities.hasMilitaryTroops && !actionLemmas.military) {
+      const structure = entities.structure || 'palisade';
+      return buildCommand('BUILD', {
+        commandId: `mock-build-${structure}`,
+        objectId: structure,
+        desiredOutcome: `construir ${structure}`,
+        confidence: 0.95
+      }, playerInput);
+    }
+
+    const loc = extractLocationOrTarget(playerInput);
+    const stance = extractStance(playerInput) === 'NEUTRAL' ? 'AGGRESSIVE' : extractStance(playerInput);
+    return buildCommand('MILITARY', {
+      targetId: loc || 'destacamento da ponte',
+      locationId: loc,
+      stance,
+      confidence: 0.95,
+      desiredOutcome: playerInput
+    }, playerInput);
+  }
+
+  // 12. Ação Verbal Explícita: TRAVEL
+  if (actionLemmas.travel) {
+    if (!/central plains|fronteira/i.test(normalized)) {
       return buildCommand('TRAVEL', {
         requiresClarification: true,
         ambiguity: ['destino da viagem não identificado'],
         confidence: 0.6
       }, playerInput);
     }
+    const loc = extractLocationOrTarget(playerInput);
     return buildCommand('TRAVEL', {
-      locationId: 'Central Plains',
+      locationId: loc || 'Central Plains',
       confidence: 0.9
     }, playerInput);
   }
 
-  // 12. Generic Information Fallback
-  if (INFO_KEYWORDS.some(k => normalized.includes(k))) {
-    return buildCommand('INFORMATION', { 
-      confidence: 0.95,
+  // 13. AGENT AFFORDANCE DESEMPATE (Apenas quando não houver verbo de ação explícito)
+  if (addressee === 'roric') {
+    const loc = extractLocationOrTarget(playerInput);
+    return buildCommand('ESPIONAGE', {
+      locationId: loc,
+      targetId: loc,
+      stance: extractStance(playerInput),
+      confidence: 0.85,
       desiredOutcome: playerInput
     }, playerInput);
   }
 
+  if (addressee === 'aldren') {
+    const structure = entities.structure || 'palisade';
+    return buildCommand('BUILD', {
+      commandId: `mock-build-${structure}`,
+      objectId: structure,
+      desiredOutcome: playerInput,
+      confidence: 0.85
+    }, playerInput);
+  }
+
+  if (addressee === 'gerold') {
+    return buildCommand('TRADE', {
+      objectId: entities.material || 'mantimentos',
+      desiredOutcome: playerInput,
+      confidence: 0.85
+    }, playerInput);
+  }
+
+  if (addressee === 'tobin') {
+    const loc = extractLocationOrTarget(playerInput);
+    return buildCommand('DIPLOMACY', {
+      targetId: loc,
+      locationId: loc,
+      stance: 'DIPLOMATIC',
+      confidence: 0.85,
+      desiredOutcome: playerInput
+    }, playerInput);
+  }
+
+  if (addressee === 'ren') {
+    const loc = extractLocationOrTarget(playerInput);
+    return buildCommand('MILITARY', {
+      targetId: loc,
+      locationId: loc,
+      confidence: 0.85,
+      desiredOutcome: playerInput
+    }, playerInput);
+  }
+
+  // 14. Fallback Seguro -> UNKNOWN
   return buildCommand('UNKNOWN', { confidence: 0.5 }, playerInput);
 }
