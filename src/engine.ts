@@ -16,7 +16,7 @@ import { TreasuryService, ExpenseOutcome } from "./domain/kingdom/services/Treas
 import { ConstructionService, ConstructionRefundResult, ResourcePatchQuality } from "./domain/kingdom/services/ConstructionService";
 import { PayrollService, UpkeepCosts, DesertionResult } from "./domain/military/services/PayrollService";
 import { BreedingService } from "./domain/military/services/BreedingService";
-import { createNarrativeContext, ExecutionReport, NarrativeCommand, NarrativeContext, ObserverProjection } from "./lib/narrativeContracts";
+import { createNarrativeContext, ExecutionReport, NarrativeCommand, NarrativeContext, ObserverProjection, NarrativeQueryContext } from "./lib/narrativeContracts";
 import { createObserverProjection } from "./lib/narrativeProjection";
 import { NarrativeResolutionResult, resolveNarrativeCommand as resolveNarrativeCommandCore } from "./lib/narrativeExecution";
 
@@ -26,9 +26,10 @@ import { NarrativeResolutionResult, resolveNarrativeCommand as resolveNarrativeC
  */
 export function buildNarrativeContext(
   projection: ObserverProjection,
-  executionReport: ExecutionReport
+  executionReport: ExecutionReport,
+  query?: NarrativeQueryContext
 ): NarrativeContext {
-  return createNarrativeContext(projection, executionReport);
+  return createNarrativeContext(projection, executionReport, query);
 }
 
 /**
@@ -36,9 +37,10 @@ export function buildNarrativeContext(
  */
 export function buildObserverProjection(
   state: CampaignState,
-  observer: ObserverProjection['observer']
+  observer: ObserverProjection['observer'],
+  queryScope?: NarrativeQueryContext['temporalScope']
 ): ObserverProjection {
-  return createObserverProjection(state, observer);
+  return createObserverProjection(state, observer, queryScope);
 }
 
 /**

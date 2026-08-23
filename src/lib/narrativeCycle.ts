@@ -4,12 +4,15 @@ import {
   NarrativeCommand,
   NarrativeContext,
   NarrativeObserver,
-  ObserverProjection
+  ObserverProjection,
+  NarrativeQueryContext,
+  EpistemicAnswerStatus
 } from './narrativeContracts';
 import { NarrativeLLM } from './narrativeLLM';
 import { buildNarrativeContext, buildObserverProjection, resolveNarrativeCommand } from '../engine';
 import { SemanticViolation, validateNarrativeConsistency } from './semanticValidation';
 import { RandomService } from '../core/RandomService';
+import { extractTemporalScope } from './intentHeuristics';
 
 export interface NarrativeCycleInput {
   readonly playerInput: string;
@@ -54,7 +57,8 @@ export function buildSafeFallbackNarrative(report: ExecutionReport): string {
 }
 
 export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<NarrativeCycleResult> {
-  const initialProjection = buildObserverProjection(input.state, input.observer);
+  const temporalScope = extractTemporalScope(input.playerInput);
+  const initialProjection = buildObserverProjection(input.state, input.observer, temporalScope);
 
   console.log(`[NarrativeCycle] 1. Interpretando: "${input.playerInput}"...`);
   const command = await input.llm.interpret({
@@ -65,11 +69,42 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
 
   const resolution = resolveNarrativeCommand(command, input.state, input.rng);
   const resultState = resolution.state;
-  const report = resolution.report;
+  let report = resolution.report;
   console.log(`[NarrativeCycle] 2. Resolução do Motor: Status ${report.status}, Ação ${report.actionExecuted}`);
 
-  const resultProjection = buildObserverProjection(resultState, input.observer);
-  const context = buildNarrativeContext(resultProjection, report);
+  const resultProjection = buildObserverProjection(resultState, input.observer, temporalScope);
+
+  // Determinar status epistêmico da resposta para consultas
+  if (report.actionExecuted === 'INFORMATION' || command.action === 'INFORMATION') {
+    const inputLower = input.playerInput.toLowerCase();
+    const factsText = resultProjection.knownFacts.map(f => `${f.statement} ${f.subjectId || ''} ${(f.tags || []).join(' ')}`).join(' ').toLowerCase();
+
+    // Se a pergunta menciona explicitamente uma entidade nomeada (ex: "casa blackthorn", "blackthorn")
+    const namedMatch = inputLower.match(/\b(?:casa|lorde|lady|capit[aã]o|mestre|forte|torre)\s+([a-zA-ZÀ-ÿ]+)\b/i);
+    if (namedMatch) {
+      const entity = namedMatch[1].toLowerCase();
+      const found = factsText.includes(entity);
+      report = {
+        ...report,
+        answerStatus: found ? 'AUTHORIZED_FACTS_PRESENT' : 'NO_AUTHORIZED_INFORMATION'
+      };
+    } else {
+      report = {
+        ...report,
+        answerStatus: resultProjection.knownFacts.length > 0 ? 'AUTHORIZED_FACTS_PRESENT' : 'NO_AUTHORIZED_INFORMATION'
+      };
+    }
+  }
+
+  const query: NarrativeQueryContext = {
+    playerInput: input.playerInput,
+    originalAction: command.action,
+    targetId: command.targetId,
+    locationId: command.locationId,
+    temporalScope
+  };
+
+  const context = buildNarrativeContext(resultProjection, report, query);
 
   console.log(`[NarrativeCycle] 3. Narrando contexto com LLM (${input.llm.providerId})...`);
   let narrative = await input.llm.narrate(context);

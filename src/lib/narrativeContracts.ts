@@ -129,6 +129,8 @@ export interface ResolvedMagnitude {
   readonly max: number;
 }
 
+export type EpistemicAnswerStatus = 'AUTHORIZED_FACTS_PRESENT' | 'NO_AUTHORIZED_INFORMATION';
+
 export interface ExecutionReport {
   readonly contractVersion: typeof NARRATIVE_CONTRACT_VERSION;
   readonly reportId: string;
@@ -146,6 +148,8 @@ export interface ExecutionReport {
   readonly magnitude?: ResolvedMagnitude;
   /** Present on multi-turn project resolutions (BUILD, FORGE, RESEARCH); absent otherwise. */
   readonly checkpoint?: CheckpointInfo;
+  /** Present on INFORMATION query resolutions to declare epistemic status */
+  readonly answerStatus?: EpistemicAnswerStatus;
 }
 
 export type CheckpointKind = 'START_CHECKPOINT' | 'MILESTONE_CHECKPOINT' | 'COMPLETION_CHECKPOINT';
@@ -197,6 +201,23 @@ export interface NarrativeRelationship {
   readonly trust?: number;
 }
 
+export interface KnowledgeSnapshot {
+  readonly asOfTurn: number;
+  readonly activeFacts: readonly AuthorizedKnowledgeFact[];
+  readonly historicalFacts: readonly AuthorizedKnowledgeFact[];
+}
+
+export interface NarrativeQueryContext {
+  readonly playerInput: string;
+  readonly originalAction: NarrativeAction;
+  readonly targetId?: string;
+  readonly locationId?: string;
+  readonly temporalScope?: {
+    readonly mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION';
+    readonly targetTurn?: number;
+  };
+}
+
 export interface ObserverProjection {
   readonly contractVersion: typeof NARRATIVE_CONTRACT_VERSION;
   readonly observer: NarrativeObserver;
@@ -206,6 +227,7 @@ export interface ObserverProjection {
   readonly knownFacts: readonly AuthorizedKnowledgeFact[];
   readonly recentEvents: readonly RelevantEvent[];
   readonly narrativeConstraints: readonly NarrativeConstraint[];
+  readonly snapshot?: KnowledgeSnapshot;
 }
 
 export interface NarrativeContext {
@@ -218,6 +240,7 @@ export interface NarrativeContext {
   readonly recentEvents: readonly RelevantEvent[];
   readonly executionResult: ExecutionReport;
   readonly narrativeConstraints: readonly NarrativeConstraint[];
+  readonly query?: NarrativeQueryContext;
 }
 
 export interface KnowledgeBoundary {
@@ -228,7 +251,8 @@ export interface KnowledgeBoundary {
 
 export function createNarrativeContext(
   projection: ObserverProjection,
-  executionResult: ExecutionReport
+  executionResult: ExecutionReport,
+  query?: NarrativeQueryContext
 ): NarrativeContext {
   return {
     contractVersion: NARRATIVE_CONTRACT_VERSION,
@@ -239,6 +263,7 @@ export function createNarrativeContext(
     knownFacts: projection.knownFacts,
     recentEvents: projection.recentEvents,
     executionResult,
-    narrativeConstraints: projection.narrativeConstraints
+    narrativeConstraints: projection.narrativeConstraints,
+    query
   };
 }

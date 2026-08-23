@@ -70,6 +70,30 @@ export function extractStance(input: string): NarrativeCommand['stance'] {
   return 'NEUTRAL';
 }
 
+export function extractTemporalScope(input: string, currentTurn?: number): { mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION'; targetTurn?: number } {
+  const normalized = input.toLowerCase();
+
+  // 1. Detecção de Evolução Temporal
+  if (/como\s+(?:nossa\s+compreens[aã]o|a\s+situa[cç][aã]o|o\s+cen[aá]rio)\s+mudou|evolu[cç][aã]o|ao\s+longo\s+da\s+campanha|hist[oó]rico\s+completo/i.test(normalized)) {
+    return { mode: 'TEMPORAL_EVOLUTION' };
+  }
+
+  // 2. Detecção de Ponto Histórico Específico por Turno/Semana
+  const turnMatch = normalized.match(/\b(?:turno|semana|turn|week)\s+(\d+)\b/i);
+  if (turnMatch) {
+    const targetTurn = parseInt(turnMatch[1], 10);
+    return { mode: 'HISTORICAL_POINT', targetTurn };
+  }
+
+  // 3. Detecção de Retrospectiva Relativa (ex: antes de descobrirmos)
+  if (/antes\s+de\s+(?:descobrirmos|confirmarmos|saber)|naquela\s+[eé]poca|no\s+passado|originalmente|inicialmente|primeiro\s+levantamento/i.test(normalized)) {
+    return { mode: 'HISTORICAL_POINT', targetTurn: 9 }; // Ponto do levantamento inicial da campanha
+  }
+
+  // 4. Padrão: Estado Atual
+  return { mode: 'CURRENT_STATE', targetTurn: currentTurn };
+}
+
 export function parseSemanticInput(playerInput: string): SemanticParsedInput {
   const raw = playerInput.trim();
   const normalized = ` ${raw.toLowerCase()} `;

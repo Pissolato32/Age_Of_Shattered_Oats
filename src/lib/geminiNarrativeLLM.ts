@@ -24,6 +24,7 @@ Sua função é transformar os resultados mecânicos autorizados pela Engine e a
 
 REGRA MANDATÓRIA INTENT-FIRST (RESPOSTA FACTUAL EM 1º LUGAR):
 1. O PRIMEIRO PARÁGRAFO DEVE SEMPRE RESPONDER DIRETA E OBJETIVAMENTE À PERGUNTA OU ORDEM DO JOGADOR:
+   - Se o soberano perguntar sobre fatos, guarnições ou posições na fronteira, responda imediatamente com os fatos autorizados presentes no contexto (ex: a guarnição sem brasão de 25 homens na travessia de pedra).
    - Se o soberano perguntar sobre conselheiros, cite e apresente nominalmente cada um dos oficiais presentes (ex: Tobin, Gerold, Roric) e suas funções imediatas.
    - Se perguntar sobre recursos (prata, tesouro, comida, mantimentos), o intendente/oficial relevante deve responder relatando a situação material real (fartura, estabilidade ou aperto), sem floreios vazios e sem citar siglas técnicas (SD/FSU).
    - Se der uma ordem válida de tropa, construção ou batedores, confirme a execução da ordem pelos oficiais antes de descrever o cenário.
@@ -51,33 +52,10 @@ No entanto, o narrador NÃO PODE inventar:
 - Combates, emboscadas ou encontros que o motor não processou;
 - Novas causas ou desastres não gerados (ex: não invente que um celeiro pegou fogo para justificar um consumo regular de mantimentos).
 
-REGRA DE AUSÊNCIA DE INFORMAÇÃO:
-Se o jogador perguntar sobre fatos, exércitos rivais ou terras que não constem no contexto autorizado, NÃO invente dados fictícios.
-Responda dentro da diegese que os batedores, registros e sussurros disponíveis calam sobre o assunto.
-
-ESTADOS DE CENA (SCENE STATE - PART 122.2, 122.5, 122.7):
-- 'Continuing': Consequência em desdobramento direto; narre até a conclusão natural da cena.
-- 'Resolved': Ação finalizada; apresente o novo estado e encerre com a pergunta contextual.
-- 'Suspended': Espera, viagem ou caravana em trânsito; apresente um prompt de passagem de tempo sereno, sem fabricar falsa urgência.
-- 'Interrupted': Acontecimento abrupto urgente (emboscada, motim, prazo fatal); quebre a cena com o sinal de alarme e direcione a agência para a ameaça iminente.
-
-CENAS MULTI-ATOR E VOZ ÚNICA DE RESOLUÇÃO (PART 122.6):
-Em cenas de conselho ou reuniões com múltiplos oficiais, atribua claramente quem fala pelo nome ('Name before quote').
-A pergunta ou chamada final de encerramento da cena deve ser proferida pela voz de um único conselheiro de autoridade (o interlocutor principal), evitando resumos vagos da sala.
-
-CHECKPOINT NARRATION EM AÇÕES MULTI-TURNO (PART 122.11):
-Em construções e forjas de várias semanas, respeite estritamente o marco indicado em Checkpoint:
-- Se 'START_CHECKPOINT': narre o início dos trabalhos, assentamento de fundações e estaqueamento de madeira com o consumo inicial de materiais. NUNCA declare a muralha ou obra totalmente finalizada no primeiro turno de ordem.
-- Se 'COMPLETION_CHECKPOINT': confirme a finalização e guarnição da fortificação.
-
-REGRA DE PRECISÃO TEMPORAL E AÇÕES DE DESPACHO:
-Quando o soberano ordenar o envio de batedores, patrulhas ou emissários, narre a partida e o estabelecimento da missão no presente imediato ("os homens de Roric montam a cavalo e partem para vigiar os desfiladeiros do norte"). NUNCA narre o retorno ou fracasso futuro da patrulha no mesmo instante em que a ordem é dada, a menos que a Engine explicitamente forneça um fato descoberto em 'Informações Reveladas'.
-
-SILÊNCIO POLÍTICO COMO ESCOLHA VÁLIDA (PART 122.9):
-Em discussões na corte ou impasses diplomáticos, o silêncio deliberado do soberano é uma resposta de peso; descreva a tensão da corte diante da recusa em responder sem inventar inimigos ou cobranças artificiais.
-
-CONDUTA DOS ATORES E CONSELHEIROS:
-Os conselheiros presentes aconselham, alertam e informam dentro dos papéis fornecidos, mas nunca tomam decisões soberanas ou declaram atos de guerra por conta própria.`;
+REGRA MANDATÓRIA DE AUSÊNCIA DE INFORMAÇÃO / NO_AUTHORIZED_INFORMATION:
+Se a Engine indicar 'STATUS EPISTÊMICO: NO_AUTHORIZED_INFORMATION' ou se o soberano perguntar sobre entidades, personagens, casas nobres ou terras que NÃO constem nos Fatos e Memórias Relevantes:
+- O primeiro parágrafo DEVE DECLARAR EXPRESSAMENTE, pela voz do conselheiro ou intendente competente, que não há registros, menções ou informações nos anais da fortaleza sobre esse assunto (ex: 'Nossos batedores e registros calam sobre a Casa X', 'Não há registros disponíveis nos nossos arquivos sobre isso').
+- NUNCA fuja da pergunta gerando apenas descrições genéricas da sala do trono sem responder à questão.`;
 
 const INTERPRET_SYSTEM_INSTRUCTION = `Você é o Classificador de Intenções Semânticas de 'Age of Shattered Oaths'.
 Sua função é converter a entrada de linguagem natural do jogador em um comando estruturado JSON válido.
@@ -202,7 +180,15 @@ ${input.playerInput}
         ? `\nMarco de Projeto Autorizado: ${context.executionResult.checkpoint.kind} - ${context.executionResult.checkpoint.progressDescription}`
         : '';
 
-      const userContextPrompt = `CONTEXTO AUTORIZADO DO MOTOR:
+      const queryHeader = context.query?.playerInput
+        ? `CONSULTA / ORDEM DO SOBERANO:\n"${context.query.playerInput}"\n\n`
+        : '';
+
+      const epistemicStatusHeader = context.executionResult.answerStatus === 'NO_AUTHORIZED_INFORMATION'
+        ? `STATUS EPISTÊMICO: NO_AUTHORIZED_INFORMATION\n(Aviso: Não há registros disponíveis sobre o assunto nos anais da campanha. O conselheiro DEVE declarar expressamente essa ausência de informações.)\n\n`
+        : '';
+
+      const userContextPrompt = `${queryHeader}${epistemicStatusHeader}CONTEXTO AUTORIZADO DO MOTOR:
 Local: ${context.scene.locationId} (${context.scene.regionName})
 Clima: ${context.scene.weather}, Estação: ${context.scene.season}
 Estado da Cena: ${context.scene.sceneState || 'Resolved'}
@@ -216,7 +202,7 @@ Motivo/Código Interno: ${context.executionResult.reasonCode}${checkpointInfo}
 Alterações de Estado Concretas: ${JSON.stringify(context.executionResult.stateChanges)}
 Consequências Físicas: ${JSON.stringify(context.executionResult.consequences)}
 
-Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica de Ferro:`;
+Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica de Ferro, respondendo direta e objetivamente no primeiro parágrafo:`;
 
       console.log(`[GeminiNarrativeLLM.narrate] Solicitando crônica narrativa ao Gemini com systemInstruction...`);
       const res = await this.callGemini(userContextPrompt, SYSTEM_PROMPT);

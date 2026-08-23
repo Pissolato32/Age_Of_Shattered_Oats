@@ -10,7 +10,9 @@ import {
   AuthorizedKnowledgeFact,
   RelevantEvent,
   NarrativeConstraint,
-  ResourceStandingTier
+  ResourceStandingTier,
+  KnowledgeSnapshot,
+  NarrativeQueryContext
 } from './narrativeContracts';
 
 const DEFAULT_CONSTRAINTS: readonly NarrativeConstraint[] = [
@@ -89,7 +91,8 @@ export function classifyFoodStanding(food: number, famineTicks = 0): { tier: Res
  */
 export function createObserverProjection(
   state: CampaignState,
-  observer: NarrativeObserver
+  observer: NarrativeObserver,
+  queryScope?: NarrativeQueryContext['temporalScope']
 ): ObserverProjection {
   const isPlayerObserver =
     observer.kind === 'PLAYER' ||
@@ -226,21 +229,22 @@ export function createObserverProjection(
 
   // 3. Relationships, Active Memories & Public Rumors
   const relationships: NarrativeRelationship[] = [];
-  const knownFacts: AuthorizedKnowledgeFact[] = [];
+  const rawFacts: AuthorizedKnowledgeFact[] = [];
 
-  // Active non-decayed character memories
+  // Active non-decayed character memories mapped into rawFacts
   if (state.character.memories && Array.isArray(state.character.memories)) {
     for (const mem of state.character.memories) {
-      if (!mem.decayed) {
-        knownFacts.push({
-          factId: mem.id,
-          statement: `[Memória] ${mem.description}`,
-          tier: 'CHARACTER_KNOWLEDGE',
-          certainty: 'CONFIRMED',
-          source: 'ENGINE',
-          subjectId: mem.subjectId
-        });
-      }
+      rawFacts.push({
+        factId: mem.id,
+        statement: `[Memória Turno ${mem.tickRegistered || 'N/A'}] ${mem.description}`,
+        tier: 'CHARACTER_KNOWLEDGE',
+        certainty: 'CONFIRMED',
+        source: 'ENGINE',
+        subjectId: mem.subjectId,
+        createdTurn: mem.tickRegistered,
+        supersedes: (mem as any).supersedes,
+        tags: (mem as any).tags
+      });
     }
   }
 
@@ -252,7 +256,7 @@ export function createObserverProjection(
       state.advisors.spyMasterName ? `${state.advisors.spyMasterName} (Mestre dos Sussurros e Batedor)` : null
     ].filter(Boolean).join(', ');
     if (list) {
-      knownFacts.push({
+      rawFacts.push({
         factId: 'fact_inner_circle',
         statement: `Oficiais de confiança e conselheiros diretos do líder: ${list}`,
         tier: 'CHARACTER_KNOWLEDGE',
@@ -271,7 +275,7 @@ export function createObserverProjection(
     const treasury = classifyTreasuryStanding(silverdew);
     const foodReport = classifyFoodStanding(food, famineTicks);
 
-    knownFacts.push({
+    rawFacts.push({
       factId: 'fact_treasury_standing',
       statement: `[Situação do Tesouro: ${treasury.tier}] ${treasury.description}`,
       tier: 'CHARACTER_KNOWLEDGE',
@@ -279,7 +283,7 @@ export function createObserverProjection(
       source: 'ENGINE'
     });
 
-    knownFacts.push({
+    rawFacts.push({
       factId: 'fact_food_standing',
       statement: `[Situação dos Mantimentos: ${foodReport.tier}] ${foodReport.description}`,
       tier: 'CHARACTER_KNOWLEDGE',
@@ -298,7 +302,7 @@ export function createObserverProjection(
       });
 
       if (house.rumor) {
-        knownFacts.push({
+        rawFacts.push({
           factId: `rumor_${house.name.toLowerCase().replace(/\s+/g, '_')}`,
           statement: house.rumor,
           tier: 'RUMOR',
@@ -314,7 +318,7 @@ export function createObserverProjection(
   if (state.worldSecrets && Array.isArray(state.worldSecrets)) {
     for (const sec of state.worldSecrets) {
       if (sec.revealed === true) {
-        knownFacts.push({
+        rawFacts.push({
           factId: sec.id,
           statement: sec.description,
           tier: 'SECRET',
@@ -324,6 +328,46 @@ export function createObserverProjection(
         });
       }
     }
+  }
+
+  // Resolver snapshot epistêmico temporal usando o turno dinâmico do CampaignState
+  const currentTurn = typeof state.weeklyLedger?.year === 'number'
+    ? (state.weeklyLedger.year - 342) * 48 + ((state.weeklyLedger.week || 1) + 8)
+    : 1;
+
+  const targetTurn = queryScope?.targetTurn ?? currentTurn;
+  const mode = queryScope?.mode ?? 'CURRENT_STATE';
+
+  let snapshot: KnowledgeSnapshot;
+  let knownFacts: AuthorizedKnowledgeFact[];
+
+  if (mode === 'HISTORICAL_POINT') {
+    // Filtro temporal rigoroso: fatos posteriores a targetTurn são estritamente excluídos
+    const factsAtTurn = rawFacts.filter(f => (f.createdTurn ?? 0) <= targetTurn);
+    snapshot = {
+      asOfTurn: targetTurn,
+      activeFacts: factsAtTurn,
+      historicalFacts: []
+    };
+    knownFacts = factsAtTurn;
+  } else if (mode === 'TEMPORAL_EVOLUTION') {
+    snapshot = {
+      asOfTurn: currentTurn,
+      activeFacts: rawFacts,
+      historicalFacts: rawFacts.filter(f => Boolean(f.supersedes))
+    };
+    knownFacts = rawFacts;
+  } else {
+    // CURRENT_STATE: fatos que foram superseded por outros fatos mais recentes são movidos para o histórico
+    const supersededIds = new Set(rawFacts.map(f => f.supersedes).filter(Boolean));
+    const active = rawFacts.filter(f => !supersededIds.has(f.factId));
+    const historical = rawFacts.filter(f => supersededIds.has(f.factId));
+    snapshot = {
+      asOfTurn: currentTurn,
+      activeFacts: active,
+      historicalFacts: historical
+    };
+    knownFacts = active;
   }
 
   // 5. Recent Events in Scope
@@ -349,6 +393,19 @@ export function createObserverProjection(
     relationships,
     knownFacts,
     recentEvents,
-    narrativeConstraints: DEFAULT_CONSTRAINTS
+    narrativeConstraints: DEFAULT_CONSTRAINTS,
+    snapshot
+  };
+}
+
+export function resolveEpistemicSnapshot(
+  state: CampaignState,
+  queryScope?: NarrativeQueryContext['temporalScope']
+): KnowledgeSnapshot {
+  const proj = createObserverProjection(state, { kind: 'PLAYER', observerId: 'player' }, queryScope);
+  return proj.snapshot || {
+    asOfTurn: 1,
+    activeFacts: proj.knownFacts,
+    historicalFacts: []
   };
 }
