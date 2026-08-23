@@ -2,6 +2,11 @@ import {
   NarrativeContext,
   NarrativeCommand
 } from './narrativeContracts';
+import {
+  IncidentNarrativeRequest,
+  IncidentNarrativeResponse
+} from '../domain/events/narrative/IncidentNarrativeContracts';
+import { buildProceduralIncidentNarrative } from '../domain/events/narrative/IncidentNarrativeTranslator';
 import { InterpretInput, NarrativeLLM } from './narrativeLLM';
 import { interpretIntentHeuristically } from './intentHeuristics';
 
@@ -23,6 +28,10 @@ export class MockNarrativeLLM implements NarrativeLLM {
 
   narrate(context: NarrativeContext): Promise<string> {
     return Promise.resolve(narrateReport(context));
+  }
+
+  narrateIncident(request: IncidentNarrativeRequest): Promise<IncidentNarrativeResponse> {
+    return Promise.resolve(buildProceduralIncidentNarrative(request));
   }
 }
 

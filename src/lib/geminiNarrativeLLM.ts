@@ -5,6 +5,11 @@ import {
   NarrativeAction,
   NARRATIVE_CONTRACT_VERSION
 } from './narrativeContracts';
+import {
+  IncidentNarrativeRequest,
+  IncidentNarrativeResponse
+} from '../domain/events/narrative/IncidentNarrativeContracts';
+import { buildProceduralIncidentNarrative } from '../domain/events/narrative/IncidentNarrativeTranslator';
 import { CANONICAL_DOMAINS } from './actionClassifier';
 import { interpretIntentHeuristically } from './intentHeuristics';
 
@@ -211,6 +216,49 @@ Escreva a crônica narrativa deste resultado para o soberano em tom de Crônica 
     } catch (err: any) {
       console.error('[GeminiNarrativeLLM.narrate] Falha na geração narrativa com Gemini:', err?.message || err);
       return this.fallbackNarrate(context);
+    }
+  }
+
+  public async narrateIncident(request: IncidentNarrativeRequest): Promise<IncidentNarrativeResponse> {
+    try {
+      const loc = request.environmentContext?.regionName || request.context.locationId || 'a fronteira';
+      const weather = request.environmentContext?.weatherDescription || 'Frio cortante';
+      const season = request.environmentContext?.seasonName || 'Inverno';
+      const advisors = (request.environmentContext?.presentAdvisors || []).map(a => `${a.name} (${a.role})`).join(', ') || 'Mara e o Marechal Ren';
+
+      let prompt = `INCIDENTE DA CRÔNICA DE FERRO:
+Tipo de Ocorrência: ${request.mechanicalFacts.eventType} (Magnitude: ${request.mechanicalFacts.magnitude})
+Localização: ${loc}, Estação: ${season}, Clima: ${weather}
+Conselheiros Presentes: ${advisors}
+Turno: ${request.mechanicalFacts.absoluteTurn}
+Fatos Mecânicos Concretos: ${request.mechanicalFacts.mutationsSummary.join('; ') || 'Nenhum dano material.'}
+`;
+
+      if (request.kind === 'INCIDENT_OPENED') {
+        const choices = (request.availableChoices || []).map((c, i) => `${i + 1}. ${c.label} (${c.descriptiveHint})`).join('\n');
+        prompt += `\nOpções Disponíveis para a Comitiva:\n${choices}\n\nDescreva a situação que se apresenta à comitiva no tom visceral da Crônica de Ferro, sem inventar mortes ou baixas não listadas nos fatos mecânicos:`;
+      } else if (request.kind === 'INCIDENT_RESOLVED') {
+        prompt += `\nDecisão Executada: ${request.mechanicalFacts.choiceMade?.label || 'Diretriz do soberano'}\nDesfecho Concreto: ${request.mechanicalFacts.choiceMade?.outcomeSummary || 'Ordens cumpridas'}\n\nDescreva o desfecho da deliberação da comitiva no tom visceral da Crônica de Ferro:`;
+      } else {
+        prompt += `\nDescreva a ocorrência atmosférica observada pelas sentinelas no tom visceral da Crônica de Ferro:`;
+      }
+
+      console.log(`[GeminiNarrativeLLM.narrateIncident] Solicitando crônica de incidente ao Gemini...`);
+      const text = await this.callGemini(prompt, SYSTEM_PROMPT);
+
+      const choicesFormatted = request.availableChoices?.map((c, idx) => ({
+        choiceId: c.choiceId,
+        formattedText: `${idx + 1}. ${c.label} (${c.descriptiveHint})`
+      }));
+
+      return {
+        narration: text,
+        promptChoicesFormatted: choicesFormatted,
+        source: 'GEMINI'
+      };
+    } catch (err: any) {
+      console.warn('[GeminiNarrativeLLM.narrateIncident] Falha na chamada ao Gemini, recorrendo a fallback procedural:', err?.message || err);
+      return buildProceduralIncidentNarrative(request);
     }
   }
 
