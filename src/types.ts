@@ -1,3 +1,5 @@
+import type { SceneState } from './domain/events/models';
+
 export interface Character {
   name: string;
   house: string;
@@ -331,6 +333,8 @@ export interface CampaignState {
       details: string;
     }>;
     pendingDecisions: string[];
+    activeScene?: SceneState;
+    eventCooldowns?: Record<string, number>;
     pendingConsequences?: Array<{
       id: string;
       kind: 'PENDING';

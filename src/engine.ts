@@ -19,6 +19,7 @@ import { BreedingService } from "./domain/military/services/BreedingService";
 import { createNarrativeContext, ExecutionReport, NarrativeCommand, NarrativeContext, ObserverProjection, NarrativeQueryContext } from "./lib/narrativeContracts";
 import { createObserverProjection } from "./lib/narrativeProjection";
 import { NarrativeResolutionResult, resolveNarrativeCommand as resolveNarrativeCommandCore } from "./lib/narrativeExecution";
+import { resolveEmergentIncidents } from "./domain/events/EmergentIncidentPipeline";
 
 /**
  * Builds an observer-scoped narrative context from an already-authorized projection.
@@ -883,6 +884,11 @@ export function rollWeather(region: string, season: string, isWarmYear: boolean)
 
 // Execute Weekly Turn Resolution (PHASE 1 to PHASE 6)
 export function resolveWeeklyTurn(state: CampaignState): { updatedState: CampaignState; turnResult: TurnResult } {
+  // Fail-closed gate (M18.9-C4): block advancing weekly turn if a scene is currently OPEN
+  if (state.sessionLog?.activeScene && state.sessionLog.activeScene.status === 'OPEN') {
+    throw new Error(`Cannot advance weekly turn while an active scene (${state.sessionLog.activeScene.sceneId}) is OPEN`);
+  }
+
   const s = JSON.parse(JSON.stringify(state)) as CampaignState;
   
   const isNecro = s.character.archetype === "Necromancer";
@@ -1306,24 +1312,30 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     });
   }
 
-  // 5d. Record turn resolution in EventStore
-  const nextSeq = (s.eventStore?.length || 0) + 1;
+  // 5d. Emergent Incidents Layer (M18.9-C4)
+  const campaignSeed = s.character?.name ? `${s.character.name}_${s.character.house}` : 'default_campaign_seed';
+  const incidentResult = resolveEmergentIncidents(s, absoluteTurn, campaignSeed);
+  const finalState = incidentResult.updatedState;
+  incidentResult.eventLogs.forEach(log => turnResult.eventLog.push(log));
+
+  // 5e. Record turn resolution in EventStore
+  const nextSeq = (finalState.eventStore?.length || 0) + 1;
   const recordedTurnEvent = globalEventStore.record('WEEKLY_TURN_RESOLVED', {
     turn: absoluteTurn,
-    year: s.worldLedger.currentDate.year,
-    month: s.worldLedger.currentDate.month,
-    week: s.worldLedger.currentDate.week,
-    season: s.weeklyLedger.season,
-    silverdew: s.weeklyLedger.silverdew,
-    food: s.weeklyLedger.food
-  }, s.worldLedger.currentDate.week, nextSeq);
+    year: finalState.worldLedger.currentDate.year,
+    month: finalState.worldLedger.currentDate.month,
+    week: finalState.worldLedger.currentDate.week,
+    season: finalState.weeklyLedger.season,
+    silverdew: finalState.weeklyLedger.silverdew,
+    food: finalState.weeklyLedger.food
+  }, finalState.worldLedger.currentDate.week, nextSeq);
 
-  if (!s.eventStore) {
-    s.eventStore = [];
+  if (!finalState.eventStore) {
+    finalState.eventStore = [];
   }
-  s.eventStore.push(recordedTurnEvent);
+  finalState.eventStore.push(recordedTurnEvent);
 
-  return { updatedState: s, turnResult };
+  return { updatedState: finalState, turnResult };
 }
 
 // Generate human-readable save state block
