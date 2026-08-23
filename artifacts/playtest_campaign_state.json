@@ -1,13 +1,13 @@
 {
   "character": {
-    "name": "Sir Cedric de Ravenhold",
-    "house": "Ravenhold",
+    "name": "Renascent Lord",
+    "house": "Stormcrest",
     "age": 28,
     "gender": "Male",
     "archetype": "Noble Ruler",
     "title": "Lord of the Keep",
     "location": {
-      "region": "Florestas do Rio",
+      "region": "Central Plains",
       "subregion": "The Frontier",
       "landmark": "Grey Keep",
       "distanceNearTown": 3,
@@ -20,7 +20,7 @@
       "motto": "Steel Before Oath"
     },
     "stats": {
-      "commanderTier": 2,
+      "commanderTier": 1,
       "bannerTier": 1,
       "ac": 3,
       "initiativeBonus": 0,
@@ -32,19 +32,39 @@
       "armorQuality": "Common",
       "shieldQuality": "Common"
     },
-    "reputation": 10,
+    "reputation": 2,
     "nicknames": [],
     "flavorDetail": "O vento nunca cessa nestas terras ásperas.",
-    "backstory": "Um juramento quebrado levou você ao exílio. Agora você retorna para reclamar seu assento."
+    "backstory": "Um juramento quebrado levou você ao exílio. Agora você retorna para reclamar seu assento.",
+    "memories": [
+      {
+        "id": "fact_defense_inspection_3",
+        "ownerId": "player",
+        "subjectId": "holdings.fortification",
+        "description": "Inspeção estrutural de Raven's Watch: A paliçada defensiva (Wooden Palisade Tier 1) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.",
+        "importance": 5,
+        "tickRegistered": 3,
+        "decayed": false
+      },
+      {
+        "id": "fact_defense_inspection_4",
+        "ownerId": "player",
+        "subjectId": "holdings.fortification",
+        "description": "Inspeção estrutural de Raven's Watch: A paliçada defensiva (Wooden Palisade Tier 1) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.",
+        "importance": 5,
+        "tickRegistered": 4,
+        "decayed": false
+      }
+    ]
   },
   "weeklyLedger": {
     "week": 1,
     "month": "Greening",
     "year": 342,
-    "season": "Thawtide",
-    "weather": "Clear, cool",
-    "silverdew": 321,
-    "food": 42.4,
+    "season": "Sunreach",
+    "weather": "Limpo e quente (Perfeito)",
+    "silverdew": 331,
+    "food": 41.6,
     "materials": {
       "timber": 20,
       "iron": 10,
@@ -69,9 +89,11 @@
       "tributePaid": 0,
       "engineerWages": 0,
       "shipUpkeep": 0,
-      "holdingMaintenance": 0,
+      "holdingMaintenance": 70,
       "other": 0
-    }
+    },
+    "famineTicks": 0,
+    "unpaidWagesTicks": 0
   },
   "army": {
     "units": [
@@ -84,21 +106,21 @@
         "ac": 3,
         "weapon": "Spears",
         "mount": "None",
-        "morale": 4,
+        "morale": 5,
         "type": "Levy"
       }
     ],
     "garrisonSize": 40
   },
   "holdings": {
-    "name": "Raven's Watch",
+    "name": "Grey Keep",
     "type": "Bastion",
     "tier": 1,
-    "region": "Florestas do Rio",
+    "region": "Central Plains",
     "position": "Três dias leste de River Caedor",
     "population": 1000,
-    "laborPool": 120,
-    "garrison": 20,
+    "laborPool": 395,
+    "garrison": 40,
     "fortification": {
       "type": "Wooden Palisade",
       "tier": 1,
@@ -169,10 +191,10 @@
   },
   "worldLedger": {
     "currentDate": {
-      "day": 15,
-      "month": "Bloom",
+      "day": 1,
+      "month": "Highsun_2",
       "year": 342,
-      "week": 8
+      "week": 1
     },
     "activeConflicts": [],
     "majorEvents": [],
@@ -207,7 +229,7 @@
         "enemies": [
           "House Ironhand"
         ],
-        "opinion": -1,
+        "opinion": -2,
         "rumor": "Dizem que eles alimentam lobos de gelo com prisioneiros.",
         "isRealRumor": false
       },
@@ -252,7 +274,7 @@
           "House Stonehill"
         ],
         "enemies": [],
-        "opinion": 0,
+        "opinion": -1,
         "rumor": "Sua mina de ferro secreta está perto de esgotar.",
         "isRealRumor": false
       },
@@ -297,7 +319,7 @@
         "enemies": [
           "House Blackwater"
         ],
-        "opinion": 0,
+        "opinion": 1,
         "rumor": "Eles cobram taxas abusivas em cada barca que passa.",
         "isRealRumor": true
       },
@@ -312,7 +334,7 @@
           "House Tollman"
         ],
         "enemies": [],
-        "opinion": 0,
+        "opinion": 1,
         "rumor": "A ponte de pedra esconde passagens usadas por contrabandistas.",
         "isRealRumor": true
       },
@@ -327,7 +349,7 @@
         "enemies": [
           "House Velrin"
         ],
-        "opinion": -1,
+        "opinion": 0,
         "rumor": "Eles envenenaram os poços de Fenwick.",
         "isRealRumor": false
       },
@@ -344,7 +366,7 @@
         "enemies": [
           "House Thornwood"
         ],
-        "opinion": 0,
+        "opinion": -1,
         "rumor": "Lorde Aldric tem sangue da lenda do Dragão Verde.",
         "isRealRumor": true
       },
@@ -361,7 +383,7 @@
         "enemies": [
           "House Greenwood"
         ],
-        "opinion": -1,
+        "opinion": 0,
         "rumor": "Eles pagam tributo a bandidos para manter a floresta livre de rivais.",
         "isRealRumor": false
       },
@@ -374,7 +396,7 @@
         "status": "Minor Lord",
         "allies": [],
         "enemies": [],
-        "opinion": 0,
+        "opinion": 1,
         "rumor": "Os ancestrais falam diretamente com Lady Elara através das árvores.",
         "isRealRumor": true
       },
@@ -389,7 +411,7 @@
           "House Cliffside"
         ],
         "enemies": [],
-        "opinion": 0,
+        "opinion": 1,
         "rumor": "Callum está secretamente minerando prata pura.",
         "isRealRumor": true
       },
@@ -404,7 +426,7 @@
           "House Passkeeper"
         ],
         "enemies": [],
-        "opinion": 0,
+        "opinion": 1,
         "rumor": "Qualquer um sem sangue das montanhas será rejeitado nas tumbas.",
         "isRealRumor": true
       },
@@ -475,10 +497,10 @@
       }
     },
     "weatherHistory": [
-      "Clear",
-      "Windy",
       "Light rain",
-      "Cool, overcast"
+      "Cool, overcast",
+      "Limpo e quente (Perfeito)",
+      "Limpo e quente (Perfeito)"
     ],
     "notableDeaths": []
   },
@@ -580,12 +602,49 @@
   },
   "worldSecrets": [
     {
-      "id": "sec_iron_1",
-      "title": "Batedores de Ironpeak",
-      "description": "Patrulhas ligeiras da Casa Ironhand foram enviadas para testar as sentinelas de Ravenhold.",
-      "revealed": true,
+      "id": "secret_1",
+      "title": "A Herdeira Oculta do Antigo Rei",
+      "description": "Sussurros dizem que uma descendente direta da linhagem heráldica real sobreviveu e vive sob disfarce de camponesa no sul.",
+      "revealed": false,
       "investigationProgress": 0,
-      "category": "Military"
+      "category": "Dynasty",
+      "outcomeDesc": "CONFIRMADO! A herdeira legítima chama-se Lyra e vive nas montanhas do sul. Você pode tentar um Casamento Político com ela (requer +5 de Reputação) para unificar as reivindicações de sangue da coroa real, elevando sua lealdade.",
+      "difficultyClass": 18,
+      "criticality": "Critical",
+      "compromisedChance": 0.25,
+      "obsoleteInWeeks": 10,
+      "originLocation": "Harvel Pass",
+      "originTurn": 1
+    },
+    {
+      "id": "secret_2",
+      "title": "O Suborno do Marechal Ren",
+      "description": "Mercadores de Bogthrone murmuram que a lealdade de Ren é lavada em prata, e que ele possui uma dívida severa de jogatina com cobradores de ferro.",
+      "revealed": false,
+      "investigationProgress": 0,
+      "category": "Military",
+      "outcomeDesc": "CONFIRMADO! Marshal Ren aceita subornos em momentos de aperto. Na aba de combate contra ele, você pode suborná-lo gastando 100 SD para reduzir a guarnição e o tamanho da tropa dele à metade imediatamente.",
+      "difficultyClass": 14,
+      "criticality": "High",
+      "compromisedChance": 0.15,
+      "obsoleteInWeeks": 6,
+      "originLocation": "Blackmoor Keep",
+      "originTurn": 1
+    },
+    {
+      "id": "secret_3",
+      "title": "O Enclave Secreto de Sálvia Sagrada",
+      "description": "Diz-se que há uma clareira mística e protegida nas profundezas das Florestas Orientais onde abundam ervas e óleos de purificação.",
+      "revealed": false,
+      "investigationProgress": 0,
+      "category": "Plot",
+      "outcomeDesc": "CONFIRMADO! Seus batedores mapearam o santuário. Você ganha imediatamente +15 FSU e +3 feixes de Sálvia e Cedro das ervas sagradas protegidas.",
+      "difficultyClass": 10,
+      "criticality": "Medium",
+      "compromisedChance": 0.08,
+      "obsoleteInWeeks": 4,
+      "originLocation": "Valenfort Citadel",
+      "originTurn": 1
     }
   ],
   "discoveredArtifacts": [
@@ -600,12 +659,12 @@
     }
   ],
   "advisors": {
-    "counselorName": "Tobin",
-    "stewardName": "Gerold",
-    "spyMasterName": "Roric"
+    "counselorName": "Isolde",
+    "stewardName": "Cormac",
+    "spyMasterName": "Kaelen"
   },
   "revealedRegions": [
-    "Florestas do Rio"
+    "Central Plains"
   ],
   "tribalRelations": [
     {
@@ -770,60 +829,68 @@
   },
   "eventStore": [
     {
-      "id": "evt_1_1395401900",
+      "id": "evt_1_178494155",
       "sequence": 1,
       "type": "COMMAND_RESOLVED",
       "payload": {
-        "commandId": "mock-trade-command",
-        "action": "TRADE",
+        "commandId": "mock-information-command",
+        "action": "INFORMATION",
         "status": "ACCEPTED",
-        "reason": "Venda comercial autorizada: 10 FSU de grãos convertidos em +25 SD.",
-        "stateChanges": [
-          {
-            "path": "weeklyLedger.food",
-            "before": 52.4,
-            "after": 42.4,
-            "delta": -10
-          },
-          {
-            "path": "weeklyLedger.silverdew",
-            "before": 316,
-            "after": 341,
-            "delta": 25
-          }
-        ]
+        "reason": "Consulta informativa de regras do Codex Canon. Nenhuma alteração mecânica de saldo foi realizada.",
+        "stateChanges": []
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 3,
-      "hash": "evt_1_1395401900"
+      "hash": "evt_1_178494155"
     },
     {
-      "id": "evt_2_1920208011",
+      "id": "evt_2_124591423",
       "sequence": 2,
-      "type": "COMMAND_RESOLVED",
+      "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
-        "commandId": "mock-trade-command",
-        "action": "TRADE",
-        "status": "ACCEPTED",
-        "reason": "Venda comercial autorizada: 10 FSU de grãos convertidos em +25 SD.",
-        "stateChanges": [
-          {
-            "path": "weeklyLedger.food",
-            "before": 52.4,
-            "after": 42.4,
-            "delta": -10
-          },
-          {
-            "path": "weeklyLedger.silverdew",
-            "before": 316,
-            "after": 341,
-            "delta": 25
-          }
-        ]
+        "turn": 20,
+        "year": 342,
+        "month": "Highsun_1",
+        "week": 4,
+        "season": "Sunreach",
+        "silverdew": 316.5,
+        "food": 25.8
       },
       "timestamp": "1970-01-01T00:00:00Z",
-      "week": 3,
-      "hash": "evt_2_1920208011"
+      "week": 4,
+      "hash": "evt_2_124591423"
+    },
+    {
+      "id": "evt_3_1138271634",
+      "sequence": 3,
+      "type": "COMMAND_RESOLVED",
+      "payload": {
+        "commandId": "mock-information-command",
+        "action": "INFORMATION",
+        "status": "ACCEPTED",
+        "reason": "Consulta informativa de regras do Codex Canon. Nenhuma alteração mecânica de saldo foi realizada.",
+        "stateChanges": []
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_3_1138271634"
+    },
+    {
+      "id": "evt_4_1492871013",
+      "sequence": 4,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 21,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 331,
+        "food": 41.6
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_4_1492871013"
     }
   ]
 }
