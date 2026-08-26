@@ -457,9 +457,11 @@ export function resolveNpcCombatAction(
 }
 
 // Generate a blank initial campaign state
-export function createInitialState(archetype: any, region: string): CampaignState {
+export function createInitialState(archetype: any, region: string, resetRng: boolean = true): CampaignState {
   // Reset RNG to deterministic seed for each new campaign
-  globalRNG.setSeed(424242);
+  if (resetRng) {
+    globalRNG.setSeed(424242);
+  }
   const isNecro = archetype === "Necromancer";
   
   return {
@@ -721,9 +723,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
       }
     ],
     advisors: {
-      counselorName: globalRNG.pick(["Mara", "Gwen", "Elysia", "Vanya", "Lorea", "Sybilla", "Alys", "Isolde"]),
-      stewardName: globalRNG.pick(["Barth", "Lorn", "Garrick", "Tymon", "Brogan", "Cormac", "Harlan", "Theron"]),
-      spyMasterName: globalRNG.pick(["Ren", "Sylas", "Kaelen", "Lyra", "Fiona", "Valia", "Morwen", "Rook"])
+      counselorName: "Tobin",
+      stewardName: "Gerold",
+      spyMasterName: "Roric"
     },
     revealedRegions: [region || "Central Plains"],
     tribalRelations: [
@@ -1452,7 +1454,8 @@ export function sanitizeState(parsedState: any): CampaignState {
   // Auto-populate / sanitize defaults for missing structures
   const defaultState = createInitialState(
     parsedState.character?.archetype || "Noble Ruler", 
-    parsedState.character?.location?.region || "Southern Mountains"
+    parsedState.character?.location?.region || "Southern Mountains",
+    false
   );
 
   // Merge character safely
@@ -1488,11 +1491,11 @@ export function sanitizeState(parsedState: any): CampaignState {
   army.militia = parsedState.army?.militia || parsedState.militia;
   
   if (parsedState.army?.units && Array.isArray(parsedState.army.units)) {
-    army.units = parsedState.army.units.map((u: any) => {
+    army.units = parsedState.army.units.map((u: any, idx: number) => {
       const sizeVal = (u.size !== undefined && u.size !== null) ? u.size : 30;
       const maxSizeVal = (u.maxSize !== undefined && u.maxSize !== null) ? u.maxSize : sizeVal;
       return {
-        id: u.id || `u_recruited_${globalRNG.nextInt(0, 1000000)}`,
+        id: u.id || `u_recruited_${idx + 1}`,
         name: u.name || "Guarda Desconhecida",
         size: sizeVal,
         maxSize: maxSizeVal,
@@ -1540,6 +1543,8 @@ export function sanitizeState(parsedState: any): CampaignState {
   const falseLineage = parsedState.falseLineage || defaultState.falseLineage;
   const revealedRegions = parsedState.revealedRegions || defaultState.revealedRegions;
   const narrativeHistory = parsedState.narrativeHistory || defaultState.narrativeHistory;
+  const sessionLog = parsedState.sessionLog || defaultState.sessionLog;
+  const eventStore = parsedState.eventStore || defaultState.eventStore;
 
   const mergedState: CampaignState = {
     ...defaultState,
@@ -1550,6 +1555,8 @@ export function sanitizeState(parsedState: any): CampaignState {
     inventory,
     advisors,
     worldLedger,
+    sessionLog,
+    eventStore,
     crowns,
     worldSecrets,
     falseLineage,
