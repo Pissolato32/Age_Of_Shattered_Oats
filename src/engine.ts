@@ -1117,6 +1117,11 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     if (!treasuryOutcome.defaulted) {
       s.weeklyLedger.silverdew = treasuryState.treasurySd; // remaining SD
       turnResult.militaryChanges.wagesPaid = totalWages;
+      if (!s.weeklyLedger.expenseDetail) {
+        s.weeklyLedger.expenseDetail = { wages: 0, garrison: 0, foodPurchases: 0, construction: 0, recruitment: 0, mercenaries: 0, tributePaid: 0, engineerWages: 0, shipUpkeep: 0, holdingMaintenance: 0, other: 0 };
+      }
+      s.weeklyLedger.expenseDetail.wages = wageCalculation.armyWages;
+      s.weeklyLedger.expenseDetail.garrison = wageCalculation.garrisonWages;
       const payrollState = { units: s.army.units, unpaidTicks: s.weeklyLedger.unpaidWagesTicks };
       PayrollService.applyPaymentOutcome(payrollState, true);
       s.weeklyLedger.unpaidWagesTicks = 0;
