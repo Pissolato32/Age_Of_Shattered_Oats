@@ -64,11 +64,24 @@ export function resolveEmergentIncidents(
 
   // 2. Determine Primary Activity / Domain for Opportunity Context
   let currentActivity: CurrentActivity = 'HOLDING';
-  const travelMission = currentState.sessionLog?.activeMissions?.find(
-    m => m.type?.toLowerCase().includes('travel') || m.type?.toLowerCase().includes('patrol')
+  const activeMission = currentState.sessionLog?.activeMissions?.find(
+    m => m.status === 'ACTIVE' || !m.status
   );
-  if (travelMission) {
-    currentActivity = 'TRAVEL';
+  if (activeMission) {
+    const typeStr = (activeMission.type || '').toLowerCase();
+    if (typeStr.includes('travel') || typeStr.includes('patrol') || typeStr.includes('march')) {
+      currentActivity = 'TRAVEL';
+    } else if (typeStr.includes('build') || typeStr.includes('construct') || typeStr.includes('work')) {
+      currentActivity = 'BUILD';
+    } else if (typeStr.includes('trade') || typeStr.includes('caravan') || typeStr.includes('market')) {
+      currentActivity = 'TRADE';
+    } else if (typeStr.includes('diplomacy') || typeStr.includes('envoy') || typeStr.includes('embassy')) {
+      currentActivity = 'DIPLOMACY';
+    } else if (typeStr.includes('espionage') || typeStr.includes('spy') || typeStr.includes('scout')) {
+      currentActivity = 'ESPIONAGE';
+    } else if (typeStr.includes('military') || typeStr.includes('war') || typeStr.includes('siege')) {
+      currentActivity = 'MILITARY';
+    }
   }
 
   const context: OpportunityContext = {

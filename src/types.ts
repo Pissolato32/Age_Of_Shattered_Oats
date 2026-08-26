@@ -333,6 +333,9 @@ export interface CampaignState {
       returnsDay: number;
       returnsMonth: string;
       details: string;
+      id?: string;
+      name?: string;
+      status?: string;
     }>;
     pendingDecisions: string[];
     activeScene?: SceneState;
