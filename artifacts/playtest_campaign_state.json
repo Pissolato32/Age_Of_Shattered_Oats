@@ -189,7 +189,7 @@
     "activeMissions": [],
     "pendingDecisions": [],
     "eventCooldowns": {
-      "ATMOSPHERIC_FLAVOR_RAVEN": 1
+      "ATMOSPHERIC_FLAVOR_RAVEN": 2
     }
   },
   "worldLedger": {
