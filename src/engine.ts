@@ -901,6 +901,29 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     eventLog: []
   };
 
+  s.weeklyLedger.incomeDetail = {
+    holdings: 0,
+    patches: 0,
+    trade: 0,
+    tribute: 0,
+    taxes: 0,
+    loot: 0,
+    other: 0
+  };
+  s.weeklyLedger.expenseDetail = {
+    wages: 0,
+    garrison: 0,
+    foodPurchases: 0,
+    construction: 0,
+    recruitment: 0,
+    mercenaries: 0,
+    tributePaid: 0,
+    engineerWages: 0,
+    shipUpkeep: 0,
+    holdingMaintenance: 0,
+    other: 0
+  };
+
   // Advance Week
   const curWeek = s.worldLedger.currentDate.week;
   let nextWeek = curWeek + 1;
@@ -1046,6 +1069,8 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     s.weeklyLedger.materials.timber += patchTimber;
     s.weeklyLedger.materials.iron += patchIron;
     s.weeklyLedger.materials.stone += patchStone;
+    s.weeklyLedger.incomeDetail.holdings = holdingBaseIncome;
+    s.weeklyLedger.incomeDetail.patches = patchIncome;
     turnResult.incomeChanges = { holdings: holdingBaseIncome, patches: patchIncome };
     turnResult.foodChanges = patchFood;
     turnResult.eventLog.push(`Produção: ${holdingBaseIncome + patchIncome} SD gerados, ${patchFood.toFixed(1)} FSU coletados.`);

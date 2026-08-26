@@ -1,0 +1,56 @@
+[
+  {
+    "mutation": "HOLDING_MAINTENANCE",
+    "source": "ProductionService.getHoldingUpkeepPerWeek",
+    "stateDelta": "weeklyLedger.silverdew",
+    "ledgerEntry": "expenseDetail.holdingMaintenance",
+    "eventTrace": "Manutenção Feudal: 70 SD despendidos na conservação de Bastion",
+    "narrativeProjection": "Maintenance cost reflected in treasury ledger",
+    "explainable": true
+  },
+  {
+    "mutation": "MILITARY_PAYROLL",
+    "source": "PayrollService.calculateMilitaryWages",
+    "stateDelta": "weeklyLedger.silverdew",
+    "ledgerEntry": "expenseDetail.wages & expenseDetail.garrison",
+    "eventTrace": "Pagamento de salários da tropa e guarnição",
+    "narrativeProjection": "Troop wages deducted from treasury",
+    "explainable": true
+  },
+  {
+    "mutation": "GRANARY_SPOILAGE",
+    "source": "FoodService.calculateExcessSpoilage",
+    "stateDelta": "weeklyLedger.food",
+    "ledgerEntry": "eventLog: Celeiros de grãos deterioraram",
+    "eventTrace": "Perda de alimentos em excesso por falta de espaço",
+    "narrativeProjection": "Spoilage loss reflected in food reserve",
+    "explainable": true
+  },
+  {
+    "mutation": "ROYAL_TITHE",
+    "source": "TreasuryService.calculateRoyalTithe",
+    "stateDelta": "weeklyLedger.silverdew",
+    "ledgerEntry": "expenseDetail.tributePaid",
+    "eventTrace": "Dízimo Real anual cobrado sobre tesouro superior a 2000 SD",
+    "narrativeProjection": "Royal tax deducted annually",
+    "explainable": true
+  },
+  {
+    "mutation": "EMERGENT_INCIDENT_CHOICE",
+    "source": "SceneResolver.resolveSceneChoice",
+    "stateDelta": "weeklyLedger.materials & weeklyLedger.silverdew",
+    "ledgerEntry": "EventRecord mutations payload",
+    "eventTrace": "Escolha do jogador resolvida na cena interativa",
+    "narrativeProjection": "Incident narrative chronicle output",
+    "explainable": true
+  },
+  {
+    "mutation": "DYNASTIC_SUCCESSION",
+    "source": "SuccessionService.getSuccessionOrder",
+    "stateDelta": "character.name & character.age",
+    "ledgerEntry": "worldLedger.majorEvents ascension record",
+    "eventTrace": "Falecimento do governante e ascensão do herdeiro",
+    "narrativeProjection": "Succession chronicle projected",
+    "explainable": true
+  }
+]
