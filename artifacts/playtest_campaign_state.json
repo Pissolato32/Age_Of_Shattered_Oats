@@ -62,9 +62,9 @@
     "month": "Greening",
     "year": 342,
     "season": "Sunreach",
-    "weather": "Limpo e quente (Perfeito)",
+    "weather": "Vento forte e seco (Risco de incêndio)",
     "silverdew": 331,
-    "food": 41.6,
+    "food": 37.4,
     "materials": {
       "timber": 20,
       "iron": 10,
@@ -277,7 +277,7 @@
           "House Stonehill"
         ],
         "enemies": [],
-        "opinion": -1,
+        "opinion": 0,
         "rumor": "Sua mina de ferro secreta está perto de esgotar.",
         "isRealRumor": false
       },
@@ -292,7 +292,7 @@
           "House Sunfield"
         ],
         "enemies": [],
-        "opinion": 0,
+        "opinion": -1,
         "rumor": "Eles abrigam foras-da-lei sob o pretexto de caridade.",
         "isRealRumor": true
       },
@@ -322,7 +322,7 @@
         "enemies": [
           "House Blackwater"
         ],
-        "opinion": 1,
+        "opinion": 0,
         "rumor": "Eles cobram taxas abusivas em cada barca que passa.",
         "isRealRumor": true
       },
@@ -337,7 +337,7 @@
           "House Tollman"
         ],
         "enemies": [],
-        "opinion": 1,
+        "opinion": -1,
         "rumor": "A ponte de pedra esconde passagens usadas por contrabandistas.",
         "isRealRumor": true
       },
@@ -352,7 +352,7 @@
         "enemies": [
           "House Velrin"
         ],
-        "opinion": 0,
+        "opinion": -1,
         "rumor": "Eles envenenaram os poços de Fenwick.",
         "isRealRumor": false
       },
@@ -369,7 +369,7 @@
         "enemies": [
           "House Thornwood"
         ],
-        "opinion": -1,
+        "opinion": 0,
         "rumor": "Lorde Aldric tem sangue da lenda do Dragão Verde.",
         "isRealRumor": true
       },
@@ -399,7 +399,7 @@
         "status": "Minor Lord",
         "allies": [],
         "enemies": [],
-        "opinion": 1,
+        "opinion": 2,
         "rumor": "Os ancestrais falam diretamente com Lady Elara através das árvores.",
         "isRealRumor": true
       },
@@ -414,7 +414,7 @@
           "House Cliffside"
         ],
         "enemies": [],
-        "opinion": 1,
+        "opinion": 0,
         "rumor": "Callum está secretamente minerando prata pura.",
         "isRealRumor": true
       },
@@ -429,7 +429,7 @@
           "House Passkeeper"
         ],
         "enemies": [],
-        "opinion": 1,
+        "opinion": 0,
         "rumor": "Qualquer um sem sangue das montanhas será rejeitado nas tumbas.",
         "isRealRumor": true
       },
@@ -502,8 +502,8 @@
     "weatherHistory": [
       "Light rain",
       "Cool, overcast",
-      "Limpo e quente (Perfeito)",
-      "Limpo e quente (Perfeito)"
+      "Chuvas sazonais (Velocidade +25% por lama)",
+      "Vento forte e seco (Risco de incêndio)"
     ],
     "notableDeaths": []
   },
@@ -662,9 +662,9 @@
     }
   ],
   "advisors": {
-    "counselorName": "Isolde",
-    "stewardName": "Cormac",
-    "spyMasterName": "Kaelen"
+    "counselorName": "Tobin",
+    "stewardName": "Gerold",
+    "spyMasterName": "Roric"
   },
   "revealedRegions": [
     "Central Plains"
@@ -847,7 +847,7 @@
       "hash": "evt_1_178494155"
     },
     {
-      "id": "evt_2_124591423",
+      "id": "evt_2_113819172",
       "sequence": 2,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
@@ -857,11 +857,11 @@
         "week": 4,
         "season": "Sunreach",
         "silverdew": 316.5,
-        "food": 25.8
+        "food": 24.4
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 4,
-      "hash": "evt_2_124591423"
+      "hash": "evt_2_113819172"
     },
     {
       "id": "evt_3_1138271634",
@@ -879,7 +879,7 @@
       "hash": "evt_3_1138271634"
     },
     {
-      "id": "evt_4_1492871013",
+      "id": "evt_4_1996972714",
       "sequence": 4,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
@@ -889,11 +889,11 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 331,
-        "food": 41.6
+        "food": 37.4
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_4_1492871013"
+      "hash": "evt_4_1996972714"
     }
   ]
 }
