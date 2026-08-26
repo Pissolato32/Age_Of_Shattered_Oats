@@ -6,6 +6,8 @@ import { runNarrativeCycle, NarrativeCycleResult } from '../lib/narrativeCycle';
 import { MockNarrativeLLM } from '../lib/mockNarrativeLLM';
 import { NarrativeObserver } from '../lib/narrativeContracts';
 import { RandomService } from '../core/RandomService';
+import { IncidentNarrativeTranslator, buildProceduralIncidentNarrative } from '../domain/events/narrative/IncidentNarrativeTranslator';
+import { IncidentNarrativeResponse } from '../domain/events/narrative/IncidentNarrativeContracts';
 
 export interface CausalTraceLogEntry {
   turn: number;
@@ -109,6 +111,7 @@ export async function executePlaytestTurnPristine(playerInput: string): Promise<
   cycleResult: NarrativeCycleResult;
   weeklyReport: ReturnType<typeof resolveWeeklyTurn>;
   traceEntry: CausalTraceLogEntry;
+  incidentNarratives: readonly IncidentNarrativeResponse[];
 }> {
   const state = loadOrCreatePlaytestState();
   const observer: NarrativeObserver = {
@@ -140,6 +143,37 @@ export async function executePlaytestTurnPristine(playerInput: string): Promise<
   // 2. Authoritative Weekly Turn Resolution (Turn, Economy, Upkeep, Spoilage, Seasons)
   const weeklyReport = resolveWeeklyTurn(stateAfterAction);
   const finalState = weeklyReport.updatedState;
+
+  // 3. Incident Narrative Layer (M18.9-E) — strictly post-engine, read-only
+  // Translate each emergent event produced this turn into sensory prose.
+  // The Translator is a pure projection: it never modifies CampaignState.
+  const incidentNarratives: IncidentNarrativeResponse[] = [];
+  const eventsProcessed = weeklyReport.turnResult.incidentResult?.eventsProcessed ?? [];
+  for (const eventRecord of eventsProcessed) {
+    try {
+      const narrative = await IncidentNarrativeTranslator.translateIncidentOpened(
+        eventRecord,
+        finalState,
+        llm
+      );
+      incidentNarratives.push(narrative);
+    } catch {
+      // Fail-safe: fallback procedural narrative, never block turn
+      incidentNarratives.push(buildProceduralIncidentNarrative({
+        kind: 'ATMOSPHERIC_INCIDENT',
+        mechanicalFacts: {
+          eventId: eventRecord.eventId,
+          eventType: eventRecord.descriptionContext.eventType,
+          magnitude: eventRecord.magnitude,
+          domain: eventRecord.domain,
+          absoluteTurn: eventRecord.turnOccurred,
+          timeCostSummary: eventRecord.timeCost,
+          mutationsSummary: []
+        },
+        context: eventRecord.descriptionContext
+      }));
+    }
+  }
 
   // Save the modified authoritative final state
   savePlaytestState(finalState);
@@ -212,6 +246,7 @@ export async function executePlaytestTurnPristine(playerInput: string): Promise<
   return {
     cycleResult,
     weeklyReport,
-    traceEntry
+    traceEntry,
+    incidentNarratives
   };
 }

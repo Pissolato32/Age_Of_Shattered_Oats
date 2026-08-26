@@ -187,7 +187,10 @@
     "lastSessionDate": "Greening Day 1, Year 342",
     "lastThingHappened": "Iniciou uma nova campanha.",
     "activeMissions": [],
-    "pendingDecisions": []
+    "pendingDecisions": [],
+    "eventCooldowns": {
+      "ATMOSPHERIC_FLAVOR_RAVEN": 1
+    }
   },
   "worldLedger": {
     "currentDate": {

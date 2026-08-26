@@ -12,6 +12,8 @@ import { MockNarrativeLLM } from "./src/lib/mockNarrativeLLM";
 import { NarrativeObserver } from "./src/lib/narrativeContracts";
 import { CampaignState } from "./src/types";
 import { sanitizeState } from "./src/engine";
+import { SceneResolver } from "./src/domain/events/SceneResolver";
+import { IncidentNarrativeTranslator } from "./src/domain/events/narrative/IncidentNarrativeTranslator";
 
 dotenv.config();
 
@@ -159,7 +161,64 @@ async function startServer() {
     }
   });
 
-  // 5. Safe lazy-loaded API route for Gemini narrative generation (com Auto-RAG & Web Context Isolation)
+  // 6. Scene Resolution Endpoint (M18.9-E): player resolves an open interactive scene
+  // Flow: SceneResolver.resolveSceneChoice() → EventProcessor → CampaignState → IncidentNarrativeTranslator
+  // The mechanical resolution occurs first; the translator is a pure sensory projection.
+  app.post("/api/resolve-scene", async (req, res) => {
+    try {
+      const { scene, choiceId, event, state, clientApiKey } = req.body;
+      if (!scene || !choiceId || !event || !state) {
+        return res.status(400).json({ error: "Parâmetros obrigatórios: scene, choiceId, event, state." });
+      }
+      if (scene.status !== 'OPEN') {
+        return res.status(400).json({ error: `Cena ${scene.sceneId} não está OPEN (status: ${scene.status}).` });
+      }
+
+      // 1. Authoritative mechanical resolution — SceneResolver → EventProcessor
+      const resolutionResult = SceneResolver.resolveSceneChoice(scene, choiceId, event, state as CampaignState);
+      const resolvedState = resolutionResult.eventProcessingResult.nextState;
+
+      // 2. Close activeScene in sessionLog
+      const finalState: CampaignState = {
+        ...resolvedState,
+        sessionLog: resolvedState.sessionLog ? {
+          ...resolvedState.sessionLog,
+          activeScene: resolutionResult.nextSceneState
+        } : resolvedState.sessionLog
+      };
+
+      // 3. Narrative projection — strictly post-EventProcessor, never modifies state
+      const headerKey = req.headers["x-gemini-api-key"] as string;
+      const apiKey = clientApiKey || headerKey || process.env.GEMINI_API_KEY;
+      const hasValidKey = Boolean(apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey !== "SUA_CHAVE_AQUI" && apiKey.trim().length >= 15);
+      const llm = hasValidKey ? new GeminiNarrativeLLM({ apiKey: apiKey.trim() }) : new MockNarrativeLLM();
+
+      const incidentNarrative = await IncidentNarrativeTranslator.translateIncidentResolved(
+        resolutionResult,
+        event,
+        finalState,
+        llm
+      );
+
+      return res.json({
+        success: true,
+        sceneOutcome: resolutionResult.sceneOutcome,
+        nextSceneState: resolutionResult.nextSceneState,
+        mutationsApplied: resolutionResult.eventProcessingResult.mutationsApplied,
+        resultState: finalState,
+        narrative: incidentNarrative.narration,
+        narrativeSource: incidentNarrative.source
+      });
+    } catch (err: any) {
+      console.error("Erro na resolução da cena:", err);
+      return res.status(500).json({
+        error: "Falha na resolução da cena",
+        details: err?.message || String(err)
+      });
+    }
+  });
+
+  // 7. Safe lazy-loaded API route for Gemini narrative generation (com Auto-RAG & Web Context Isolation)
   app.post("/api/narrate", async (req, res) => {
     try {
       const { systemPrompt, userPrompt, webFlavorText, clientApiKey } = req.body;

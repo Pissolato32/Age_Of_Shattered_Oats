@@ -72,6 +72,8 @@ export interface TurnResult {
     moralePenalty: number;
   };
   eventLog: string[]; // Apenas fatos mecânicos ocorridos
+  /** Optional: result of the emergent incident pipeline for this turn. Populated by resolveWeeklyTurn(). */
+  incidentResult?: import('./domain/events/EmergentIncidentPipeline').EmergentIncidentResolutionResult;
 }
 
 export interface CombatResult {

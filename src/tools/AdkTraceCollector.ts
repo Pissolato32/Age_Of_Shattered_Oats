@@ -303,10 +303,11 @@ export class AdkTraceCollector {
     const year = now.getUTCFullYear();
     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
     const day = String(now.getUTCDate()).padStart(2, '0');
-    const filename = `${year}-${month}-${day}-traces.jsonl`;
-    const traceFile = path.join(this.tracesDir, filename);
+    const filename = path.basename(`${year}-${month}-${day}-traces.jsonl`);
+    const traceFile = path.resolve(this.tracesDir, filename);
 
-    if (traceFile.startsWith(this.tracesDir)) {
+    const rel = path.relative(this.tracesDir, traceFile);
+    if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
       fs.appendFileSync(traceFile, JSON.stringify(record) + '\n', 'utf-8');
     }
   }
@@ -327,14 +328,24 @@ export class AdkTraceCollector {
     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
     const day = String(now.getUTCDate()).padStart(2, '0');
     const timeHex = now.getTime().toString(16);
-    const runId = `${year}-${month}-${day}-${safeLabel}-${timeHex}`;
+    const rawRunId = `${year}-${month}-${day}-${safeLabel}-${timeHex}`;
+    const runId = rawRunId.replace(/[^a-zA-Z0-9_-]/g, '');
 
-    const jsonlPath = path.join(this.tracesDir, `${runId}.jsonl`);
-    const jsonPath = path.join(this.resultsDir, `${runId}.json`);
-    const htmlPath = path.join(this.reportsDir, `${runId}.html`);
+    const jsonlFilename = path.basename(`${runId}.jsonl`);
+    const jsonFilename = path.basename(`${runId}.json`);
+    const htmlFilename = path.basename(`${runId}.html`);
+
+    const jsonlPath = path.resolve(this.tracesDir, jsonlFilename);
+    const jsonPath = path.resolve(this.resultsDir, jsonFilename);
+    const htmlPath = path.resolve(this.reportsDir, htmlFilename);
+
+    const isInsideDir = (filePath: string, parentDir: string): boolean => {
+      const rel = path.relative(parentDir, filePath);
+      return !rel.startsWith('..') && !path.isAbsolute(rel);
+    };
 
     // Verify paths remain strictly within target directories
-    if (!jsonlPath.startsWith(this.tracesDir) || !jsonPath.startsWith(this.resultsDir) || !htmlPath.startsWith(this.reportsDir)) {
+    if (!isInsideDir(jsonlPath, this.tracesDir) || !isInsideDir(jsonPath, this.resultsDir) || !isInsideDir(htmlPath, this.reportsDir)) {
       throw new Error("Invalid output file path for artifact generation");
     }
 

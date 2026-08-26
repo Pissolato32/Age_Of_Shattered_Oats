@@ -1335,6 +1335,9 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   }
   finalState.eventStore.push(recordedTurnEvent);
 
+  // Expose incident pipeline result for narrative composition by callers (M18.9-E)
+  turnResult.incidentResult = incidentResult;
+
   return { updatedState: finalState, turnResult };
 }
 
