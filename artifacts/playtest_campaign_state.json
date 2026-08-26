@@ -80,8 +80,8 @@
       "other": 0
     },
     "expenseDetail": {
-      "wages": 0,
-      "garrison": 0,
+      "wages": 6,
+      "garrison": 2,
       "foodPurchases": 0,
       "construction": 0,
       "recruitment": 0,
