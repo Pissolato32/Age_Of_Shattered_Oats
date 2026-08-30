@@ -1,5 +1,6 @@
+import { globalRNG } from "../core/RandomService";
 import React, { useState, useEffect } from "react";
-import { CampaignState, ArmyUnit } from "../types";
+import { CampaignState, ArmyUnit, NobleHouse } from "../types";
 import { resolveWeeklyTurn, exportStateToText, simulateCombatRound } from "../engine";
 import { Shield, Sparkles, BookOpen, Clock, Compass, Coins, Users, Hammer, Flame, Copy, Save, FileText, ChevronRight } from "lucide-react";
 import { LedgerViewer } from "./LedgerViewer";
@@ -15,7 +16,6 @@ interface ActivePlayProps {
 
 export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps) {
   const [state, setState] = useState<CampaignState>(initialState);
-  const [narrativeHistory, setNarrativeHistory] = useState<string[]>(initialState.narrativeHistory || []);
   const [currentNarrative, setCurrentNarrative] = useState<string>("");
   const [isNarrating, setIsNarrating] = useState(false);
   const [customCommand, setCustomCommand] = useState("");
@@ -120,7 +120,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
     }
 
     if (initialState.narrativeHistory && initialState.narrativeHistory.length > 0) {
-      setNarrativeHistory(initialState.narrativeHistory);
+      setState(s => s ? { ...s, narrativeHistory: initialState.narrativeHistory } : s);
       setCurrentNarrative(initialState.narrativeHistory[initialState.narrativeHistory.length - 1]);
       return;
     }
@@ -137,26 +137,10 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
       As estradas estão desertas, sob um céu de chumbo gélido. Seus ledgers heráldicos estão em ordem e prontos para registrar o futuro de suas propriedades. O que deseja ordenar?`;
     }
     
-    setNarrativeHistory([introPrompt]);
+    setState(s => s ? { ...s, narrativeHistory: [introPrompt] } : s);
     setCurrentNarrative(introPrompt);
-    generateNarrativeWithAI(introPrompt, "Apresente o início de uma nova campanha, apresentando os segredos e as fronteiras ao redor de Grey Keep.");
+    generateNarrativeWithAI(introPrompt, "Apresente o início de uma nova campanha, apresentando os segredos e as fronteiras ao redor de Grey Keep.", undefined, [introPrompt]);
   }, []);
-
-  // Sync narrativeHistory state to CampaignState narrativeHistory
-  useEffect(() => {
-    if (narrativeHistory.length > 0) {
-      setState(prev => {
-        if (!prev) return prev;
-        if (JSON.stringify(prev.narrativeHistory) !== JSON.stringify(narrativeHistory)) {
-          return {
-            ...prev,
-            narrativeHistory
-          };
-        }
-        return prev;
-      });
-    }
-  }, [narrativeHistory]);
 
   // Auto-save state to localStorage on state change
   useEffect(() => {
@@ -168,7 +152,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
   }, [state]);
 
   // Safe wrapper for server-side Gemini narrative generation
-  const generateNarrativeWithAI = async (actionDesc: string, mechanicalOutcome: string, webFlavorText?: string) => {
+  const generateNarrativeWithAI = async (actionDesc: string, mechanicalOutcome: string, webFlavorText?: string, overrideHistory?: string[]) => {
     setIsNarrating(true);
     try {
       const clientApiKey = localStorage.getItem("aos_gemini_api_key") || "";
@@ -197,7 +181,7 @@ DIRETRIZ DE FLUXO INFINITO DE CENA (EVENT CHAIN LOOP):
 DIRETRIZES DE SILÊNCIO MECÂNICO:
 - Escreva em tom realista, sombrio e visceral (Crônica de Ferro em Português do Brasil).
 - Mantenha a continuidade narrativa usando o contexto anterior.`,
-          userPrompt: `HISTÓRICO RECENTE DA CENA:\n${narrativeHistory.slice(-6).join("\n")}\n\nLocalização: ${state.character.location.landmark} (${state.character.location.region}).
+          userPrompt: `HISTÓRICO RECENTE DA CENA:\n${(overrideHistory || state.narrativeHistory || []).slice(-6).join("\n")}\n\nLocalização: ${state.character.location.landmark} (${state.character.location.region}).
 Clima atual: ${state.weeklyLedger.weather}.
 Sua ação atual: ${actionDesc}.
 Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
@@ -209,10 +193,10 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       if (data.text) {
         const masterNarrative = `[MESTRE] ${data.text}`;
         setCurrentNarrative(masterNarrative);
-        setNarrativeHistory(prev => {
-          const updated = [...prev, masterNarrative];
-          setState(s => s ? { ...s, narrativeHistory: updated } : s);
-          return updated;
+        setState(s => {
+          if (!s) return s;
+          const updated = [...(s.narrativeHistory || []), masterNarrative];
+          return { ...s, narrativeHistory: updated };
         });
       }
     } catch (e) {
@@ -232,10 +216,10 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       }
       const fallback = `[MESTRE] ${fallbackText}`;
       setCurrentNarrative(fallback);
-      setNarrativeHistory(prev => {
-        const updated = [...prev, fallback];
-        setState(s => s ? { ...s, narrativeHistory: updated } : s);
-        return updated;
+      setState(s => {
+        if (!s) return s;
+        const updated = [...(s.narrativeHistory || []), fallback];
+        return { ...s, narrativeHistory: updated };
       });
     } finally {
       setIsNarrating(false);
@@ -521,10 +505,10 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
     if (pipelineResult.requiresPlayerClarification && pipelineResult.clarificationMessage) {
       const playerMsg = `[JOGADOR] "${commandText}"`;
       const masterMsg = `[MESTRE] ${pipelineResult.clarificationMessage}`;
-      setNarrativeHistory(prev => {
-        const updated = [...prev, playerMsg, masterMsg];
-        setState(s => s ? { ...s, narrativeHistory: updated } : s);
-        return updated;
+      setState(s => {
+        if (!s) return s;
+        const updated = [...(s.narrativeHistory || []), playerMsg, masterMsg];
+        return { ...s, narrativeHistory: updated };
       });
       return;
     }
@@ -539,13 +523,13 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       : "Ação processada deterministicamente pela engine.";
 
     const playerMsg = `[JOGADOR] "${commandText}"`;
-    setNarrativeHistory(prev => {
-      const updated = [...prev, playerMsg];
-      setState(s => s ? { ...s, narrativeHistory: updated } : s);
-      return updated;
+    const newHistory = [...(state.narrativeHistory || []), playerMsg];
+    setState(s => {
+      if (!s) return s;
+      return { ...s, narrativeHistory: newHistory };
     });
 
-    await generateNarrativeWithAI(commandText, mechanicalOutcome, pipelineResult.webFlavor?.flavorText);
+    await generateNarrativeWithAI(commandText, mechanicalOutcome, pipelineResult.webFlavor?.flavorText, newHistory);
   };
 
   // ==========================================
@@ -1031,7 +1015,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       const compromiseRoll = globalRNG.next();
       const threshold = targetSec.compromisedChance || 0.15;
       if (compromiseRoll < threshold) {
-        const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses);
+        const randomHouse = globalRNG.pick<NobleHouse>(s.worldLedger.nobleHouses);
         if (randomHouse) {
           randomHouse.opinion = Math.max(-3, randomHouse.opinion - 1);
           outcomeLog = `SUSSURROS ESCASSOS (Espiões Expostos): Seus batedores conseguiram extrair poucos sussurros (+${progressGain}%), mas deixaram rastros na região. A Casa ${randomHouse.name} interceptou mensagens cifradas e sua opinião com você caiu para ${randomHouse.opinion}.`;
@@ -1047,7 +1031,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       outcomeTitle = `FALHA CRÍTICA (D20: ${d20} + ${spyMasterBonus} vs DC ${dc})`;
       const rollConsequence = globalRNG.nextInt(0, 2);
       if (rollConsequence === 0) {
-        const randomHouse = globalRNG.pick(s.worldLedger.nobleHouses);
+        const randomHouse = globalRNG.pick<NobleHouse>(s.worldLedger.nobleHouses);
         if (randomHouse) {
           randomHouse.opinion = Math.max(-3, randomHouse.opinion - 2);
         }
@@ -1150,7 +1134,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       
       const compromiseRoll = globalRNG.next();
       if (compromiseRoll < 0.3) {
-        const h = globalRNG.pick(s.worldLedger.nobleHouses);
+        const h = globalRNG.pick<NobleHouse>(s.worldLedger.nobleHouses);
         if (h) {
           h.opinion = Math.max(-3, h.opinion - 1);
           logMsg = `FALHA CRÍTICA NA CONSPIRAÇÃO (D20: ${d20} + ${spyMasterBonus} vs DC ${dc}): Seus agentes foram vistos nos arquivos da Catedral Real! Progresso caiu em -10% e a Casa ${h.name} suspeita do seu interesse heráldico (Opinião caiu para ${h.opinion}).`;
@@ -1566,7 +1550,7 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
               [INITIALIZING TURN_BLOCK: WEEK_{state.weeklyLedger.week}]
             </div>
             
-            {narrativeHistory.slice(-8).map((para, idx) => {
+            {(state.narrativeHistory || []).slice(-8).map((para, idx) => {
               const isPlayer = para.startsWith("[JOGADOR]");
               return (
                 <div 
