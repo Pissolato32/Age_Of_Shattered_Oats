@@ -6,6 +6,7 @@ import { CampaignState } from '../src/types';
 import { createInitialState, resolveWeeklyTurn, adjustHouseOpinion, getAbsoluteCampaignTurn } from '../src/engine';
 import { NarrativeObserver } from '../src/lib/narrativeContracts';
 import { createEventRecord } from '../src/domain/events/EventRecordFactory';
+import { EventRecord } from '../src/domain/events/models';
 import { SceneResolver } from '../src/domain/events/SceneResolver';
 
 const PLAYER_OBSERVER: NarrativeObserver = {
@@ -283,20 +284,25 @@ console.log('=== M14 GATE 3 — EMERGENT CAMPAIGN & GM QUALITY CALIBRATION SUITE
       while (stateRun1.sessionLog?.activeScene?.status === 'OPEN') {
         const scene = stateRun1.sessionLog.activeScene;
         const choiceId = scene.choices[0]?.choiceId || 'choice_default';
-        const dummyRecord = createEventRecord({
-          opportunityId: scene.eventId,
-          eventType: scene.eventId,
+        const dummyRecord: EventRecord = {
+          eventId: scene.eventId,
           magnitude: 'MINOR',
-          baseWeight: 10,
-          weight: 10,
-          tags: [],
-          eligible: true,
-          reasons: [],
-          timeCostHint: 'HOURS'
-        }, 1, 0, 'HOLDING');
-        dummyRecord.eventId = scene.eventId;
+          timeCost: 'HOUR',
+          descriptionContext: { eventType: scene.eventId },
+          mutations: [],
+          turnOccurred: stateRun1.worldLedger.currentDate.week,
+          slotIndex: 0,
+          domain: 'HOLDING',
+          scene
+        };
         const resolved = SceneResolver.resolveSceneChoice(scene, choiceId, dummyRecord, stateRun1);
-        stateRun1 = resolved.eventProcessingResult.nextState;
+        stateRun1 = {
+          ...resolved.eventProcessingResult.nextState,
+          sessionLog: {
+            ...resolved.eventProcessingResult.nextState.sessionLog,
+            activeScene: resolved.nextSceneState
+          }
+        };
       }
       const { updatedState } = resolveWeeklyTurn(stateRun1);
       stateRun1 = updatedState;
@@ -346,20 +352,25 @@ console.log('=== M14 GATE 3 — EMERGENT CAMPAIGN & GM QUALITY CALIBRATION SUITE
       while (stateRun2.sessionLog?.activeScene?.status === 'OPEN') {
         const scene = stateRun2.sessionLog.activeScene;
         const choiceId = scene.choices[0]?.choiceId || 'choice_default';
-        const dummyRecord = createEventRecord({
-          opportunityId: scene.eventId,
-          eventType: scene.eventId,
+        const dummyRecord: EventRecord = {
+          eventId: scene.eventId,
           magnitude: 'MINOR',
-          baseWeight: 10,
-          weight: 10,
-          tags: [],
-          eligible: true,
-          reasons: [],
-          timeCostHint: 'HOURS'
-        }, 1, 0, 'HOLDING');
-        dummyRecord.eventId = scene.eventId;
+          timeCost: 'HOUR',
+          descriptionContext: { eventType: scene.eventId },
+          mutations: [],
+          turnOccurred: stateRun2.worldLedger.currentDate.week,
+          slotIndex: 0,
+          domain: 'HOLDING',
+          scene
+        };
         const resolved = SceneResolver.resolveSceneChoice(scene, choiceId, dummyRecord, stateRun2);
-        stateRun2 = resolved.eventProcessingResult.nextState;
+        stateRun2 = {
+          ...resolved.eventProcessingResult.nextState,
+          sessionLog: {
+            ...resolved.eventProcessingResult.nextState.sessionLog,
+            activeScene: resolved.nextSceneState
+          }
+        };
       }
       const { updatedState } = resolveWeeklyTurn(stateRun2);
       stateRun2 = updatedState;

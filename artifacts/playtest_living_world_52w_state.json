@@ -121,17 +121,17 @@
       "stone": 15
     },
     "incomeDetail": {
-      "holdings": 50,
-      "patches": 20,
-      "trade": 10,
+      "holdings": 75,
+      "patches": 17.5,
+      "trade": 0,
       "tribute": 0,
-      "taxes": 15,
+      "taxes": 0,
       "loot": 0,
       "other": 0
     },
     "expenseDetail": {
-      "wages": 20,
-      "garrison": 10,
+      "wages": 6,
+      "garrison": 2,
       "foodPurchases": 0,
       "construction": 0,
       "recruitment": 0,
@@ -235,7 +235,11 @@
     "lastSessionDate": "Greening Day 1, Year 342",
     "lastThingHappened": "Iniciou uma nova campanha.",
     "activeMissions": [],
-    "pendingDecisions": []
+    "pendingDecisions": [],
+    "eventCooldowns": {
+      "ATMOSPHERIC_FLAVOR_RAVEN": 1,
+      "ATMOSPHERIC_FLAVOR_COLD_WIND": 3
+    }
   },
   "worldLedger": {
     "currentDate": {
@@ -282,8 +286,7 @@
         "lastOccurredYear": 312
       },
       "youngPretender": {
-        "active": true,
-        "region": "Western Rivers"
+        "active": false
       },
       "snowBearMigration": {
         "active": false
@@ -440,10 +443,10 @@
       "investigationProgress": 0,
       "category": "Dynasty",
       "outcomeDesc": "CONFIRMADO! O bastardo herdeiro chama-se Julian e lidera batedores ocidentais. Você ganha +10 de Opinião com a Casa principal do Oeste se o nomear cavaleiro.",
-      "difficultyClass": 18,
+      "difficultyClass": 20,
       "criticality": "Critical",
       "compromisedChance": 0.25,
-      "obsoleteInWeeks": 5,
+      "obsoleteInWeeks": 8,
       "originLocation": "Harvel Pass",
       "originTurn": 1
     },
@@ -455,10 +458,10 @@
       "investigationProgress": 0,
       "category": "Military",
       "outcomeDesc": "CONFIRMADO! Marshal Ren está desviando rações. Você pode chantageá-lo para forçar uma queda de 3 semanas na provisão de comida de qualquer castelo cercado por ele.",
-      "difficultyClass": 15,
+      "difficultyClass": 14,
       "criticality": "High",
       "compromisedChance": 0.15,
-      "obsoleteInWeeks": 8,
+      "obsoleteInWeeks": 4,
       "originLocation": "Blackmoor Keep",
       "originTurn": 1
     },
@@ -470,10 +473,10 @@
       "investigationProgress": 0,
       "category": "Plot",
       "outcomeDesc": "CONFIRMADO! A gruta de sálvia negra foi mapeada. Você ganha +20 FSU e purifica permanentemente quaisquer infecções de praga ativas em suas terras.",
-      "difficultyClass": 10,
+      "difficultyClass": 12,
       "criticality": "Medium",
       "compromisedChance": 0.08,
-      "obsoleteInWeeks": 4,
+      "obsoleteInWeeks": 5,
       "originLocation": "Valenfort Citadel",
       "originTurn": 1
     }
@@ -490,9 +493,9 @@
     }
   ],
   "advisors": {
-    "counselorName": "Isolde",
-    "stewardName": "Cormac",
-    "spyMasterName": "Kaelen"
+    "counselorName": "Tobin",
+    "stewardName": "Gerold",
+    "spyMasterName": "Roric"
   },
   "revealedRegions": [
     "Central Plains"
@@ -675,7 +678,7 @@
       "hash": "evt_1_178494155"
     },
     {
-      "id": "evt_2_124591423",
+      "id": "evt_2_113819172",
       "sequence": 2,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
@@ -685,11 +688,11 @@
         "week": 4,
         "season": "Sunreach",
         "silverdew": 316.5,
-        "food": 25.8
+        "food": 24.4
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 4,
-      "hash": "evt_2_124591423"
+      "hash": "evt_2_113819172"
     },
     {
       "id": "evt_3_1138271634",
@@ -707,7 +710,7 @@
       "hash": "evt_3_1138271634"
     },
     {
-      "id": "evt_4_1492871013",
+      "id": "evt_4_1996972714",
       "sequence": 4,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
@@ -717,15 +720,270 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 331,
-        "food": 41.6
+        "food": 37.4
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_4_1492871013"
+      "hash": "evt_4_1996972714"
     },
     {
-      "id": "evt_5_189906629",
+      "id": "evt_5_834547860",
       "sequence": 5,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 22,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 2,
+        "season": "Sunreach",
+        "silverdew": 345.5,
+        "food": 51.35
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_5_834547860"
+    },
+    {
+      "id": "evt_6_1013960351",
+      "sequence": 6,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 23,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 3,
+        "season": "Sunreach",
+        "silverdew": 360,
+        "food": 60.76
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_6_1013960351"
+    },
+    {
+      "id": "evt_7_1083919567",
+      "sequence": 7,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 24,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 4,
+        "season": "Sunreach",
+        "silverdew": 374.5,
+        "food": 68.87
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_7_1083919567"
+    },
+    {
+      "id": "evt_8_852141319",
+      "sequence": 8,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 25,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 389,
+        "food": 76
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_8_852141319"
+    },
+    {
+      "id": "evt_9_1873200449",
+      "sequence": 9,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 26,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 2,
+        "season": "Reapingfall",
+        "silverdew": 403.5,
+        "food": 81.35
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_9_1873200449"
+    },
+    {
+      "id": "evt_10_1012210751",
+      "sequence": 10,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 27,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 3,
+        "season": "Reapingfall",
+        "silverdew": 418,
+        "food": 83.26
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_10_1012210751"
+    },
+    {
+      "id": "evt_11_1041054531",
+      "sequence": 11,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 28,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 4,
+        "season": "Reapingfall",
+        "silverdew": 432.5,
+        "food": 86.79
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_11_1041054531"
+    },
+    {
+      "id": "evt_12_1533950279",
+      "sequence": 12,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 29,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 447,
+        "food": 87.34
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_12_1533950279"
+    },
+    {
+      "id": "evt_13_1089623701",
+      "sequence": 13,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 30,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 2,
+        "season": "Reapingfall",
+        "silverdew": 461.5,
+        "food": 89.85
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_13_1089623701"
+    },
+    {
+      "id": "evt_14_961120263",
+      "sequence": 14,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 31,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 3,
+        "season": "Reapingfall",
+        "silverdew": 476,
+        "food": 91.74
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_14_961120263"
+    },
+    {
+      "id": "evt_15_1007738241",
+      "sequence": 15,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 32,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 4,
+        "season": "Reapingfall",
+        "silverdew": 490.5,
+        "food": 93.15
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_15_1007738241"
+    },
+    {
+      "id": "evt_16_1237958919",
+      "sequence": 16,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 33,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 505,
+        "food": 94.21
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_16_1237958919"
+    },
+    {
+      "id": "evt_17_710116046",
+      "sequence": 17,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 34,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 2,
+        "season": "Reapingfall",
+        "silverdew": 519.5,
+        "food": 95.01
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_17_710116046"
+    },
+    {
+      "id": "evt_18_1556105475",
+      "sequence": 18,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 35,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 3,
+        "season": "Reapingfall",
+        "silverdew": 534,
+        "food": 94.56
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_18_1556105475"
+    },
+    {
+      "id": "evt_19_265171425",
+      "sequence": 19,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 36,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 4,
+        "season": "Reapingfall",
+        "silverdew": 548.5,
+        "food": 93.17
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_19_265171425"
+    },
+    {
+      "id": "evt_20_1307406126",
+      "sequence": 20,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 10,
@@ -738,11 +996,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 2,
-      "hash": "evt_5_189906629"
+      "hash": "evt_20_1307406126"
     },
     {
-      "id": "evt_6_1106279453",
-      "sequence": 6,
+      "id": "evt_21_1280875156",
+      "sequence": 21,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 11,
@@ -755,11 +1013,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 3,
-      "hash": "evt_6_1106279453"
+      "hash": "evt_21_1280875156"
     },
     {
-      "id": "evt_7_751644773",
-      "sequence": 7,
+      "id": "evt_22_987109739",
+      "sequence": 22,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 12,
@@ -768,15 +1026,15 @@
         "week": 4,
         "season": "Thawtide",
         "silverdew": 343.5,
-        "food": 72.6
+        "food": 70.5
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 4,
-      "hash": "evt_7_751644773"
+      "hash": "evt_22_987109739"
     },
     {
-      "id": "evt_8_1383912400",
-      "sequence": 8,
+      "id": "evt_23_1487869999",
+      "sequence": 23,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 13,
@@ -785,15 +1043,15 @@
         "week": 1,
         "season": "Thawtide",
         "silverdew": 358,
-        "food": 78.8
+        "food": 76.17
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_8_1383912400"
+      "hash": "evt_23_1487869999"
     },
     {
-      "id": "evt_9_1607466087",
-      "sequence": 9,
+      "id": "evt_24_1216132223",
+      "sequence": 24,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 17,
@@ -802,15 +1060,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 372.5,
-        "food": 83.45
+        "food": 79.38
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_9_1607466087"
+      "hash": "evt_24_1216132223"
     },
     {
-      "id": "evt_10_288237281",
-      "sequence": 10,
+      "id": "evt_25_2113145998",
+      "sequence": 25,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 21,
@@ -819,15 +1077,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 387,
-        "food": 86.94
+        "food": 81.78
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_10_288237281"
+      "hash": "evt_25_2113145998"
     },
     {
-      "id": "evt_11_1270905970",
-      "sequence": 11,
+      "id": "evt_26_999729967",
+      "sequence": 26,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 25,
@@ -836,15 +1094,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 401.5,
-        "food": 89.56
+        "food": 85.68
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_11_1270905970"
+      "hash": "evt_26_999729967"
     },
     {
-      "id": "evt_12_1686668078",
-      "sequence": 12,
+      "id": "evt_27_1408800332",
+      "sequence": 27,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 29,
@@ -853,15 +1111,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 416,
-        "food": 89.42
+        "food": 88.61
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_12_1686668078"
+      "hash": "evt_27_1408800332"
     },
     {
-      "id": "evt_13_377380697",
-      "sequence": 13,
+      "id": "evt_28_2114743156",
+      "sequence": 28,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 33,
@@ -870,15 +1128,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 430.5,
-        "food": 90.37
+        "food": 89.76
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_13_377380697"
+      "hash": "evt_28_2114743156"
     },
     {
-      "id": "evt_14_1366407274",
-      "sequence": 14,
+      "id": "evt_29_826607966",
+      "sequence": 29,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 37,
@@ -887,15 +1145,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 445,
-        "food": 92.13
+        "food": 90.62
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_14_1366407274"
+      "hash": "evt_29_826607966"
     },
     {
-      "id": "evt_15_1985914774",
-      "sequence": 15,
+      "id": "evt_30_2008672787",
+      "sequence": 30,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 41,
@@ -904,15 +1162,15 @@
         "week": 1,
         "season": "Deepfrost",
         "silverdew": 459.5,
-        "food": 82.42
+        "food": 81.29
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_15_1985914774"
+      "hash": "evt_30_2008672787"
     },
     {
-      "id": "evt_16_1690293335",
-      "sequence": 16,
+      "id": "evt_31_1207833771",
+      "sequence": 31,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 45,
@@ -921,15 +1179,15 @@
         "week": 1,
         "season": "Deepfrost",
         "silverdew": 474,
-        "food": 75.14
+        "food": 74.29
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_16_1690293335"
+      "hash": "evt_31_1207833771"
     },
     {
-      "id": "evt_17_1459094187",
-      "sequence": 17,
+      "id": "evt_32_1030304365",
+      "sequence": 32,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 49,
@@ -938,15 +1196,15 @@
         "week": 1,
         "season": "Deepfrost",
         "silverdew": 488.5,
-        "food": 69.68
+        "food": 70.09
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_17_1459094187"
+      "hash": "evt_32_1030304365"
     },
     {
-      "id": "evt_18_1670849692",
-      "sequence": 18,
+      "id": "evt_33_926335707",
+      "sequence": 33,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -955,15 +1213,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 503,
-        "food": 75.56
+        "food": 75.87
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_18_1670849692"
+      "hash": "evt_33_926335707"
     },
     {
-      "id": "evt_19_1837075393",
-      "sequence": 19,
+      "id": "evt_34_2017035077",
+      "sequence": 34,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -972,15 +1230,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 517.5,
-        "food": 81.02
+        "food": 81.25
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_19_1837075393"
+      "hash": "evt_34_2017035077"
     },
     {
-      "id": "evt_20_2901344",
-      "sequence": 20,
+      "id": "evt_35_1924615635",
+      "sequence": 35,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -989,15 +1247,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 532,
-        "food": 85.12
+        "food": 83.19
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_20_2901344"
+      "hash": "evt_35_1924615635"
     },
     {
-      "id": "evt_21_2143812162",
-      "sequence": 21,
+      "id": "evt_36_1395064249",
+      "sequence": 36,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1006,15 +1264,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 546.5,
-        "food": 86.09
+        "food": 84.64
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_21_2143812162"
+      "hash": "evt_36_1395064249"
     },
     {
-      "id": "evt_22_1947968069",
-      "sequence": 22,
+      "id": "evt_37_2120527045",
+      "sequence": 37,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1023,15 +1281,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 561,
-        "food": 88.92
+        "food": 85.73
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_22_1947968069"
+      "hash": "evt_37_2120527045"
     },
     {
-      "id": "evt_23_1688747816",
-      "sequence": 23,
+      "id": "evt_38_1014915618",
+      "sequence": 38,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1040,15 +1298,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 575.5,
-        "food": 89.99
+        "food": 87.6
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_23_1688747816"
+      "hash": "evt_38_1014915618"
     },
     {
-      "id": "evt_24_224840612",
-      "sequence": 24,
+      "id": "evt_39_335571351",
+      "sequence": 39,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1057,15 +1315,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 590,
-        "food": 89.74
+        "food": 87.95
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_24_224840612"
+      "hash": "evt_39_335571351"
     },
     {
-      "id": "evt_25_1025013659",
-      "sequence": 25,
+      "id": "evt_40_1884981004",
+      "sequence": 40,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1074,15 +1332,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 604.5,
-        "food": 91.65
+        "food": 90.31
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_25_1025013659"
+      "hash": "evt_40_1884981004"
     },
     {
-      "id": "evt_26_267057057",
-      "sequence": 26,
+      "id": "evt_41_1048600303",
+      "sequence": 41,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1091,15 +1349,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 619,
-        "food": 90.99
+        "food": 89.98
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_26_267057057"
+      "hash": "evt_41_1048600303"
     },
     {
-      "id": "evt_27_1044820677",
-      "sequence": 27,
+      "id": "evt_42_173959726",
+      "sequence": 42,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1108,15 +1366,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 633.5,
-        "food": 92.59
+        "food": 89.73
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_27_1044820677"
+      "hash": "evt_42_173959726"
     },
     {
-      "id": "evt_28_1890339127",
-      "sequence": 28,
+      "id": "evt_43_492601078",
+      "sequence": 43,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1125,15 +1383,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 648,
-        "food": 91.69
+        "food": 89.55
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_28_1890339127"
+      "hash": "evt_43_492601078"
     },
     {
-      "id": "evt_29_2121903506",
-      "sequence": 29,
+      "id": "evt_44_1857773468",
+      "sequence": 44,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1142,15 +1400,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 662.5,
-        "food": 92.07
+        "food": 90.46
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_29_2121903506"
+      "hash": "evt_44_1857773468"
     },
     {
-      "id": "evt_30_1168948732",
-      "sequence": 30,
+      "id": "evt_45_652903733",
+      "sequence": 45,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 69,
@@ -1159,15 +1417,15 @@
         "week": 1,
         "season": "Sunreach",
         "silverdew": 677,
-        "food": 91.3
+        "food": 90.1
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_30_1168948732"
+      "hash": "evt_45_652903733"
     },
     {
-      "id": "evt_31_1692438328",
-      "sequence": 31,
+      "id": "evt_46_1163318474",
+      "sequence": 46,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1176,15 +1434,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 691.5,
-        "food": 90.72
+        "food": 89.83
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_31_1692438328"
+      "hash": "evt_46_1163318474"
     },
     {
-      "id": "evt_32_1639715576",
-      "sequence": 32,
+      "id": "evt_47_1924713071",
+      "sequence": 47,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1193,15 +1451,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 706,
-        "food": 92.39
+        "food": 90.67
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_32_1639715576"
+      "hash": "evt_47_1924713071"
     },
     {
-      "id": "evt_33_716369682",
-      "sequence": 33,
+      "id": "evt_48_1006912432",
+      "sequence": 48,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1210,15 +1468,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 720.5,
-        "food": 91.54
+        "food": 92.35
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_33_716369682"
+      "hash": "evt_48_1006912432"
     },
     {
-      "id": "evt_34_1453736045",
-      "sequence": 34,
+      "id": "evt_49_1493854931",
+      "sequence": 49,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1227,15 +1485,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 735,
-        "food": 90.9
+        "food": 91.51
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_34_1453736045"
+      "hash": "evt_49_1493854931"
     },
     {
-      "id": "evt_35_1229696265",
-      "sequence": 35,
+      "id": "evt_50_273245842",
+      "sequence": 50,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1244,15 +1502,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 749.5,
-        "food": 90.42
+        "food": 90.88
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_35_1229696265"
+      "hash": "evt_50_273245842"
     },
     {
-      "id": "evt_36_1513442978",
-      "sequence": 36,
+      "id": "evt_51_612551612",
+      "sequence": 51,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1261,15 +1519,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 764,
-        "food": 90.06
+        "food": 90.41
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_36_1513442978"
+      "hash": "evt_51_612551612"
     },
     {
-      "id": "evt_37_334682149",
-      "sequence": 37,
+      "id": "evt_52_1493858310",
+      "sequence": 52,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1278,15 +1536,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 778.5,
-        "food": 89.79
+        "food": 90.06
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_37_334682149"
+      "hash": "evt_52_1493858310"
     },
     {
-      "id": "evt_38_169958028",
-      "sequence": 38,
+      "id": "evt_53_723816953",
+      "sequence": 53,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1295,15 +1553,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 793,
-        "food": 89.59
+        "food": 89.79
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_38_169958028"
+      "hash": "evt_53_723816953"
     },
     {
-      "id": "evt_39_1476341338",
-      "sequence": 39,
+      "id": "evt_54_231235387",
+      "sequence": 54,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1312,15 +1570,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 807.5,
-        "food": 89.44
+        "food": 89.59
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_39_1476341338"
+      "hash": "evt_54_231235387"
     },
     {
-      "id": "evt_40_258574066",
-      "sequence": 40,
+      "id": "evt_55_1294922222",
+      "sequence": 55,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1329,15 +1587,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 822,
-        "food": 89.33
+        "food": 89.44
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_40_258574066"
+      "hash": "evt_55_1294922222"
     },
     {
-      "id": "evt_41_773317494",
-      "sequence": 41,
+      "id": "evt_56_278409379",
+      "sequence": 56,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1346,15 +1604,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 836.5,
-        "food": 89.25
+        "food": 89.33
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_41_773317494"
+      "hash": "evt_56_278409379"
     },
     {
-      "id": "evt_42_354588380",
-      "sequence": 42,
+      "id": "evt_57_2036350131",
+      "sequence": 57,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1363,15 +1621,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 851,
-        "food": 89.19
+        "food": 89.25
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_42_354588380"
+      "hash": "evt_57_2036350131"
     },
     {
-      "id": "evt_43_615683316",
-      "sequence": 43,
+      "id": "evt_58_760938483",
+      "sequence": 58,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 77,
@@ -1380,15 +1638,15 @@
         "week": 1,
         "season": "Reapingfall",
         "silverdew": 865.5,
-        "food": 89.14
+        "food": 89.19
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_43_615683316"
+      "hash": "evt_58_760938483"
     },
     {
-      "id": "evt_44_94850232",
-      "sequence": 44,
+      "id": "evt_59_1991427808",
+      "sequence": 59,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1397,15 +1655,15 @@
         "week": 1,
         "season": "Deepfrost",
         "silverdew": 880,
-        "food": 83.85
+        "food": 83.89
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_44_94850232"
+      "hash": "evt_59_1991427808"
     },
     {
-      "id": "evt_45_1993821876",
-      "sequence": 45,
+      "id": "evt_60_836764611",
+      "sequence": 60,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1414,15 +1672,15 @@
         "week": 1,
         "season": "Deepfrost",
         "silverdew": 894.5,
-        "food": 79.89
+        "food": 79.92
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_45_1993821876"
+      "hash": "evt_60_836764611"
     },
     {
-      "id": "evt_46_1450107488",
-      "sequence": 46,
+      "id": "evt_61_1433241019",
+      "sequence": 61,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1431,15 +1689,15 @@
         "week": 1,
         "season": "Deepfrost",
         "silverdew": 909,
-        "food": 76.92
+        "food": 76.94
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_46_1450107488"
+      "hash": "evt_61_1433241019"
     },
     {
-      "id": "evt_47_1833434450",
-      "sequence": 47,
+      "id": "evt_62_1703005693",
+      "sequence": 62,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1448,15 +1706,15 @@
         "week": 1,
         "season": "Deepfrost",
         "silverdew": 923.5,
-        "food": 74.69
+        "food": 74.7
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_47_1833434450"
+      "hash": "evt_62_1703005693"
     },
     {
-      "id": "evt_48_1773136146",
-      "sequence": 48,
+      "id": "evt_63_2014435115",
+      "sequence": 63,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1469,11 +1727,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_48_1773136146"
+      "hash": "evt_63_2014435115"
     },
     {
-      "id": "evt_49_309309036",
-      "sequence": 49,
+      "id": "evt_64_349233811",
+      "sequence": 64,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1486,11 +1744,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_49_309309036"
+      "hash": "evt_64_349233811"
     },
     {
-      "id": "evt_50_488356425",
-      "sequence": 50,
+      "id": "evt_65_1393702419",
+      "sequence": 65,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1503,11 +1761,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_50_488356425"
+      "hash": "evt_65_1393702419"
     },
     {
-      "id": "evt_51_1265499857",
-      "sequence": 51,
+      "id": "evt_66_788182389",
+      "sequence": 66,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1520,11 +1778,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_51_1265499857"
+      "hash": "evt_66_788182389"
     },
     {
-      "id": "evt_52_376020110",
-      "sequence": 52,
+      "id": "evt_67_1506038734",
+      "sequence": 67,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1537,11 +1795,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_52_376020110"
+      "hash": "evt_67_1506038734"
     },
     {
-      "id": "evt_53_826505098",
-      "sequence": 53,
+      "id": "evt_68_1085434522",
+      "sequence": 68,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1554,11 +1812,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_53_826505098"
+      "hash": "evt_68_1085434522"
     },
     {
-      "id": "evt_54_1780363622",
-      "sequence": 54,
+      "id": "evt_69_728885694",
+      "sequence": 69,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1571,11 +1829,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_54_1780363622"
+      "hash": "evt_69_728885694"
     },
     {
-      "id": "evt_55_135676549",
-      "sequence": 55,
+      "id": "evt_70_1373344574",
+      "sequence": 70,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1588,11 +1846,11 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_55_135676549"
+      "hash": "evt_70_1373344574"
     },
     {
-      "id": "evt_56_1970697640",
-      "sequence": 56,
+      "id": "evt_71_1729398671",
+      "sequence": 71,
       "type": "WEEKLY_TURN_RESOLVED",
       "payload": {
         "turn": 93,
@@ -1605,7 +1863,7 @@
       },
       "timestamp": "1970-01-01T00:00:00Z",
       "week": 1,
-      "hash": "evt_56_1970697640"
+      "hash": "evt_71_1729398671"
     }
   ]
 }
