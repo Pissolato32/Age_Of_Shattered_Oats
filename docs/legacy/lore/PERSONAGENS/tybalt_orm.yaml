@@ -1,0 +1,17 @@
+meta_header: '## ðŸ‘‘ G.5 â€” NOBLE HOUSE â€” TYBALT ORM'
+sheet_type: NOBLE HOUSE
+fields:
+  house: Orm
+  tier: 6
+  seat: —
+  liege: —
+  name: Lorde Tybalt Orm
+  age: ~50
+  gender: —
+  status: false
+  location: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —

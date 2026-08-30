@@ -1,0 +1,58 @@
+[
+  {
+    "subsystem": "Economy",
+    "fields": ["weeklyLedger.silverdew", "weeklyLedger.food", "weeklyLedger.materials", "weeklyLedger.incomeDetail", "weeklyLedger.expenseDetail"],
+    "serializable": true,
+    "recoveryValidated": true,
+    "notes": "Full treasury, reserves, and income/expense details preserved"
+  },
+  {
+    "subsystem": "Military",
+    "fields": ["army.units", "army.garrisonSize", "holdings.garrison"],
+    "serializable": true,
+    "recoveryValidated": true,
+    "notes": "Troop counts, tiers, AC, morale, and garrison size preserved"
+  },
+  {
+    "subsystem": "World",
+    "fields": ["worldLedger.currentDate", "worldLedger.weatherHistory", "worldLedger.majorEvents", "worldLedger.rareEventStatus"],
+    "serializable": true,
+    "recoveryValidated": true,
+    "notes": "Full calendar, weather history, and major events preserved"
+  },
+  {
+    "subsystem": "Actors",
+    "fields": ["character.name", "character.house", "character.age", "character.location", "advisors", "family"],
+    "serializable": true,
+    "recoveryValidated": true,
+    "notes": "Ruler stats, advisors, spouse, and children preserved"
+  },
+  {
+    "subsystem": "Memory",
+    "fields": ["worldLedger.characterMemories", "worldLedger.vows"],
+    "serializable": true,
+    "recoveryValidated": true,
+    "notes": "Permanent historical records and character memory decay state preserved"
+  },
+  {
+    "subsystem": "Events",
+    "fields": ["eventStore", "sessionLog.eventCooldowns"],
+    "serializable": true,
+    "recoveryValidated": true,
+    "notes": "Complete historical EventStore records and cooldown timestamps preserved"
+  },
+  {
+    "subsystem": "Scenes",
+    "fields": ["sessionLog.activeScene", "sessionLog.pendingDecisions"],
+    "serializable": true,
+    "recoveryValidated": true,
+    "notes": "Interactive SceneState and choice options preserved across save/reload"
+  },
+  {
+    "subsystem": "Migration",
+    "fields": ["version"],
+    "serializable": false,
+    "recoveryValidated": false,
+    "notes": "ARCHITECTURAL_GAP: No explicit version migration pipeline implemented for legacy save versions"
+  }
+]

@@ -1,0 +1,12 @@
+meta_header: '## 🗡️ GM-ONLY — DORIAN VOSS (ANTAGONISTA)'
+sheet_type: NPC RECORD
+fields:
+  name: Dorian Voss
+  age: ~30-35
+  gender: Masculino
+  status: true
+  location: Foragido — Capital ou Alveria
+  role_occupation: Ourives / Falsificador / Agente de Blackmoor
+  health: Saudável
+  ambition: Limpar o nome da Casa Voss e recuperar a posição perdida
+  flaw: Orgulho — não aceita ser tratado como inferior

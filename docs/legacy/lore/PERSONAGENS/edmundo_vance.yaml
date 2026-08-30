@@ -1,0 +1,18 @@
+meta_header: '## ⚜️ G.5 — NOBLE HOUSE — CHANCELER EDMUNDO VANCE'
+sheet_type: NOBLE HOUSE
+fields:
+  house: Vance
+  tier: 5
+  seat: Capital (Planícies Centrais)
+  liege: Rainha-Mãe Isadora (Regente)
+  name: Edmundo Vance
+  age: 60+
+  gender: Masculino
+  status: true
+  location: Capital — Palácio Real
+  personal_wealth: Alto (Chanceler da Coroa)
+  personal_gear: true
+  health: Recuperado de coma (envenenamento)
+  child: 'Caspian Vance (sobrinho, preso)'
+  ambition: Preservar a estabilidade do reino e proteger o segredo de Elyra
+  flaw: Lealdade dividida entre a Coroa e Rodrigo

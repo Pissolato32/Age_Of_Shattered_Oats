@@ -1,3 +1,5 @@
+import type { SceneState } from './domain/events/models';
+
 export interface Character {
   name: string;
   house: string;
@@ -24,9 +26,13 @@ export interface Character {
     bannerTier: number;
     ac: number;
     initiativeBonus: number;
+    baseInitiative?: number;
     weapon: string;
+    armor?: string;
     shield: string;
     mount: string;
+    mountInjured?: boolean;
+    mountInitiativeMod?: number;
     mountQuality: 'Common' | 'High-Grade' | 'Superb';
     weaponQuality: 'Common' | 'High-Grade' | 'Superb';
     armorQuality: 'Common' | 'High-Grade' | 'Superb';
@@ -46,6 +52,15 @@ export interface Character {
   controlLimit?: number; // for Necromancer Lord
   isLich?: boolean; // for Necromancer Lord
   phylacteryLocation?: string; // for Necromancer Lord
+  memories?: Array<{
+    id: string;
+    ownerId: string;
+    subjectId: string;
+    description: string;
+    importance: number;
+    tickRegistered: number;
+    decayed?: boolean;
+  }>;
 }
 
 export interface TurnResult {
@@ -57,6 +72,8 @@ export interface TurnResult {
     moralePenalty: number;
   };
   eventLog: string[]; // Apenas fatos mecânicos ocorridos
+  /** Optional: result of the emergent incident pipeline for this turn. Populated by resolveWeeklyTurn(). */
+  incidentResult?: import('./domain/events/EmergentIncidentPipeline').EmergentIncidentResolutionResult;
 }
 
 export interface CombatResult {
@@ -76,6 +93,8 @@ export interface WeeklyLedger {
   weather: string;
   silverdew: number;
   food: number; // FSU
+  famineTicks?: number;
+  unpaidWagesTicks?: number;
   materials: {
     timber: number;
     iron: number;
@@ -191,6 +210,12 @@ export interface NobleHouse {
   soldiers?: number;
   weeklyIncome?: number;
   relationshipDetail?: string;
+  vows?: Array<{
+    type: string;
+    deadlineTick: number;
+    active: boolean;
+    broken: boolean;
+  }>;
 }
 
 export interface DetailedForces {
@@ -308,8 +333,21 @@ export interface CampaignState {
       returnsDay: number;
       returnsMonth: string;
       details: string;
+      id?: string;
+      name?: string;
+      status?: string;
     }>;
     pendingDecisions: string[];
+    activeScene?: SceneState;
+    eventCooldowns?: Record<string, number>;
+    pendingConsequences?: Array<{
+      id: string;
+      kind: 'PENDING';
+      description: string;
+      triggerTurn: number;
+      originAction?: string;
+      resolved?: boolean;
+    }>;
   };
   worldLedger: {
     currentDate: { day: number; month: string; year: number; week: number };
@@ -368,6 +406,17 @@ export interface CampaignState {
     compromisedChance?: number;
     corrupted?: boolean;
     obsoleteInWeeks?: number;
+    originLocation?: string;
+    originTurn?: number;
+  }>;
+  eventStore?: Array<{
+    id: string;
+    sequence: number;
+    type: string;
+    payload: any;
+    timestamp: string;
+    week: number;
+    hash: string;
   }>;
   advisors?: {
     counselorName: string;

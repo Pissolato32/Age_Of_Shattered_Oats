@@ -24,6 +24,52 @@ export const REGIONS = [
   "Nomad Steppe"
 ];
 
+export interface ArmorItemSpec {
+  id: string;
+  name: string;
+  armorClass: number;
+  initiativeMod: number;
+  costSd: number;
+}
+
+export interface ShieldItemSpec {
+  id: string;
+  name: string;
+  armorClassMod: number;
+  initiativeMod: number;
+  costSd: number;
+}
+
+export interface MountItemSpec {
+  id: string;
+  name: string;
+  initiativeMod: number;
+  costSd: number;
+}
+
+export const ARMOR_SPECS: Record<string, ArmorItemSpec> = {
+  cloth: { id: "cloth", name: "Cloth / None", armorClass: 2, initiativeMod: 1, costSd: 0 },
+  leather: { id: "leather", name: "Leather", armorClass: 3, initiativeMod: 0, costSd: 10 },
+  chain: { id: "chain", name: "Chain", armorClass: 4, initiativeMod: -1, costSd: 25 },
+  plate: { id: "plate", name: "Plate", armorClass: 5, initiativeMod: -2, costSd: 50 }
+};
+
+export const SHIELD_SPECS: Record<string, ShieldItemSpec> = {
+  standard_shield: { id: "standard_shield", name: "Standard Shield", armorClassMod: 1, initiativeMod: 0, costSd: 5 },
+  standard: { id: "standard", name: "Standard Shield", armorClassMod: 1, initiativeMod: 0, costSd: 5 },
+  shield: { id: "shield", name: "Standard Shield", armorClassMod: 1, initiativeMod: 0, costSd: 5 },
+  heater_shield: { id: "heater_shield", name: "Heater / Kite Shield", armorClassMod: 1, initiativeMod: 0, costSd: 10 },
+  tower_shield: { id: "tower_shield", name: "Tower Shield", armorClassMod: 1, initiativeMod: -1, costSd: 20 }
+};
+
+export const MOUNT_SPECS: Record<string, MountItemSpec> = {
+  riding_horse: { id: "riding_horse", name: "Riding Horse", initiativeMod: 1, costSd: 30 },
+  courser: { id: "courser", name: "Courser", initiativeMod: 2, costSd: 60 },
+  warhorse: { id: "warhorse", name: "Warhorse", initiativeMod: 2, costSd: 100 },
+  destrier: { id: "destrier", name: "Destrier", initiativeMod: 1, costSd: 120 },
+  draft_warhorse: { id: "draft_warhorse", name: "Draft Warhorse", initiativeMod: 0, costSd: 40 }
+};
+
 export const INITIAL_HOUSES: NobleHouse[] = [
   // Northern Snowlands (G.R3)
   {

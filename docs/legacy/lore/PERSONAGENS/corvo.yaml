@@ -1,0 +1,12 @@
+meta_header: '## 🐦⬛ NPC — CORVO (MORTO)'
+sheet_type: NPC RECORD
+fields:
+  name: 'Corvo (identidade desconhecida)'
+  age: —
+  gender: —
+  status: false
+  location: Forte da Vigília Cega (morto em batalha)
+  role_occupation: Assassino / Espião / Intermediário do submundo
+  health: Morto
+  ambition: —
+  flaw: Subestimou Rodrigo e seus comandantes

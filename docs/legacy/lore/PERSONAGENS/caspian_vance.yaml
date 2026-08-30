@@ -1,0 +1,12 @@
+meta_header: '## ⛓️ NPC — CASPIAN VANCE (PRESO)'
+sheet_type: NPC RECORD
+fields:
+  name: Caspian Vance
+  age: ~35
+  gender: Masculino
+  status: false
+  location: Capital — masmorras da Coroa
+  role_occupation: Ex-Comandante do Conselho (interino) / Sobrinho do Chanceler
+  health: Preso
+  ambition: Sobreviver ao julgamento
+  flaw: Covardia — traiu aliados para salvar a própria pele

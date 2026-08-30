@@ -1,0 +1,12 @@
+meta_header: '## 🔍 NPC — DAMA KAELEN THORN (INVESTIGADORA REAL)'
+sheet_type: NPC RECORD
+fields:
+  name: Dama Kaelen Thorn
+  age: ~30
+  gender: Feminino
+  status: true
+  location: A caminho de Valenfort (Primavera)
+  role_occupation: Investigadora Real da Coroa
+  health: Saudável
+  ambition: Descobrir a verdade sobre Corvo e a conspiração de Tybalt Orm
+  flaw: Justiça implacável — segue a lei acima de tudo

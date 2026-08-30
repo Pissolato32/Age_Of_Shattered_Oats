@@ -1,0 +1,18 @@
+meta_header: '## 🧾 G.5 — NOBLE HOUSE — LADY SEREN'
+sheet_type: NOBLE HOUSE
+fields:
+  house: —
+  tier: —
+  seat: —
+  liege: —
+  name: Lady Seren
+  age: 30-35
+  gender: —
+  status: true
+  location: —
+  personal_wealth: —
+  personal_gear: false
+  health: —
+  ambition: —
+  flaw: —
+  loyalty: 4

@@ -1,0 +1,31 @@
+meta_header: '## 👑 G.5 — NOBLE HOUSE — ELYRA STORMCROWN (HIDDEN HEIR)'
+sheet_type: NOBLE HOUSE
+fields:
+  house: Stormcrown (Sangue Real / ramo cadete Fenrir)
+  tier: — (oculta)
+  seat: Torre Leste (Valenfort) — proteção de Rodrigo
+  liege: Sir Rodrigo de Valenfort (primo e protetor)
+  name: Elyra Stormcrown
+  aliases: "Elyra Fenrir (nome oficial de cobertura), Valéria (disfarce diário)"
+  age: '19'
+  gender: —
+  status: true
+  location: Torre Leste (disfarçada de prima adoentada "Valéria")
+  personal_wealth: ~550 SD
+  personal_gear: true
+  health: Saudável
+  ambition: Sobreviver e um dia reivindicar o Trono Vazio do Norte — ao lado de Rodrigo
+  flaw: Alvo da Coroa — qualquer deslize expõe Rodrigo como traidor
+  commander_tier: 2
+  initiative: -1 (Chain)
+  weapon: Espada Curta (3d6) — treinamento básico
+  mount: Palfrey (montaria de viagem)
+  loyalty: 6 (a Rodrigo)
+  temperament: Cautelosa — prefere evitar conflito direto
+  priority: Sobrevivência (da linhagem e dos guardiões)
+  fear: Descoberta — pânico se a identidade for revelada
+  notes: >
+    Prima de Rodrigo por linhagem Fenrir (ramo cadete de Orm).
+    Romance recíproco com Rodrigo em segredo — plano de casamento futuro.
+    Sobrenome alterado para "Fenrir" (cobertura oficial) e disfarce diário
+    como "Valéria", prima adoentada, na Torre Leste.

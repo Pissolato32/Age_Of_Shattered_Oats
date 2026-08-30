@@ -1,0 +1,11 @@
+meta_header: '## 🩺 NPC — MESTRE ALARD'
+sheet_type: NPC RECORD
+fields:
+  name: Alard
+  age: 55-65
+  gender: —
+  status: true
+  location: Hospital de Valenfort (anexo oeste)
+  roleoccupation: —
+  health: —
+  ambition: —

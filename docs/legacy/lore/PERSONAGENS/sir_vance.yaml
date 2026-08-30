@@ -1,0 +1,11 @@
+meta_header: '## 🧑‍🌾 NPC MENOR — SIR VANCE (Falecido)'
+sheet_type: NPC RECORD
+fields:
+  name: Sir Vance
+  age: 30-40
+  gender: —
+  status: true
+  location: Torre Leste (falecido)
+  roleoccupation: —
+  health: —
+  ambition: —

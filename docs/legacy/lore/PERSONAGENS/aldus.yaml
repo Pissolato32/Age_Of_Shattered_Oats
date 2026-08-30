@@ -1,0 +1,12 @@
+meta_header: '## 🏘️ NPC — ALDUS, SENHOR DE BRONZEFORD'
+sheet_type: NPC RECORD
+fields:
+  name: Aldus
+  age: ~50
+  gender: Masculino
+  status: true
+  location: Bronzeford (Passagem Cinzenta)
+  role_occupation: Senhor de Bronzeford / Membro do Conselho da Passagem
+  health: Saudável
+  ambition: Proteger Bronzeford e a rota comercial da Passagem
+  flaw: Hesitante — prefere esperar ordens a tomar iniciativa

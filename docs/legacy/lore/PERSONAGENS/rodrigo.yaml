@@ -1,0 +1,38 @@
+meta_header: '## 🏰 G.1 — PLAYER CHARACTER — SIR RODRIGO DE VALENFORT'
+sheet_type: PLAYER CHARACTER
+fields:
+  name: Sir Rodrigo de Valenfort
+  age: 37
+  gender: Masculino
+  house: Valenfort
+  title: O Restaurador / Guardião da Passagem
+  archetype_ruler: true
+  archetype_landless: false
+  archetype_artificer: false
+  location: Valenfort (Passagem Cinzenta, Montanhas do Sul)
+  helmet: Nenhum (rosto descoberto — símbolo de confiança)
+  cape_cloak: —
+  armor_finish: Polida, sem arabescos — funcional, marcas de batalha
+  chest_decoration: Brasão da Casa Valenfort (lobo cinzento)
+  pauldron_shape: Redondas, aço simples
+  weapon_details: '"Fidelis" — espada longa de lâmina larga, punho envolto'
+  distinctive_features: Cicatriz no antebraço direito, postura ereta
+  commander_tier: 4
+  banner_tier: 3
+  ac: 6
+  initiative: 0
+  weapon: Martelo de Prata do Sol Negro — 3d6 (Arma Lendária)
+  shield: Nenhum (combate com espada de duas mãos)
+  mount: Cavalo de Guerra "Brasa" (Superior)
+  weapon_quality: Superb
+  armor_quality: High-Grade
+  shield_quality: None
+  mount_quality: Superb
+  loyalty: 6
+  temperament: Disciplinado
+  priority: Vitória
+  fear: Desonra
+  reputation: 8
+  known_for: "Recuperou a Coroa de Pedra no Pico do Firmamento; unificou a Passagem Cinzenta sob o Conselho Regional"
+  nicknames: "O Restaurador, Guardião da Passagem"
+  lineage_notes: "Descendente de Fenrir (ramo cadete de Orm) por linha materna. Primo de Elyra Stormcrown. Esta linhagem foi usada para justificar a adoção de Elyra como 'prima Fenrir' perante a corte."

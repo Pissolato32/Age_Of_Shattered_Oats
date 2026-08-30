@@ -1,0 +1,12 @@
+meta_header: '## ⚖️ NPC — JUÍZA ISOLDA VANCE'
+sheet_type: NPC RECORD
+fields:
+  name: Isolda Vance
+  age: ~45
+  gender: Feminino
+  status: true
+  location: Três Pontas (Casa Gray)
+  role_occupation: Juíza Regional do Conselho da Passagem Cinzenta
+  health: Saudável
+  ambition: Estabelecer a justiça como pilar do Conselho da Passagem
+  flaw: Burocracia — prefere processos lentos e corretos a decisões rápidas

@@ -1,0 +1,12 @@
+meta_header: '## 📜 NPC RECORD — VALERIA FENRIR (HISTORICAL)'
+sheet_type: NPC RECORD
+fields:
+  name: Valeria Fenrir
+  age: '— (Falecida no parto, ~19 anos)'
+  gender: Feminino
+  status: false
+  location: Sepultada no Forte da Vigília Cega (Blind Watch Keep)
+  role_occupation: Princesa Real (Casa Fenrir) / Mãe de Elyra Stormcrown
+  health: Falecida
+  ambition: '— (faleceu no parto)'
+  flaw: '— (faleceu no parto)'

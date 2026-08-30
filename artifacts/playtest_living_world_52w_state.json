@@ -1,0 +1,1869 @@
+{
+  "character": {
+    "name": "Renascent Lord",
+    "house": "Stormcrest",
+    "age": 29,
+    "gender": "Male",
+    "archetype": "Noble Ruler",
+    "title": "Lord of the Keep",
+    "location": {
+      "region": "Central Plains",
+      "subregion": "The Frontier",
+      "landmark": "Grey Keep",
+      "distanceNearTown": 3,
+      "distanceNearCastle": 0,
+      "distanceCapital": 4
+    },
+    "banner": {
+      "colors": "Red and Gold",
+      "symbol": "Golden Eagle",
+      "motto": "Steel Before Oath"
+    },
+    "stats": {
+      "commanderTier": 1,
+      "bannerTier": 1,
+      "ac": 3,
+      "initiativeBonus": 0,
+      "weapon": "Spear",
+      "shield": "Standard",
+      "mount": "Riding Horse",
+      "mountQuality": "Common",
+      "weaponQuality": "Common",
+      "armorQuality": "Common",
+      "shieldQuality": "Common"
+    },
+    "reputation": 2,
+    "nicknames": [],
+    "flavorDetail": "O vento nunca cessa nestas terras ásperas.",
+    "backstory": "Um juramento quebrado levou você ao exílio. Agora você retorna para reclamar seu assento.",
+    "memories": [
+      {
+        "id": "fact_bridge_garrison_001",
+        "ownerId": "player",
+        "subjectId": "velha_ponte",
+        "description": "Uma guarnição armada de 25 soldados sem brasão visível mantém controle sobre a travessia de pedra na fronteira.",
+        "importance": 8,
+        "tickRegistered": 1,
+        "decayed": false
+      },
+      {
+        "id": "fact_bridge_ironhand_rumor_006",
+        "ownerId": "player",
+        "subjectId": "velha_ponte",
+        "description": "Surgiram boatos não confirmados de que o comandante na ponte pertence à Casa Ironhand.",
+        "importance": 6,
+        "tickRegistered": 14,
+        "decayed": false
+      },
+      {
+        "id": "fact_bridge_ironhand_confirmed_007",
+        "ownerId": "player",
+        "subjectId": "velha_ponte",
+        "description": "Investigação documental comprovou que o comandante é o Capitão Vane da Casa Ironhand.",
+        "importance": 9,
+        "tickRegistered": 18,
+        "decayed": false,
+        "supersedes": "fact_bridge_ironhand_rumor_006"
+      },
+      {
+        "id": "fact_bridge_truce_active_008",
+        "ownerId": "player",
+        "subjectId": "velha_ponte",
+        "description": "Trégua formal de passagem firmada na Velha Ponte.",
+        "importance": 9,
+        "tickRegistered": 22,
+        "decayed": false,
+        "supersedes": "fact_bridge_garrison_001"
+      },
+      {
+        "id": "fact_grain_inflation_003",
+        "ownerId": "player",
+        "subjectId": "mercado_leste",
+        "description": "Compras anônimas volumosas no leste elevaram a cotação dos grãos.",
+        "importance": 7,
+        "tickRegistered": 26,
+        "decayed": false
+      },
+      {
+        "id": "fact_bridge_truce_broken_009",
+        "ownerId": "player",
+        "subjectId": "velha_ponte",
+        "description": "Trégua rompida e passagem hostil após emboscada contra mensageiros.",
+        "importance": 10,
+        "tickRegistered": 35,
+        "decayed": false,
+        "supersedes": "fact_bridge_truce_active_008"
+      },
+      {
+        "id": "fact_ironhand_succession_010",
+        "ownerId": "player",
+        "subjectId": "casa_ironhand",
+        "description": "Com a morte de Lorde Decimus, seu primogênito Lord Kenneth Ironhand assumiu o comando de Ironhold.",
+        "importance": 9,
+        "tickRegistered": 36,
+        "decayed": false
+      }
+    ]
+  },
+  "weeklyLedger": {
+    "week": 52,
+    "month": "Thawrise",
+    "year": 342,
+    "season": "Deepfrost",
+    "weather": "Inverno Suave (Ano Quente - Sem Neve)",
+    "silverdew": 1054,
+    "food": 68.5,
+    "famineTicks": 0,
+    "unpaidWagesTicks": 0,
+    "materials": {
+      "timber": 20,
+      "iron": 10,
+      "stone": 15
+    },
+    "incomeDetail": {
+      "holdings": 75,
+      "patches": 17.5,
+      "trade": 0,
+      "tribute": 0,
+      "taxes": 0,
+      "loot": 0,
+      "other": 0
+    },
+    "expenseDetail": {
+      "wages": 6,
+      "garrison": 2,
+      "foodPurchases": 0,
+      "construction": 0,
+      "recruitment": 0,
+      "mercenaries": 0,
+      "tributePaid": 0,
+      "engineerWages": 0,
+      "shipUpkeep": 0,
+      "holdingMaintenance": 70,
+      "other": 0
+    }
+  },
+  "army": {
+    "units": [
+      {
+        "id": "u_1",
+        "name": "Landed Levy",
+        "size": 60,
+        "maxSize": 60,
+        "tier": 1,
+        "ac": 3,
+        "weapon": "Spears",
+        "mount": "None",
+        "morale": 5,
+        "type": "Levy"
+      }
+    ],
+    "garrisonSize": 40
+  },
+  "holdings": {
+    "name": "Grey Keep",
+    "type": "Bastion",
+    "tier": 1,
+    "region": "Central Plains",
+    "position": "Três dias leste de River Caedor",
+    "population": 1000,
+    "laborPool": 395,
+    "garrison": 40,
+    "fortification": {
+      "type": "Wooden Palisade",
+      "tier": 1,
+      "acBonus": 1,
+      "rangedRerolls": 1,
+      "firstMeleeBonus": 0
+    },
+    "resourcePatches": [
+      {
+        "id": "p1",
+        "name": "Grama de Caedor",
+        "type": "Grain Field",
+        "tier": 1,
+        "quality": "Common",
+        "yieldPerDay": 2,
+        "incomePerDay": 2.5,
+        "laborRequired": 5
+      }
+    ],
+    "residentSmith": {
+      "name": "Master Robert",
+      "level": 1,
+      "xp": 10,
+      "specialty": "Armor"
+    },
+    "granaryUpgrade": false,
+    "villages": [
+      {
+        "name": "Sítio de Corvopedra",
+        "status": "Protectorate",
+        "direction": "Norte",
+        "distanceDays": 1.5,
+        "products": "Cereais e Tecidos",
+        "notes": "Leal à Casa Stormcrest. Fornece grãos e homens."
+      },
+      {
+        "name": "Vila de Bogthrone",
+        "status": "Independent",
+        "direction": "Oeste",
+        "distanceDays": 3,
+        "products": "Turfa e Peixe",
+        "notes": "Neutro, dominada por contrabandistas e mercadores locais."
+      }
+    ],
+    "otherHoldings": [
+      {
+        "name": "Forte de Vigia Leste",
+        "type": "Posto de Fronteira",
+        "garrison": 15,
+        "incomePerWeek": 15,
+        "function": "Vigia a travessia do rio Caedor e rotas comerciais."
+      },
+      {
+        "name": "Torre de Corvopedra",
+        "type": "Posto Avançado",
+        "garrison": 10,
+        "incomePerWeek": 5,
+        "function": "Protege o vilarejo de Corvopedra contra incursões de clãs hostis."
+      }
+    ]
+  },
+  "ships": [],
+  "sessionLog": {
+    "lastSessionDate": "Greening Day 1, Year 342",
+    "lastThingHappened": "Iniciou uma nova campanha.",
+    "activeMissions": [],
+    "pendingDecisions": [],
+    "eventCooldowns": {
+      "ATMOSPHERIC_FLAVOR_RAVEN": 1,
+      "ATMOSPHERIC_FLAVOR_COLD_WIND": 3
+    }
+  },
+  "worldLedger": {
+    "currentDate": {
+      "day": 1,
+      "week": 1,
+      "month": "Longdark_2",
+      "year": 343
+    },
+    "activeConflicts": [],
+    "majorEvents": [
+      {
+        "date": "W14, Highsun_1, Y342",
+        "event": "Boatos de viajantes ligam a guarnição da fronteira à Casa Ironhand",
+        "region": "Central Plains",
+        "involved": "Travelers -> Raven Watch",
+        "resolved": "Yes"
+      },
+      {
+        "date": "W36, Harvestfall_1, Y342",
+        "event": "Sucessão em Ironhold: Lord Kenneth Ironhand ascende à liderança da Casa Ironhand",
+        "region": "Central Plains",
+        "involved": "Decimus Ironhand (Morto) -> Kenneth Ironhand",
+        "resolved": "Yes"
+      }
+    ],
+    "nobleHouses": [
+      {
+        "name": "Ironhand",
+        "region": "Central Plains",
+        "currentLord": "Lord Kenneth Ironhand",
+        "seat": "Ironhold",
+        "tier": 3,
+        "status": "Hostil",
+        "allies": [],
+        "enemies": [],
+        "opinion": -1,
+        "rumor": "Homens da Casa Ironhand mantêm patrulhas atentas nos limites das colinas.",
+        "isRealRumor": true
+      }
+    ],
+    "rareEventStatus": {
+      "warmYear": {
+        "active": true,
+        "lastOccurredYear": 312
+      },
+      "youngPretender": {
+        "active": false
+      },
+      "snowBearMigration": {
+        "active": false
+      },
+      "blindTraveler": {
+        "active": false
+      },
+      "schemer": {
+        "active": false
+      }
+    },
+    "marketConditions": {
+      "Central Plains": {
+        "tradeVolume": "Medium",
+        "priceTrend": "Stable",
+        "shortages": "None"
+      },
+      "Western Rivers": {
+        "tradeVolume": "High",
+        "priceTrend": "Rising",
+        "shortages": "Stone"
+      },
+      "Eastern Forests": {
+        "tradeVolume": "Medium",
+        "priceTrend": "Stable",
+        "shortages": "Iron"
+      },
+      "Southern Mountains": {
+        "tradeVolume": "Low",
+        "priceTrend": "Stable",
+        "shortages": "Grain"
+      },
+      "Northern Snowlands": {
+        "tradeVolume": "Low",
+        "priceTrend": "Rising",
+        "shortages": "Grain"
+      },
+      "Nomad Steppe": {
+        "tradeVolume": "Medium",
+        "priceTrend": "Stable",
+        "shortages": "Timber"
+      }
+    },
+    "weatherHistory": [
+      "Inverno Suave (Ano Quente - Sem Neve)",
+      "Inverno Suave (Ano Quente - Sem Neve)",
+      "Inverno Suave (Ano Quente - Sem Neve)",
+      "Inverno Suave (Ano Quente - Sem Neve)"
+    ],
+    "notableDeaths": []
+  },
+  "crowns": [
+    {
+      "id": "blood",
+      "name": "Crown of Blood (Planícies)",
+      "region": "Central Plains",
+      "unlocked": false,
+      "progress": 0,
+      "maxProgress": 3,
+      "requirements": [
+        "Vencer 3 batalhas importantes nas Planícies",
+        "Liderar 5 grandes Casas das Planícies",
+        "Reivindicar o Assento de Ferro"
+      ]
+    },
+    {
+      "id": "contracts",
+      "name": "Crown of Contracts (Rios)",
+      "region": "Western Rivers",
+      "unlocked": false,
+      "progress": 0,
+      "maxProgress": 4,
+      "requirements": [
+        "Obter rotas de comércio com holdings fluviais",
+        "Eleição pelo Conselho do Rio",
+        "Firmar cartas de fealdade com lordes mercantes"
+      ]
+    },
+    {
+      "id": "northwind",
+      "name": "Crown of the North Wind (Gelo)",
+      "region": "Northern Snowlands",
+      "unlocked": false,
+      "progress": 0,
+      "maxProgress": 1,
+      "requirements": [
+        "Sobreviver ao frio profundo de uma Nevasca no Norte",
+        "Abater uma fera ou urso da neve"
+      ]
+    },
+    {
+      "id": "greendrake",
+      "name": "Crown of the Green Drake (Florestas)",
+      "region": "Eastern Forests",
+      "unlocked": false,
+      "progress": 0,
+      "maxProgress": 1,
+      "requirements": [
+        "Submeter ou domar Eldric, o Dragão Negro das Florestas",
+        "Capturar a Torre Florestal Alta"
+      ]
+    },
+    {
+      "id": "stone",
+      "name": "Crown of Stone (Montanhas)",
+      "region": "Southern Mountains",
+      "unlocked": false,
+      "progress": 0,
+      "maxProgress": 2,
+      "requirements": [
+        "Defender as passagens sulistas sob cerco",
+        "Recuperar as relíquias de pedra dos antigos clãs"
+      ]
+    },
+    {
+      "id": "rubicon",
+      "name": "Rubicon Crown (Proclamação)",
+      "region": "Any",
+      "unlocked": false,
+      "progress": 0,
+      "maxProgress": 1,
+      "requirements": [
+        "Ser aclamado pelas próprias tropas em rebelião",
+        "Conquistar a capital por usurpação armada"
+      ]
+    }
+  ],
+  "inventory": {
+    "horns": [
+      {
+        "id": "horn_1",
+        "name": "Berrante de Caça Comum",
+        "type": "Hunting",
+        "sound": "Sopro rápido e brilhante",
+        "broken": false
+      }
+    ],
+    "smudgeBundles": {
+      "sage": 2,
+      "cedar": 1,
+      "sweetgrass": 0,
+      "tobacco": 1
+    }
+  },
+  "family": {
+    "children": []
+  },
+  "worldSecrets": [
+    {
+      "id": "secret_1",
+      "title": "A Herdeira Oculta de Outro Clã",
+      "description": "Os ventos da intriga mudaram. Rumores sobre Lyra esfriaram, mas novos sussurros apontam para um bastardo esquecido de um clã montanhês no oeste.",
+      "revealed": false,
+      "investigationProgress": 0,
+      "category": "Dynasty",
+      "outcomeDesc": "CONFIRMADO! O bastardo herdeiro chama-se Julian e lidera batedores ocidentais. Você ganha +10 de Opinião com a Casa principal do Oeste se o nomear cavaleiro.",
+      "difficultyClass": 20,
+      "criticality": "Critical",
+      "compromisedChance": 0.25,
+      "obsoleteInWeeks": 8,
+      "originLocation": "Harvel Pass",
+      "originTurn": 1
+    },
+    {
+      "id": "secret_2",
+      "title": "O Novo Acordo do Marechal Ren",
+      "description": "A dívida antiga de Ren foi saldada por mercadores rivais. Agora, os boatos dizem que sua guarnição está secretamente vendendo provisões militares.",
+      "revealed": false,
+      "investigationProgress": 0,
+      "category": "Military",
+      "outcomeDesc": "CONFIRMADO! Marshal Ren está desviando rações. Você pode chantageá-lo para forçar uma queda de 3 semanas na provisão de comida de qualquer castelo cercado por ele.",
+      "difficultyClass": 14,
+      "criticality": "High",
+      "compromisedChance": 0.15,
+      "obsoleteInWeeks": 4,
+      "originLocation": "Blackmoor Keep",
+      "originTurn": 1
+    },
+    {
+      "id": "secret_3",
+      "title": "A Clareira da Sálvia Negra",
+      "description": "As colheitas na clareira mística oriental cessaram. Novas pistas apontam para uma gruta escondida no norte que contém sálvia negra curativa.",
+      "revealed": false,
+      "investigationProgress": 0,
+      "category": "Plot",
+      "outcomeDesc": "CONFIRMADO! A gruta de sálvia negra foi mapeada. Você ganha +20 FSU e purifica permanentemente quaisquer infecções de praga ativas em suas terras.",
+      "difficultyClass": 12,
+      "criticality": "Medium",
+      "compromisedChance": 0.08,
+      "obsoleteInWeeks": 5,
+      "originLocation": "Valenfort Citadel",
+      "originTurn": 1
+    }
+  ],
+  "discoveredArtifacts": [
+    {
+      "name": "O Livro Negro de Caedor",
+      "description": "Um tomo encadernado em couro negro desgastado, preenchido com nomes, segredos, registros de subornos e dossiês secretos da fronteira de Caedor.",
+      "origin": "Encontrado em um compartimento falso sob o altar de pedra da capela em ruínas.",
+      "properties": "Fornece dossiês confidenciais sobre vassalos, reduzindo a dificuldade de investigações e permitindo ações políticas de intriga.",
+      "locationFound": "Ruínas da capela de Corvopedra",
+      "type": "Tomo de Espionagem & Intriga",
+      "weekFound": 1
+    }
+  ],
+  "advisors": {
+    "counselorName": "Tobin",
+    "stewardName": "Gerold",
+    "spyMasterName": "Roric"
+  },
+  "revealedRegions": [
+    "Central Plains"
+  ],
+  "tribalRelations": [
+    {
+      "tribeName": "Clã das Sombras do Inverno",
+      "leader": "Chefe Morghur",
+      "opinion": "Neutral",
+      "details": "Habitam as montanhas geladas do norte. Comércio ocasional.",
+      "soldiersEstimate": "300 guerreiros"
+    },
+    {
+      "tribeName": "Clã dos Nômades de Ferro",
+      "leader": "Mãe dos Clãs Morna",
+      "opinion": "Friendly",
+      "details": "Amigáveis, apoiam patrulhas conjuntas contra salteadores.",
+      "soldiersEstimate": "150 guerreiros"
+    }
+  ],
+  "councils": [
+    {
+      "name": "Conselho Senhorial de Grey Keep",
+      "nature": "Conselho Administrativo Senhorial (Part 97)",
+      "emergencyFund": 120,
+      "seats": [
+        {
+          "name": "Lord Alric",
+          "role": "Soberano",
+          "disposition": 5,
+          "loyalty": 6
+        },
+        {
+          "name": "Lady Gwyneth",
+          "role": "Chanceler",
+          "disposition": 4,
+          "loyalty": 5
+        },
+        {
+          "name": "Marshal Ren",
+          "role": "Marechal",
+          "disposition": 3,
+          "loyalty": 4
+        }
+      ],
+      "pendingAgendas": [
+        "Aumento dos impostos de inverno para reforçar as paliçadas.",
+        "Arbitragem de disputa de terras pastoris na fronteira de Caedor."
+      ],
+      "rules": [
+        "Quórum de dois terços para decisões fiscais.",
+        "Voto de desempate reservado ao Lorde Soberano."
+      ]
+    },
+    {
+      "name": "Conselho Fluvial dos Rios (River Council)",
+      "nature": "Coalizão das Terras Fluviais (Part 22.3)",
+      "emergencyFund": 88,
+      "seats": [
+        {
+          "name": "Lord Brandon",
+          "role": "Vassalo do Norte",
+          "disposition": 3,
+          "loyalty": 3
+        },
+        {
+          "name": "Elder Morna",
+          "role": "Porta-Voz dos Clãs",
+          "disposition": 4,
+          "loyalty": 5
+        }
+      ],
+      "pendingAgendas": [
+        "Estocar sálvia sagrada para rituais de defumação coletivos contra as nevascas.",
+        "Combater incursores e mercenários sem bandeira nas rotas de neve."
+      ],
+      "rules": [
+        "Decisões por aclamação ou consenso tribal."
+      ]
+    }
+  ],
+  "spyNetwork": {
+    "spymaster": "Ren",
+    "totalAgents": 2,
+    "costPerWeek": 15,
+    "agents": [
+      {
+        "id": "a1",
+        "name": "Kaelen",
+        "codename": "Lobo Cinzento",
+        "status": "Active",
+        "location": "Valenfort",
+        "cover": "Mercador de Peles"
+      },
+      {
+        "id": "a2",
+        "name": "Elysia",
+        "codename": "Sombra do Corvo",
+        "status": "Active",
+        "location": "Northern Snowlands",
+        "cover": "Menestrel Itinerante"
+      }
+    ],
+    "activeIntelligence": [
+      "House Viremont está estocando ferro em segredo perto de Ironridge.",
+      "Rumores dizem que o Mestre dos Sussurros de House Blackmere procura a herdeira oculta de Gwyneth."
+    ]
+  },
+  "equipmentInventory": {
+    "armory": [
+      {
+        "item": "Lanças de Ferro de Batalha",
+        "type": "Weapons",
+        "quality": "Common",
+        "qty": 60,
+        "notes": "Armas padrão da milícia levy."
+      },
+      {
+        "item": "Couraças de Couro Batido",
+        "type": "Armor",
+        "quality": "Common",
+        "qty": 40,
+        "notes": "Proteção leve de patrulha."
+      },
+      {
+        "item": "Escudos Redondos de Carvalho",
+        "type": "Shields",
+        "quality": "Common",
+        "qty": 50,
+        "notes": "Excelente cobertura defensiva."
+      },
+      {
+        "item": "Mantos Pesados de Pele",
+        "type": "Winter Gear",
+        "quality": "High-Grade",
+        "qty": 25,
+        "notes": "Indispensável para sobrevivência no norte."
+      }
+    ],
+    "production": {
+      "spears": {
+        "rate": 2,
+        "resource": "Iron/Timber",
+        "active": true
+      },
+      "cuirasses": {
+        "rate": 1,
+        "resource": "Leather",
+        "active": false
+      }
+    }
+  },
+  "caravanLedger": {
+    "activeCaravans": [
+      {
+        "id": "car1",
+        "name": "Caravana de Ferro de Caedor",
+        "leader": "Barth, o Velho",
+        "guardDetails": "15 Mercenários da Companhia Livre",
+        "status": "A caminho de Valenfort",
+        "weekLaunched": 1
+      }
+    ],
+    "pendingCaravans": []
+  },
+  "eventStore": [
+    {
+      "id": "evt_1_178494155",
+      "sequence": 1,
+      "type": "COMMAND_RESOLVED",
+      "payload": {
+        "commandId": "mock-information-command",
+        "action": "INFORMATION",
+        "status": "ACCEPTED",
+        "reason": "Consulta informativa de regras do Codex Canon. Nenhuma alteração mecânica de saldo foi realizada.",
+        "stateChanges": []
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_1_178494155"
+    },
+    {
+      "id": "evt_2_113819172",
+      "sequence": 2,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 20,
+        "year": 342,
+        "month": "Highsun_1",
+        "week": 4,
+        "season": "Sunreach",
+        "silverdew": 316.5,
+        "food": 24.4
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_2_113819172"
+    },
+    {
+      "id": "evt_3_1138271634",
+      "sequence": 3,
+      "type": "COMMAND_RESOLVED",
+      "payload": {
+        "commandId": "mock-information-command",
+        "action": "INFORMATION",
+        "status": "ACCEPTED",
+        "reason": "Consulta informativa de regras do Codex Canon. Nenhuma alteração mecânica de saldo foi realizada.",
+        "stateChanges": []
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_3_1138271634"
+    },
+    {
+      "id": "evt_4_1996972714",
+      "sequence": 4,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 21,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 331,
+        "food": 37.4
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_4_1996972714"
+    },
+    {
+      "id": "evt_5_834547860",
+      "sequence": 5,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 22,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 2,
+        "season": "Sunreach",
+        "silverdew": 345.5,
+        "food": 51.35
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_5_834547860"
+    },
+    {
+      "id": "evt_6_1013960351",
+      "sequence": 6,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 23,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 3,
+        "season": "Sunreach",
+        "silverdew": 360,
+        "food": 60.76
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_6_1013960351"
+    },
+    {
+      "id": "evt_7_1083919567",
+      "sequence": 7,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 24,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 4,
+        "season": "Sunreach",
+        "silverdew": 374.5,
+        "food": 68.87
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_7_1083919567"
+    },
+    {
+      "id": "evt_8_852141319",
+      "sequence": 8,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 25,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 389,
+        "food": 76
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_8_852141319"
+    },
+    {
+      "id": "evt_9_1873200449",
+      "sequence": 9,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 26,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 2,
+        "season": "Reapingfall",
+        "silverdew": 403.5,
+        "food": 81.35
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_9_1873200449"
+    },
+    {
+      "id": "evt_10_1012210751",
+      "sequence": 10,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 27,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 3,
+        "season": "Reapingfall",
+        "silverdew": 418,
+        "food": 83.26
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_10_1012210751"
+    },
+    {
+      "id": "evt_11_1041054531",
+      "sequence": 11,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 28,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 4,
+        "season": "Reapingfall",
+        "silverdew": 432.5,
+        "food": 86.79
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_11_1041054531"
+    },
+    {
+      "id": "evt_12_1533950279",
+      "sequence": 12,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 29,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 447,
+        "food": 87.34
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_12_1533950279"
+    },
+    {
+      "id": "evt_13_1089623701",
+      "sequence": 13,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 30,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 2,
+        "season": "Reapingfall",
+        "silverdew": 461.5,
+        "food": 89.85
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_13_1089623701"
+    },
+    {
+      "id": "evt_14_961120263",
+      "sequence": 14,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 31,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 3,
+        "season": "Reapingfall",
+        "silverdew": 476,
+        "food": 91.74
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_14_961120263"
+    },
+    {
+      "id": "evt_15_1007738241",
+      "sequence": 15,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 32,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 4,
+        "season": "Reapingfall",
+        "silverdew": 490.5,
+        "food": 93.15
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_15_1007738241"
+    },
+    {
+      "id": "evt_16_1237958919",
+      "sequence": 16,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 33,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 505,
+        "food": 94.21
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_16_1237958919"
+    },
+    {
+      "id": "evt_17_710116046",
+      "sequence": 17,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 34,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 2,
+        "season": "Reapingfall",
+        "silverdew": 519.5,
+        "food": 95.01
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_17_710116046"
+    },
+    {
+      "id": "evt_18_1556105475",
+      "sequence": 18,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 35,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 3,
+        "season": "Reapingfall",
+        "silverdew": 534,
+        "food": 94.56
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_18_1556105475"
+    },
+    {
+      "id": "evt_19_265171425",
+      "sequence": 19,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 36,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 4,
+        "season": "Reapingfall",
+        "silverdew": 548.5,
+        "food": 93.17
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_19_265171425"
+    },
+    {
+      "id": "evt_20_1307406126",
+      "sequence": 20,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 10,
+        "year": 342,
+        "month": "Thawrise",
+        "week": 2,
+        "season": "Thawtide",
+        "silverdew": 314.5,
+        "food": 53.3
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 2,
+      "hash": "evt_20_1307406126"
+    },
+    {
+      "id": "evt_21_1280875156",
+      "sequence": 21,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 11,
+        "year": 342,
+        "month": "Thawrise",
+        "week": 3,
+        "season": "Thawtide",
+        "silverdew": 329,
+        "food": 64.33
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 3,
+      "hash": "evt_21_1280875156"
+    },
+    {
+      "id": "evt_22_987109739",
+      "sequence": 22,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 12,
+        "year": 342,
+        "month": "Thawrise",
+        "week": 4,
+        "season": "Thawtide",
+        "silverdew": 343.5,
+        "food": 70.5
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 4,
+      "hash": "evt_22_987109739"
+    },
+    {
+      "id": "evt_23_1487869999",
+      "sequence": 23,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 13,
+        "year": 342,
+        "month": "Greening",
+        "week": 1,
+        "season": "Thawtide",
+        "silverdew": 358,
+        "food": 76.17
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_23_1487869999"
+    },
+    {
+      "id": "evt_24_1216132223",
+      "sequence": 24,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 17,
+        "year": 342,
+        "month": "Highsun_1",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 372.5,
+        "food": 79.38
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_24_1216132223"
+    },
+    {
+      "id": "evt_25_2113145998",
+      "sequence": 25,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 21,
+        "year": 342,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 387,
+        "food": 81.78
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_25_2113145998"
+    },
+    {
+      "id": "evt_26_999729967",
+      "sequence": 26,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 25,
+        "year": 342,
+        "month": "Harvestfall_1",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 401.5,
+        "food": 85.68
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_26_999729967"
+    },
+    {
+      "id": "evt_27_1408800332",
+      "sequence": 27,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 29,
+        "year": 342,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 416,
+        "food": 88.61
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_27_1408800332"
+    },
+    {
+      "id": "evt_28_2114743156",
+      "sequence": 28,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 33,
+        "year": 342,
+        "month": "Ashfall_1",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 430.5,
+        "food": 89.76
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_28_2114743156"
+    },
+    {
+      "id": "evt_29_826607966",
+      "sequence": 29,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 37,
+        "year": 342,
+        "month": "Ashfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 445,
+        "food": 90.62
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_29_826607966"
+    },
+    {
+      "id": "evt_30_2008672787",
+      "sequence": 30,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 41,
+        "year": 342,
+        "month": "Longdark_1",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 459.5,
+        "food": 81.29
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_30_2008672787"
+    },
+    {
+      "id": "evt_31_1207833771",
+      "sequence": 31,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 45,
+        "year": 342,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 474,
+        "food": 74.29
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_31_1207833771"
+    },
+    {
+      "id": "evt_32_1030304365",
+      "sequence": 32,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 49,
+        "year": 343,
+        "month": "Frostwane",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 488.5,
+        "food": 70.09
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_32_1030304365"
+    },
+    {
+      "id": "evt_33_926335707",
+      "sequence": 33,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 503,
+        "food": 75.87
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_33_926335707"
+    },
+    {
+      "id": "evt_34_2017035077",
+      "sequence": 34,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 517.5,
+        "food": 81.25
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_34_2017035077"
+    },
+    {
+      "id": "evt_35_1924615635",
+      "sequence": 35,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 532,
+        "food": 83.19
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_35_1924615635"
+    },
+    {
+      "id": "evt_36_1395064249",
+      "sequence": 36,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 546.5,
+        "food": 84.64
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_36_1395064249"
+    },
+    {
+      "id": "evt_37_2120527045",
+      "sequence": 37,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 561,
+        "food": 85.73
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_37_2120527045"
+    },
+    {
+      "id": "evt_38_1014915618",
+      "sequence": 38,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 575.5,
+        "food": 87.6
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_38_1014915618"
+    },
+    {
+      "id": "evt_39_335571351",
+      "sequence": 39,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 590,
+        "food": 87.95
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_39_335571351"
+    },
+    {
+      "id": "evt_40_1884981004",
+      "sequence": 40,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 604.5,
+        "food": 90.31
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_40_1884981004"
+    },
+    {
+      "id": "evt_41_1048600303",
+      "sequence": 41,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 619,
+        "food": 89.98
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_41_1048600303"
+    },
+    {
+      "id": "evt_42_173959726",
+      "sequence": 42,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 633.5,
+        "food": 89.73
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_42_173959726"
+    },
+    {
+      "id": "evt_43_492601078",
+      "sequence": 43,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 648,
+        "food": 89.55
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_43_492601078"
+    },
+    {
+      "id": "evt_44_1857773468",
+      "sequence": 44,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 662.5,
+        "food": 90.46
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_44_1857773468"
+    },
+    {
+      "id": "evt_45_652903733",
+      "sequence": 45,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 69,
+        "year": 343,
+        "month": "Highsun_2",
+        "week": 1,
+        "season": "Sunreach",
+        "silverdew": 677,
+        "food": 90.1
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_45_652903733"
+    },
+    {
+      "id": "evt_46_1163318474",
+      "sequence": 46,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 691.5,
+        "food": 89.83
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_46_1163318474"
+    },
+    {
+      "id": "evt_47_1924713071",
+      "sequence": 47,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 706,
+        "food": 90.67
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_47_1924713071"
+    },
+    {
+      "id": "evt_48_1006912432",
+      "sequence": 48,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 720.5,
+        "food": 92.35
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_48_1006912432"
+    },
+    {
+      "id": "evt_49_1493854931",
+      "sequence": 49,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 735,
+        "food": 91.51
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_49_1493854931"
+    },
+    {
+      "id": "evt_50_273245842",
+      "sequence": 50,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 749.5,
+        "food": 90.88
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_50_273245842"
+    },
+    {
+      "id": "evt_51_612551612",
+      "sequence": 51,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 764,
+        "food": 90.41
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_51_612551612"
+    },
+    {
+      "id": "evt_52_1493858310",
+      "sequence": 52,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 778.5,
+        "food": 90.06
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_52_1493858310"
+    },
+    {
+      "id": "evt_53_723816953",
+      "sequence": 53,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 793,
+        "food": 89.79
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_53_723816953"
+    },
+    {
+      "id": "evt_54_231235387",
+      "sequence": 54,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 807.5,
+        "food": 89.59
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_54_231235387"
+    },
+    {
+      "id": "evt_55_1294922222",
+      "sequence": 55,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 822,
+        "food": 89.44
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_55_1294922222"
+    },
+    {
+      "id": "evt_56_278409379",
+      "sequence": 56,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 836.5,
+        "food": 89.33
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_56_278409379"
+    },
+    {
+      "id": "evt_57_2036350131",
+      "sequence": 57,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 851,
+        "food": 89.25
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_57_2036350131"
+    },
+    {
+      "id": "evt_58_760938483",
+      "sequence": 58,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 77,
+        "year": 343,
+        "month": "Harvestfall_2",
+        "week": 1,
+        "season": "Reapingfall",
+        "silverdew": 865.5,
+        "food": 89.19
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_58_760938483"
+    },
+    {
+      "id": "evt_59_1991427808",
+      "sequence": 59,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 880,
+        "food": 83.89
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_59_1991427808"
+    },
+    {
+      "id": "evt_60_836764611",
+      "sequence": 60,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 894.5,
+        "food": 79.92
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_60_836764611"
+    },
+    {
+      "id": "evt_61_1433241019",
+      "sequence": 61,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 909,
+        "food": 76.94
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_61_1433241019"
+    },
+    {
+      "id": "evt_62_1703005693",
+      "sequence": 62,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 923.5,
+        "food": 74.7
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_62_1703005693"
+    },
+    {
+      "id": "evt_63_2014435115",
+      "sequence": 63,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 938,
+        "food": 73.02
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_63_2014435115"
+    },
+    {
+      "id": "evt_64_349233811",
+      "sequence": 64,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 952.5,
+        "food": 71.77
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_64_349233811"
+    },
+    {
+      "id": "evt_65_1393702419",
+      "sequence": 65,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 967,
+        "food": 70.83
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_65_1393702419"
+    },
+    {
+      "id": "evt_66_788182389",
+      "sequence": 66,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 981.5,
+        "food": 70.12
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_66_788182389"
+    },
+    {
+      "id": "evt_67_1506038734",
+      "sequence": 67,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 996,
+        "food": 69.59
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_67_1506038734"
+    },
+    {
+      "id": "evt_68_1085434522",
+      "sequence": 68,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 1010.5,
+        "food": 69.19
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_68_1085434522"
+    },
+    {
+      "id": "evt_69_728885694",
+      "sequence": 69,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 1025,
+        "food": 68.89
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_69_728885694"
+    },
+    {
+      "id": "evt_70_1373344574",
+      "sequence": 70,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 1039.5,
+        "food": 68.67
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_70_1373344574"
+    },
+    {
+      "id": "evt_71_1729398671",
+      "sequence": 71,
+      "type": "WEEKLY_TURN_RESOLVED",
+      "payload": {
+        "turn": 93,
+        "year": 343,
+        "month": "Longdark_2",
+        "week": 1,
+        "season": "Deepfrost",
+        "silverdew": 1054,
+        "food": 68.5
+      },
+      "timestamp": "1970-01-01T00:00:00Z",
+      "week": 1,
+      "hash": "evt_71_1729398671"
+    }
+  ]
+}

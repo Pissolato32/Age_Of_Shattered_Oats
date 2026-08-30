@@ -1,0 +1,143 @@
+# 🎭 TEMPLATE DE PERSONAGEM — Age of Shattered Oaths
+# Schema: CharacterSchema.ts (Zod)
+# Uso: copie o bloco do tipo desejado para PERSONAGENS/[nome].yaml
+#       e preencha todos os campos. Use "—" se o campo não se aplicar.
+#       Campos ausentes são tolerados pelo schema, mas a engine usa defaults.
+
+# --- PLAYER CHARACTER (G.1) ---
+meta_header: '## 🏰 G.1 — PLAYER CHARACTER — [NOME]'
+sheet_type: PLAYER CHARACTER
+fields:
+  name: '[Nome completo]'
+  age: 'X'
+  gender: 'Masculino'
+  house: '[Casa Nobre]'
+  title: '[Título]'
+  archetype_ruler: true
+  archetype_landless: false
+  archetype_artificer: false
+  location: '[Região — Local]'
+  helmet: '[Tipo ou Nenhum]'
+  cape_cloak: '[Descrição]'
+  armor_finish: '[Polida/Simples]'
+  chest_decoration: '[Brasão]'
+  pauldron_shape: '[Formato]'
+  weapon_details: '[Descrição da arma]'
+  distinctive_features: '[Cicatrizes, marcas]'
+  commander_tier: 1
+  banner_tier: 1
+  ac: 6
+  initiative: 0
+  weapon: '[Arma — dados]'
+  shield: '[Tipo ou Nenhum]'
+  mount: '[Montaria — qualidade]'
+  weapon_quality: 'Common'
+  armor_quality: 'Common'
+  shield_quality: 'Common'
+  mount_quality: 'Common'
+  loyalty: 6
+  temperament: 'Disciplinado'
+  priority: 'Vitória'
+  fear: '[Gatilho]'
+  reputation: 0
+  known_for: '[Descrição]'
+  nicknames: '[Apelidos]'
+  lineage_notes: '[Notas de linhagem]'
+
+# --- NOBLE HOUSE (G.5) ---
+meta_header: '## 👑 G.5 — NOBLE HOUSE — [NOME]'
+sheet_type: NOBLE HOUSE
+fields:
+  name: '[Nome]'
+  age: 'X'
+  gender: 'Masculino'
+  status: true
+  location: '[Localização]'
+  house: '[Casa]'
+  seat: '[Sede]'
+  liege: '[Suserano]'
+  title: '[Cargo]'
+  personal_wealth: 0
+  personal_gear: '—'
+  health: '—'
+  ambition: '[Objetivo]'
+  flaw: '[Defeito]'
+  commander_tier: 0
+  loyalty: 3
+  temperament: 'Disciplinado'
+  priority: 'Sobrevivência'
+  fear: '—'
+
+# --- COMMANDER (Parte 33) ---
+meta_header: '## ⚔️ PARTE 33 — COMMANDER — [NOME]'
+sheet_type: COMMANDER
+fields:
+  name: '[Nome]'
+  age: 'X-Y'
+  gender: '—'
+  status: true
+  location: '[Localização]'
+  rank_role: '[Cargo]'
+  personal_wealth: 0
+  personal_gear: false
+  health: '—'
+  ambition: '[Objetivo]'
+  flaw: '[Defeito]'
+  commander_tier: 2
+  loyalty: 6
+  temperament: 'Disciplinado'
+  priority: 'Ordens'
+  fear: '[Gatilho]'
+  ac: 4
+  initiative: 0
+  weapon: '[Arma]'
+  shield: '[Escudo]'
+  mount: '[Montaria]'
+  weapon_quality: 'Common'
+  armor_quality: 'Common'
+  shield_quality: 'Common'
+  mount_quality: 'Common'
+
+# --- SMITH (Parte 7.18) ---
+meta_header: '## ⚒️ PARTE 7.18 — SMITH — [NOME]'
+sheet_type: SMITH
+fields:
+  name: '[Nome]'
+  age: 'X-Y'
+  status: true
+  location: '[Forja/Local]'
+  craft_specialty: '[Especialidade]'
+  workshop_tier: 1
+  apprentices: 0
+  personal_wealth: 0
+
+# --- RECRUIT (Parte 40) ---
+meta_header: '## 🗡️ PARTE 40 — RECRUIT — [NOME]'
+sheet_type: RECRUIT
+fields:
+  name: '[Nome]'
+  age: 'X-Y'
+  status: true
+  location: '[Guarnição/Local]'
+  potential_specialty: '[Especialidade futura]'
+  recruitment_status: 'Treinando'
+  commander_tier: 0
+  loyalty: 4
+  temperament: 'Disciplinado'
+  priority: 'Ordens'
+  weapon: 'Lança de treino (1d4)'
+  ac: 2
+
+# --- NPC RECORD ---
+meta_header: '## 📄 NPC RECORD — [NOME]'
+sheet_type: NPC RECORD
+fields:
+  name: '[Nome]'
+  age: 'X-Y'
+  gender: '—'
+  status: true
+  location: '[Localização]'
+  role_occupation: '[Função]'
+  health: '—'
+  ambition: '—'
+  notes: '[Informações contextuais]'

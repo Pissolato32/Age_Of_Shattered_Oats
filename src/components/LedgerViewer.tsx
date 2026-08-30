@@ -11,7 +11,7 @@ export function LedgerViewer({ state, onClose }: LedgerViewerProps) {
   const [tab, setTab] = useState<'character' | 'finances' | 'military' | 'holdings' | 'world' | 'villages' | 'councils' | 'spyCommerce' | 'militaryInventory' | 'artifacts'>('character');
 
   return (
-    <div className="fixed inset-0 bg-[#0D0D0E]/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-mono select-none">
+    <div className="fixed inset-0 bg-[#0D0D0E]/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 font-mono">
       <div className="bg-[#0F0F12] border-2 border-[#2D2D30] max-w-5xl w-full h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up">
         
         {/* Header */}

@@ -1,82 +1,82 @@
 [
   {
     "tick": 1000,
-    "hash": "825274dbdb3ea19a2684908df5bbad2c330c507d25495743c9fbc73d7f288b19",
-    "silverdew": 84800,
-    "food": 13010,
+    "hash": "0da1dcac2ef9de4499ec83a4c2e2268d2eed8ed282f5a7d27c8f62ccf9134c46",
+    "silverdew": 8339,
+    "food": 68.5,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.168Z"
+    "timestamp": "2026-08-30T01:58:26.426Z"
   },
   {
     "tick": 2000,
-    "hash": "e25722c2420b5d6ed8befc304d8cf4f856e073927a0b141574f2973a9919540f",
-    "silverdew": 169300,
-    "food": 26010,
+    "hash": "90b3bed4d51419c4f76b66278a3b2dcfff56c2ede5bd739feba8ddb60d1db458",
+    "silverdew": 10335,
+    "food": 72.98,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.272Z"
+    "timestamp": "2026-08-30T01:58:31.873Z"
   },
   {
     "tick": 3000,
-    "hash": "1effd34a0fc4b685b796cb32654a167e8e0259e688f590923f373e2c841f651b",
-    "silverdew": 253800,
-    "food": 39010,
+    "hash": "2bbdade8a5c1157275f4bfe2ad1bf754867425926b851938a8928f1ebfad9c1c",
+    "silverdew": 10489,
+    "food": 88.98,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.373Z"
+    "timestamp": "2026-08-30T01:58:40.747Z"
   },
   {
     "tick": 4000,
-    "hash": "e70d7b429bf154138cf3e247624d61b533c8916d872a9c823840f460e5629fa5",
-    "silverdew": 338300,
-    "food": 52010,
+    "hash": "e6fa30a3decf3c39a4740b51e6f6d1a45ae3beee5616fe74c103cb5df97d0873",
+    "silverdew": 10420,
+    "food": 88.94,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.473Z"
+    "timestamp": "2026-08-30T01:58:52.686Z"
   },
   {
     "tick": 5000,
-    "hash": "78b41474738e092f5bafa149efee5c8e97ff696fe03432e886c4fcc948eabf5b",
-    "silverdew": 422800,
-    "food": 65010,
+    "hash": "3b6bde496711bd36c59695d84e0826650d3c3fbb2efec2af1e65d1a97047510d",
+    "silverdew": 10309,
+    "food": 88.5,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.574Z"
+    "timestamp": "2026-08-30T01:59:08.417Z"
   },
   {
     "tick": 6000,
-    "hash": "36130722ced19fe4d9d03db5e2ede0d13eb3d461300c48a187026884cff61d40",
-    "silverdew": 507300,
-    "food": 78010,
+    "hash": "8a5b19c1d22355d50d20f53d607c00197724a959e36d78d4f668ec45405a7e45",
+    "silverdew": 10193,
+    "food": 84.06,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.677Z"
+    "timestamp": "2026-08-30T01:59:27.280Z"
   },
   {
     "tick": 7000,
-    "hash": "d3a7a2dd9655e4ecbc41f15357df4aafcde8e5ae60255425a77732b1b08f3a9d",
-    "silverdew": 591800,
-    "food": 91010,
+    "hash": "e9886c034e473441881c5ee52d9f97be11aafb5c729dbab2c5269e91a2318788",
+    "silverdew": 10077,
+    "food": 68.5,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.777Z"
+    "timestamp": "2026-08-30T01:59:49.361Z"
   },
   {
     "tick": 8000,
-    "hash": "9d65bd84faaa5a268fe86b079bd64bc7c0adbd85c0c1237be2f70a63ded80284",
-    "silverdew": 676300,
-    "food": 104010,
+    "hash": "cdd531cc12a997732d4f6030b95c1a3e20028a28b678438b6ebebd764a18ef15",
+    "silverdew": 10657,
+    "food": 72.98,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.878Z"
+    "timestamp": "2026-08-30T02:00:15.088Z"
   },
   {
     "tick": 9000,
-    "hash": "d9f25e4afd0cab19e1cf16ac3921f1ad60a9207eeb9d781c3961e5bfa4df8c60",
-    "silverdew": 760800,
-    "food": 117010,
+    "hash": "807dfb3019f58ae37c29b7aadba48467feb9fefd2ac6ebf2aa56504990c5d4ce",
+    "silverdew": 10541,
+    "food": 88.98,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:07.978Z"
+    "timestamp": "2026-08-30T02:00:45.783Z"
   },
   {
     "tick": 10000,
-    "hash": "33b803a5f20c58b149c8790a97b809eed07e5c79034afcf3e3aea3f2c3fba19f",
-    "silverdew": 845300,
-    "food": 130010,
+    "hash": "1308ece74b9325da6a2fcfe3a6e7bd4f0291c782e2a295e276257b128a5db6f9",
+    "silverdew": 10425,
+    "food": 88.94,
     "armySize": 60,
-    "timestamp": "2026-08-20T00:21:08.079Z"
+    "timestamp": "2026-08-30T02:01:20.321Z"
   }
 ]

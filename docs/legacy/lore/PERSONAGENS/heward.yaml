@@ -1,0 +1,12 @@
+meta_header: '## 🔧 NPC — HEWARD, O VELHO (FERREIRO DE FALCOA)'
+sheet_type: NPC RECORD
+fields:
+  name: 'Heward, o Velho'
+  age: ~70
+  gender: Masculino
+  status: true
+  location: Falcoa (Vale do Rio Velrin)
+  role_occupation: Ferreiro / Guardião da segunda chave do baú de Fenrir
+  health: Idoso, mas lúcido
+  ambition: Passar o fardo da chave antes de morrer
+  flaw: Lealdade ao juramento antigo — não entrega a chave a qualquer um

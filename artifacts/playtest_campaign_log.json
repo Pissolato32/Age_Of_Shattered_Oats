@@ -1,0 +1,61 @@
+[
+  {
+    "turn": 1,
+    "date": "Greening, Ano 342, Semana 1",
+    "playerInput": "Roric, envie uma patrulha de batedores para investigar os rastros ao norte. Não quero confronto; quero apenas descobrir quem está operando na região.",
+    "commandExecuted": "PLAUSIBLE_UNMODELED",
+    "engineOutcome": "CRITICAL_FAILURE",
+    "magnitude": 5,
+    "stateChanges": [
+      {
+        "path": "weeklyLedger.silverdew",
+        "delta": -5
+      }
+    ],
+    "weeklyFinancials": {
+      "income": 75,
+      "holdingMaintenance": 70,
+      "garrisonCost": 4,
+      "netSilverdew": 1,
+      "finalSilverdew": 295,
+      "finalFood": 40
+    },
+    "narrativeSummary": "Um dos cavalos tropeçou nas pedras soltas da ravina e o destacamento foi forçado a recuar após avistar sentinelas armadas no topo da colina."
+  },
+  {
+    "turn": 1,
+    "date": "Greening, Ano 342, Semana 1",
+    "playerInput": "Tobin, envie uma mensagem formal ao Barão Valerius de Ironpeak. Quero saber se aquelas sentinelas pertencem à Casa Ironhand, mas não quero ameaçá-los nem oferecer dinheiro.",
+    "commandExecuted": "PLAUSIBLE_UNMODELED",
+    "engineOutcome": "SUCCESS",
+    "magnitude": 1,
+    "stateChanges": [],
+    "weeklyFinancials": {
+      "income": 75,
+      "holdingMaintenance": 70,
+      "garrisonCost": 4,
+      "netSilverdew": 1,
+      "finalSilverdew": 295,
+      "finalFood": 40
+    },
+    "narrativeSummary": "Roric instruiu três cavaleiros ligeiros a cruzar a vau do rio sob o manto da névoa matinal. Ao entardecer, os batedores retornaram com capas encharcadas e marcas de cascos frescos: eram patrulhas avançadas de Ironpeak sondando a densidade da mata, sem intenção de cerco imediato. Nos pátios de Raven's Watch, o trabalho seguiu sob o peso habitual dos deveres da fortaleza."
+  },
+  {
+    "turn": 1,
+    "date": "Greening, Ano 342, Semana 1",
+    "playerInput": "Gerold, venda 10 sacas de grãos aos mercadores da caravana de sal e ferro.",
+    "commandExecuted": "PLAUSIBLE_UNMODELED",
+    "engineOutcome": "SUCCESS",
+    "magnitude": 1,
+    "stateChanges": [],
+    "weeklyFinancials": {
+      "income": 75,
+      "holdingMaintenance": 70,
+      "garrisonCost": 4,
+      "netSilverdew": 1,
+      "finalSilverdew": 320,
+      "finalFood": 40
+    },
+    "narrativeSummary": "Roric instruiu três cavaleiros ligeiros a cruzar a vau do rio sob o manto da névoa matinal. Ao entardecer, os batedores retornaram com capas encharcadas e marcas de cascos frescos: eram patrulhas avançadas de Ironpeak sondando a densidade da mata, sem intenção de cerco imediato. Nos pátios de Raven's Watch, o trabalho seguiu sob o peso habitual dos deveres da fortaleza."
+  }
+]

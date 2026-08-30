@@ -1,0 +1,15 @@
+meta_header: '## ⛓️ NPC — HANK, O VERMELHO (PRESO)'
+sheet_type: NPC RECORD
+fields:
+  name: Hank, o Vermelho
+  age: ~35
+  gender: Masculino
+  status: false
+  location: Masmorras de Valenfort
+  role_occupation: Mercenário / Capanga
+  health: Preso
+  ambition: —
+  notes: >
+    Capturado em Bronzeford. Confessou ter sido contratado pelo mesmo homem de
+    capa (cicatriz no queixo, sotaque leste) que pagou Berto. Preso à espera de
+    julgamento de Isolda Vance.

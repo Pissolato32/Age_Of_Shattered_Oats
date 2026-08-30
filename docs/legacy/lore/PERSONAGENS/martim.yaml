@@ -1,0 +1,11 @@
+meta_header: '## 🧑‍🌾 NPC MENOR — MARTIM (Falcoa)'
+sheet_type: NPC RECORD
+fields:
+  name: Martim
+  age: 40-50
+  gender: —
+  status: true
+  location: Falcoa (2 dias ao sul de Valenfort)
+  roleoccupation: —
+  health: —
+  ambition: —

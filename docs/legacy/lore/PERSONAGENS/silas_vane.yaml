@@ -1,0 +1,12 @@
+meta_header: '## 🏃 NPC — SILAS VANE (FORAGIDO)'
+sheet_type: NPC RECORD
+fields:
+  name: Silas Vane
+  age: ~60
+  gender: Masculino
+  status: true
+  location: Foragido — destino desconhecido
+  role_occupation: Ourives da Capital / Mentor de Dorian Voss
+  health: Foragido
+  ambition: Escapar da justiça e proteger os segredos da guilda
+  flaw: Ganância — subestima seus inimigos

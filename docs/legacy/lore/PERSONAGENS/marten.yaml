@@ -1,0 +1,11 @@
+meta_header: '## 🧑‍🌾 NPC MENOR — MARTEN (Falcoa)'
+sheet_type: NPC RECORD
+fields:
+  name: Marten
+  age: 14-18
+  gender: —
+  status: true
+  location: Falcoa (2 dias ao sul de Valenfort)
+  roleoccupation: —
+  health: —
+  ambition: —

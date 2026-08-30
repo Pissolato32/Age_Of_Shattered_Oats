@@ -1,0 +1,24 @@
+meta_header: "## 🤝 G.5 — NOBLE HOUSE — LORD THERON ASHFORD"
+sheet_type: NOBLE HOUSE
+fields:
+  house: Ashford
+  tier: 2
+  seat: Ashford
+  liege: —
+  name: Lord Theron Ashford
+  age: 32
+  gender: Male
+  status: true
+  location: Ashford
+  personal_wealth: ~200 SD
+  personal_gear: false
+  health: Saudável (em luto pelo pai)
+  ambition: Consolidar o legado do pai e restaurar a posição de Ashford no Conselho da Passagem
+  flaw: Indeciso — hesita entre honrar a memória do pai e tomar decisões impopulares
+  notes: >
+    Filho mais velho do falecido Lord Marsten Ashford. Herdou após a morte do pai
+    (causa não divulgada). Um irmão mais novo contestou a sucessão brevemente —
+    Valenfort enviou condolências + 50 SD e um lembrete: "guerra entre irmãos
+    não é o caminho". Theron acalmou a disputa e está consolidando o governo.
+    Os 10 cavaleiros de Ashford no Posto Sul operam sob ordens deixadas pelo
+    pai antes de morrer; Theron mantém o destacamento.

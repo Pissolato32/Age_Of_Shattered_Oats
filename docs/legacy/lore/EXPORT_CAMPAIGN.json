@@ -1,0 +1,3805 @@
+{
+  "meta": {
+    "version": 5,
+    "lastUpdated": "Highsun 7, Ano 345",
+    "campaign": "Age of Shattered Oaths",
+    "player": "Sir Rodrigo de Valenfort",
+    "ssotSource": "YAML characters + Markdown ledgers",
+    "validatorErrors": 0,
+    "validatorWarnings": 4,
+    "appendixGReference": "CAMPANHA/APPENDIX_G.md — 69 ledger templates (G.1-G.69)"
+  },
+  "executiveBrief": {
+    "date": "Highsun 7, Ano 345",
+    "season": "Verão (Highsun)",
+    "weather": "Clear, cool",
+    "location": "Valenfort (Passagem Cinzenta, Montanhas do Sul)",
+    "treasury": {
+      "SD": 10073,
+      "FSU": 12
+    },
+    "materials": {
+      "timber": 10,
+      "iron": 40,
+      "stone": 45,
+      "grain": 30,
+      "leather": 15,
+      "salt": 8,
+      "tar": 5,
+      "rope": 8,
+      "nails": 25,
+      "charcoal": 25,
+      "lenha": 60,
+      "peles": 12,
+      "ferramentas": 75,
+      "herbs": 5,
+      "medicine": 2
+    },
+    "population": 7500,
+    "laborPool": 3000,
+    "armySummary": {
+      "garrison": 195,
+      "fieldArmy": 100,
+      "militia": 80,
+      "levyPool": 300,
+      "totalUnderCommand": 315
+    },
+    "tier": "4 → 5 (City, em transição)",
+    "incomePerWeek": 447,
+    "expensesPerWeek": 97,
+    "netWeekly": 350,
+    "foodProductionPerWeek": 11,
+    "foodConsumptionPerWeek": 7,
+    "newDistrictCompletion": "4-9 dias restantes",
+    "notableRecentEvents": [
+      {
+        "date": "Greening 16",
+        "event": "Retorno do Pico do Firmamento — Coroa de Pedra, Martelo de Prata, Códice Metálico recuperados. Elyra descobre linhagem Stormcrown."
+      },
+      {
+        "date": "Greening 16 (tarde)",
+        "event": "Lei do Asilo + Novo Distrito (400 SD, 20T, 20S). Refugiados começam a chegar."
+      },
+      {
+        "date": "Greening 30",
+        "event": "Elara informada sobre Elyra. Currais concluídos, Fazenda em Terraços operacional."
+      },
+      {
+        "date": "Highsun 7",
+        "event": "Resposta da Capital: Mestre Solon queimou registros de Elyra. Chanceler Vance alerta: espiões investigam expedição."
+      }
+    ]
+  },
+  "character": {
+    "name": "Sir Rodrigo de Valenfort",
+    "house": "Valenfort",
+    "age": 37,
+    "gender": "Masculino",
+    "archetype": "Noble Ruler",
+    "title": "O Restaurador / Guardião da Passagem",
+    "location": "Valenfort (Passagem Cinzenta, Montanhas do Sul)",
+    "banner": {
+      "colors": "Green and grey",
+      "symbol": "Grey wolf (Lobo cinzento)",
+      "motto": "A Passagem Sobrevive"
+    },
+    "personalAppearance": {
+      "helmet": "Nenhum (rosto descoberto)",
+      "capeCloak": "—",
+      "armorFinish": "Polida, sem arabescos — funcional, marcas de batalha",
+      "chestDecoration": "Brasão Casa Valenfort (lobo cinzento)",
+      "pauldronShape": "Redondas, aço simples",
+      "weaponDetails": "\"Fidelis\" — espada longa de lâmina larga, punho envolto",
+      "distinctiveFeatures": "Cicatriz no antebraço direito, postura ereta"
+    },
+    "stats": {
+      "commanderTier": 4,
+      "bannerTier": 3,
+      "ac": 6,
+      "initiativeBonus": 0,
+      "weapon": "Martelo de Prata do Sol Negro (Legendary — 3d6)",
+      "shield": "None (two-handed sword combat)",
+      "mount": "Warhorse Brasa (Superior)",
+      "weaponQuality": "Superb",
+      "armorQuality": "High-Grade",
+      "shieldQuality": "None",
+      "mountQuality": "Superb"
+    },
+    "reputation": 8,
+    "knownFor": "Recuperou a Coroa de Pedra no Pico do Firmamento; unificou a Passagem Cinzenta sob o Conselho Regional",
+    "nicknames": [
+      {
+        "name": "O Restaurador",
+        "earned": "Recuperou a Coroa de Pedra no Pico do Firmamento",
+        "date": "Greening 9, Ano 345",
+        "effect": "+1 opinião com casas do Norte"
+      },
+      {
+        "name": "Guardião da Passagem",
+        "earned": "Unificou a Passagem Cinzenta sob o Conselho Regional",
+        "date": "Frostwane 17, Ano 345",
+        "effect": "+2 lealdade dos comandantes"
+      }
+    ],
+    "lineage": "Descendente de Fenrir (ramo cadete de Orm) por linha materna. Primo de Elyra Stormcrown.",
+    "temperament": "Disciplinado",
+    "priority": "Vitória",
+    "fear": "Desonra",
+    "backstory": "Lorde de Valenfort após a queda pela traição de Blackmoor. Reconstruiu o feudo, recuperou a Coroa de Pedra no Pico do Firmamento e unificou a Passagem Cinzenta."
+  },
+  "characters": {
+    "roster": [
+      {
+        "ref": "rodrigo",
+        "name": "Sir Rodrigo de Valenfort",
+        "type": "Player Character",
+        "tier": 4,
+        "loyalty": null,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "elyra",
+        "name": "Elyra Stormcrown",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": 6,
+        "location": "Torre Leste (como Valéria)",
+        "status": true
+      },
+      {
+        "ref": "elara",
+        "name": "Elara Thornwall",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": 6,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "seren",
+        "name": "Lady Seren",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": 4,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "aldren",
+        "name": "Aldren",
+        "type": "Commander",
+        "tier": 4,
+        "loyalty": 6,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "gerold",
+        "name": "Gerold",
+        "type": "Commander",
+        "tier": 2,
+        "loyalty": 6,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "roric",
+        "name": "Roric",
+        "type": "Commander",
+        "tier": 2,
+        "loyalty": 6,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "garrick",
+        "name": "Garrick",
+        "type": "Commander",
+        "tier": 3,
+        "loyalty": 5,
+        "location": "Valenfort / Vigília Cega",
+        "status": true
+      },
+      {
+        "ref": "roderick",
+        "name": "Sgt. Roderick",
+        "type": "Commander",
+        "tier": 2,
+        "loyalty": null,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "mira",
+        "name": "Mira",
+        "type": "Commander",
+        "tier": 2,
+        "loyalty": null,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "sorrel",
+        "name": "Sir Sorrel",
+        "type": "Commander",
+        "tier": 3,
+        "loyalty": 5,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "tobin",
+        "name": "Tobin",
+        "type": "Commander",
+        "tier": 2,
+        "loyalty": null,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "baldur",
+        "name": "Baldur",
+        "type": "Smith",
+        "tier": null,
+        "loyalty": null,
+        "location": "Fortaleza Subterrânea Fenrir",
+        "status": true
+      },
+      {
+        "ref": "alard",
+        "name": "Mestre Alard",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": "Valenfort (Hospital)",
+        "status": true
+      },
+      {
+        "ref": "orin",
+        "name": "Orin o Construtor",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": "Valenfort",
+        "status": true
+      },
+      {
+        "ref": "finn",
+        "name": "Finn",
+        "type": "NPC Aprendiz",
+        "tier": null,
+        "loyalty": null,
+        "location": "Forja Valenfort",
+        "status": true
+      },
+      {
+        "ref": "corin",
+        "name": "Corin",
+        "type": "NPC Recruta",
+        "tier": null,
+        "loyalty": null,
+        "location": "Valenfort (sob vigilância)",
+        "status": true
+      },
+      {
+        "ref": "martim",
+        "name": "Martim",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": null,
+        "status": true
+      },
+      {
+        "ref": "tobias",
+        "name": "Tobias",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": "Capital",
+        "status": true
+      },
+      {
+        "ref": "orfan",
+        "name": "Orlan",
+        "type": "NPC Preso",
+        "tier": null,
+        "loyalty": null,
+        "location": "Preso",
+        "status": false
+      },
+      {
+        "ref": "lyra",
+        "name": "Lyra de Valenfort",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": "Valenfort",
+        "status": true,
+        "note": "Filha de Rodrigo e Elara, ~3 meses (n. Deepfrost 28)"
+      },
+      {
+        "ref": "orin_gray",
+        "name": "Orin Gray",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": "Três Pontas",
+        "status": true
+      },
+      {
+        "ref": "harvel",
+        "name": "Lorde Harvel",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": null,
+        "status": true
+      },
+      {
+        "ref": "aldric",
+        "name": "Lorde Aldric",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": null,
+        "status": true
+      },
+      {
+        "ref": "edmundo_vance",
+        "name": "Chanceler Edmundo Vance",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": "Capital",
+        "status": true
+      },
+      {
+        "ref": "isadora",
+        "name": "Rainha-Mãe Isadora",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": "Capital",
+        "status": true
+      },
+      {
+        "ref": "isolda_vance",
+        "name": "Juíza Isolda Vance",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": "Três Pontas",
+        "status": true
+      },
+      {
+        "ref": "kaelen_thorn",
+        "name": "Dama Kaelen Thorn",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": "A caminho (atrasada — verão)",
+        "status": true
+      },
+      {
+        "ref": "solon",
+        "name": "Mestre Solon",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": "Alveria",
+        "status": true
+      },
+      {
+        "ref": "elowen_stonebrook",
+        "name": "Lady Elowen Stonebrook",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": "Stonebrook (reconstrução)",
+        "status": true
+      },
+      {
+        "ref": "theron_ashford",
+        "name": "Lord Theron Ashford",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": "Ashford (luto)",
+        "status": true
+      },
+      {
+        "ref": "dorian_voss",
+        "name": "Dorian Voss",
+        "type": "Antagonista",
+        "tier": null,
+        "loyalty": null,
+        "location": "Alveria (foragido)",
+        "status": true
+      },
+      {
+        "ref": "silas_vane",
+        "name": "Silas Vane",
+        "type": "Antagonista",
+        "tier": null,
+        "loyalty": null,
+        "location": "Capital (foragido)",
+        "status": true
+      },
+      {
+        "ref": "caspian_vance",
+        "name": "Caspian Vance",
+        "type": "Preso",
+        "tier": null,
+        "loyalty": null,
+        "location": "Capital (preso)",
+        "status": false
+      },
+      {
+        "ref": "tybalt_orm",
+        "name": "Lorde Tybalt Orm",
+        "type": "Preso",
+        "tier": null,
+        "loyalty": null,
+        "location": "Capital (preso — alta traição)",
+        "status": false
+      },
+      {
+        "ref": "alberico",
+        "name": "Alberico",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": "Pedreira Valenfort (pena quase finda)",
+        "status": true
+      },
+      {
+        "ref": "blackmoor",
+        "name": "Eldric de Blackmoor",
+        "type": "G.5 Noble House",
+        "tier": 4,
+        "loyalty": null,
+        "location": "Morto (executado Thawrise 19)",
+        "status": false
+      },
+      {
+        "ref": "corvo",
+        "name": "\"Corvo\"",
+        "type": "Antagonista",
+        "tier": null,
+        "loyalty": null,
+        "location": "Morto (Forte Vigília Cega)",
+        "status": false
+      },
+      {
+        "ref": "heward",
+        "name": "Heward, o Velho",
+        "type": "NPC",
+        "tier": null,
+        "loyalty": null,
+        "location": "Falcoa",
+        "status": true
+      },
+      {
+        "ref": "valeria_fenrir",
+        "name": "Valéria Fenrir",
+        "type": "Historical",
+        "tier": null,
+        "loyalty": null,
+        "location": "Falecida",
+        "status": false,
+        "note": "Mãe de Elyra Stormcrown"
+      },
+      {
+        "ref": "antigo_rei",
+        "name": "Último Rei (Stormcrown)",
+        "type": "Historical",
+        "tier": null,
+        "loyalty": null,
+        "location": "Falecido",
+        "status": false
+      },
+      {
+        "ref": "kostas",
+        "name": "Kostas de Alveria",
+        "type": "Trade Partner",
+        "tier": null,
+        "loyalty": null,
+        "location": "Alveria Velha",
+        "status": true
+      },
+      {
+        "ref": "aldus",
+        "name": "Aldus",
+        "type": "G.5 Noble House",
+        "tier": null,
+        "loyalty": null,
+        "location": "Bronzeford",
+        "status": true
+      }
+    ]
+  },
+  "weeklyLedger": {
+    "week": 1,
+    "month": "Highsun",
+    "year": 345,
+    "season": "Highsun",
+    "weather": "Clear, cool",
+    "silverdew": 10073,
+    "food": 12,
+    "materials": {
+      "timber": 10,
+      "iron": 40,
+      "stone": 45,
+      "grain": 30,
+      "leather": 15,
+      "salt": 8,
+      "tar": 5,
+      "rope": 8,
+      "nails": 25,
+      "charcoal": 25,
+      "lenha": 60,
+      "peles": 12,
+      "ferramentas": 75,
+      "herbs": 5,
+      "medicine": 2
+    },
+    "incomeDetail": {
+      "holdings": 375,
+      "patches": 10,
+      "trade": 42,
+      "tribute": 0,
+      "taxes": 12,
+      "loot": 0,
+      "other": 8
+    },
+    "expenseDetail": {
+      "wages": 34,
+      "fortalezaSubterranea": 4,
+      "garrison": 0,
+      "foodPurchases": 10,
+      "construction": 0,
+      "recruitment": 0,
+      "mercenaries": 0,
+      "tributePaid": 0,
+      "engineerWages": 0,
+      "shipUpkeep": 0,
+      "holdingMaintenance": 18,
+      "spyNetwork": 15,
+      "councilors": 8,
+      "orinWages": 4,
+      "hospital": 4,
+      "other": 0
+    }
+  },
+  "economyDetail": {
+    "reconciliationLongdark30ToAshfall9": {
+      "initialSD": 10073,
+      "initialFSU": 12,
+      "totalRevenue": 12462,
+      "totalExpenses": 2392,
+      "totalEvents": 650,
+      "gapAdjustment": 339,
+      "winterPurchases": 3000,
+      "projectedAshfall9": {
+        "SD": 16154,
+        "FSU": 29
+      }
+    },
+    "bridgeToCurrent": [
+      {
+        "date": "Longdark 15",
+        "description": "Absorção rede Orm + Mercado Fase 1",
+        "deltaSD": -2500
+      },
+      {
+        "date": "Thawrise 1",
+        "description": "Prêmio Aldren",
+        "deltaSD": -100
+      },
+      {
+        "date": "Thawrise 3",
+        "description": "Expansão Tier 5 Fase 2",
+        "deltaSD": -3000
+      },
+      {
+        "date": "Thawrise 8",
+        "description": "Escola + Prefeitura",
+        "deltaSD": -1000
+      },
+      {
+        "date": "Greening 7",
+        "description": "Receita 4 semanas",
+        "deltaSD": 1400,
+        "deltaFSU": 4
+      },
+      {
+        "date": "Greening 16",
+        "description": "Receita 1 semana",
+        "deltaSD": 350,
+        "deltaFSU": 1
+      },
+      {
+        "date": "Greening 16",
+        "description": "Novo Distrito (Vane/Orin)",
+        "deltaSD": -400,
+        "deltaTimber": -20,
+        "deltaStone": -20
+      },
+      {
+        "date": "Greening 23",
+        "description": "Receita 1 semana (Lei do Asilo)",
+        "deltaSD": 350,
+        "deltaFSU": -4
+      },
+      {
+        "date": "Greening 23",
+        "description": "Currais de Pecuária",
+        "deltaSD": -40,
+        "deltaTimber": -10
+      },
+      {
+        "date": "Highsun 7",
+        "description": "Consolidação contábil",
+        "deltaSD": -1301,
+        "deltaFSU": -28
+      }
+    ],
+    "weeklyProduction": {
+      "FSU": 11,
+      "timber": 9,
+      "iron": 5,
+      "leather": 3.5,
+      "stone": 12.5,
+      "charcoal": 5,
+      "ferramentas": 6,
+      "prataBarras": 2
+    },
+    "lootAndTreasury": [
+      {
+        "date": "Greening 16, 345",
+        "source": "Pico do Firmamento",
+        "items": "Coroa de Pedra, Martelo de Prata, Códice Metálico",
+        "value": "Incalculável",
+        "destination": "Cofre pessoal Rodrigo"
+      },
+      {
+        "date": "Thawrise 19, 345",
+        "source": "Blackmoor (capturado)",
+        "items": "Espada, armadura, documentos",
+        "value": 200,
+        "destination": "Evidências / Cofre"
+      },
+      {
+        "date": "Frostwane 17, 345",
+        "source": "Heward (multa)",
+        "items": "50 SD + 6 FSU grão",
+        "value": 50,
+        "destination": "Tesouro Valenfort"
+      },
+      {
+        "date": "Longdark 5, 345",
+        "source": "Heward (confisco)",
+        "items": "6 FSU grão",
+        "value": null,
+        "destination": "Estoque Valenfort"
+      }
+    ],
+    "lootQuickReference": {
+      "mercenarioIndividual": "5-20 SD",
+      "grupoMercenario10": "50-200 SD",
+      "caravanaComercial": "100-500 SD, 5-20 FSU",
+      "vilarejoPequeno": "200-800 SD, 20-100 FSU",
+      "postoAvancado": "300-1000 SD, 10-50 FSU",
+      "fortalezaMenor": "1000-5000 SD, 50-200 FSU"
+    }
+  },
+  "army": {
+    "units": [
+      {
+        "id": "u_grey_pass",
+        "name": "Companhia da Passagem Cinzenta",
+        "size": 35,
+        "maxSize": 49,
+        "tier": 2,
+        "ac": 4,
+        "weapon": "Sword & Spear",
+        "mount": "Horse (15)",
+        "morale": 7,
+        "type": "Professional",
+        "foodPerWeek": 1.2
+      },
+      {
+        "id": "u_recruits",
+        "name": "Recrutas Valenfort",
+        "size": 50,
+        "maxSize": 100,
+        "tier": 1,
+        "ac": 3,
+        "weapon": "Spear",
+        "mount": "None",
+        "morale": 5,
+        "type": "Levy",
+        "foodPerWeek": 1.7
+      },
+      {
+        "id": "u_scouts",
+        "name": "Batedores de Mira",
+        "size": 15,
+        "maxSize": 19,
+        "tier": 2,
+        "ac": 3,
+        "weapon": "Shortbow",
+        "mount": "None",
+        "morale": 6,
+        "type": "Scout",
+        "foodPerWeek": 0.5
+      },
+      {
+        "id": "u_mounted_detachment",
+        "name": "Destacamento Montado",
+        "size": 0,
+        "maxSize": 20,
+        "tier": 0,
+        "ac": 0,
+        "weapon": "None",
+        "mount": "Horse (in training)",
+        "morale": 0,
+        "type": "Cavalry (forming)"
+      }
+    ],
+    "garrison": {
+      "total": 195,
+      "detail": {
+        "guarnicaoFixa": 80,
+        "patrulhasMoveis": 40,
+        "recrutasTreinamento": 15,
+        "torreLeste": 20,
+        "torreCorvopedra": 10,
+        "postoSul": 30
+      }
+    },
+    "fieldArmy": {
+      "total": 100,
+      "foodPerWeek": 3.5,
+      "wagesPerWeek": 20
+    },
+    "totalEffective": 315,
+    "foodPerWeekTotal": 9.2,
+    "militia": {
+      "trainedReserves": 80,
+      "levyPool": 300,
+      "readiness": "Média — treinando 2x/semana"
+    },
+    "patrolRotation": {
+      "summer": "2 dias fora / 1 dia dentro",
+      "winter": "1 dia fora / 1 dia dentro"
+    },
+    "recruitTraining": {
+      "phase1": "1-2 semanas: Ordem unida, manuseio de lança, condicionamento",
+      "phase2": "3-4 semanas: Formação em escudo, combate simulado",
+      "phase3": "5-8 semanas: Patrulha supervisionada com veterano",
+      "evaluation": "Aldren examina pessoalmente ao final de cada fase",
+      "note": "Corin (ex-Blackmoor) sob vigilância durante treinamento"
+    },
+    "chainOfCommand": [
+      {
+        "role": "Marechal (Comandante Geral)",
+        "name": "Aldren",
+        "tier": 4
+      },
+      {
+        "role": "Capitão da Guarnição",
+        "name": "Sgt. Roderick",
+        "tier": 2
+      },
+      {
+        "role": "Comandante de Patrulhas",
+        "name": "Garrick",
+        "tier": 3
+      },
+      {
+        "role": "Comandante de Batedores",
+        "name": "Mira",
+        "tier": 2
+      },
+      {
+        "role": "Comandante Dest. Montado",
+        "name": "Garrick (acumula)",
+        "tier": 3
+      },
+      {
+        "role": "Sargento-Instrutor",
+        "name": "Tobin",
+        "tier": 2
+      },
+      {
+        "role": "Mestre dos Sussurros",
+        "name": "Roric",
+        "tier": 2
+      },
+      {
+        "role": "Cavaleiro (Cavalaria Leve)",
+        "name": "Sir Sorrel",
+        "tier": 3
+      }
+    ],
+    "succession": [
+      "Garrick (Tier 3 — tático)",
+      "Roderick (Tier 2 — guarnição + campo)",
+      "Mira (Tier 2 — se ambos caírem)"
+    ],
+    "shipFleet": "Nenhum. Valenfort não tem costa."
+  },
+  "holdings": {
+    "name": "Valenfort",
+    "type": "City (in transition to Tier 5)",
+    "tier": 5,
+    "region": "Montanhas do Sul",
+    "position": "Passagem Cinzenta, rota leste da montanha",
+    "population": 7500,
+    "laborPool": "3000-6000",
+    "garrison": 165,
+    "baseIncomePerMonth": 1900,
+    "baseIncomePerWeek": 475,
+    "foodSurplusPerDay": 3,
+    "storageCapacityFSU": 50,
+    "currentStoresFSU": 12,
+    "castelDependencies": [
+      "Sala do Trono / Sala de Guerra",
+      "Sala Solar (face leste)",
+      "Salão Principal",
+      "Cozinha e despensa",
+      "Alojamentos do Senhor (torre leste)",
+      "Alojamentos hóspedes (ala oeste, 4 aptos)",
+      "Armaria (torre sul)",
+      "Masmorras (8 celas, 5 ocupadas)",
+      "Hospital Municipal (anexo oeste)"
+    ],
+    "fortification": {
+      "type": "Muralha de Pedra (reforçada leste + portão, 2x ballista, iluminação concluída)",
+      "tier": 3,
+      "acBonus": 2,
+      "rangedRerolls": 2,
+      "firstMeleeBonus": 1
+    },
+    "resourcePatches": [
+      {
+        "id": "patch_serraria",
+        "name": "Serraria",
+        "type": "Timber",
+        "status": "Ativa"
+      },
+      {
+        "id": "patch_curtume",
+        "name": "Curtume",
+        "type": "Leather",
+        "status": "Ativa"
+      },
+      {
+        "id": "patch_salga",
+        "name": "Casa de Salga",
+        "type": "Food Processing",
+        "yieldPerDay": 1,
+        "status": "Ativa"
+      },
+      {
+        "id": "patch_caca",
+        "name": "Caça Expandida",
+        "type": "Hunting",
+        "yieldPerDay": 1,
+        "status": "Ativa"
+      },
+      {
+        "id": "patch_pesca",
+        "name": "Pesca Estruturada",
+        "type": "Fishing",
+        "status": "Ativa"
+      },
+      {
+        "id": "patch_farm",
+        "name": "Fazenda T1",
+        "type": "Farm",
+        "tier": 1,
+        "yieldPerDay": 2,
+        "laborRequired": "5-10",
+        "status": "Ativa"
+      }
+    ],
+    "constructions": [
+      {
+        "name": "Ampliação depósito",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Iluminação muralha",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Serraria",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Curtume",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Casa de Salga",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Espaço coberto",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Sinalização ruas",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Iluminação ruas",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Alojamentos recrutas",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Segundo poço",
+        "cost": null,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Milícia voluntária",
+        "cost": null,
+        "status": "✅ Concluída (treinamento contínuo)"
+      },
+      {
+        "name": "2× Ballista",
+        "cost": 80,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Reforço muralha leste",
+        "cost": 90,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Reforço portão leste",
+        "cost": 40,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Hospital Valenfort",
+        "cost": 120,
+        "status": "✅ Concluída (Alard ativo)"
+      },
+      {
+        "name": "Estábulo (12 baias)",
+        "cost": 60,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Pedreira (reativação)",
+        "cost": 80,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Praça de mercado",
+        "cost": 300,
+        "status": "✅ Concluída (Granito Azul)"
+      },
+      {
+        "name": "Templo (fase 1)",
+        "cost": 400,
+        "status": "✅ Concluída (Vane)"
+      },
+      {
+        "name": "Escola municipal",
+        "cost": 400,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Prefeitura",
+        "cost": 600,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Pecuária regional",
+        "cost": 300,
+        "status": "✅ Ativa (Gerold)"
+      },
+      {
+        "name": "Currais da Pecuária",
+        "cost": 40,
+        "status": "✅ Concluída"
+      },
+      {
+        "name": "Novo Distrito (T5)",
+        "cost": 400,
+        "status": "🔨 4-9 dias restantes (Vane & Orin)"
+      }
+    ],
+    "residentSmith": {
+      "name": "Baldur",
+      "location": "Fortaleza Subterrânea de Fenrir",
+      "level": 3,
+      "xp": 0,
+      "specialty": "Forja de Ferramentas e Bestas"
+    },
+    "granaryUpgrade": true,
+    "otherHoldings": [
+      {
+        "id": "torre_leste",
+        "name": "Torre Leste",
+        "type": "Fortified Watchtower",
+        "tier": 1,
+        "function": "Pedágio, vigilância, armazém",
+        "garrison": 20,
+        "incomePerWeek": 19,
+        "incomePerMonth": 75,
+        "supplyFrom": "Valenfort"
+      },
+      {
+        "id": "torre_corvopedra",
+        "name": "Torre de Corvopedra",
+        "type": "Watchtower (ruínas reconstruídas)",
+        "tier": "0-1",
+        "function": "Vigilância remota",
+        "garrison": 10,
+        "incomePerWeek": 0,
+        "supplyFrom": "Valenfort"
+      },
+      {
+        "id": "posto_sul",
+        "name": "Posto Sul (antiga Vila do Vale)",
+        "type": "Posto avançado fortificado",
+        "tier": 1,
+        "function": "Vigilância estrada sul, controle água doce",
+        "garrison": 30,
+        "detail": "20 Valenfort + 10 cavaleiros Ashford",
+        "incomePerWeek": 0,
+        "supplyFrom": "Valenfort",
+        "commander": "Garrick (supervisão remota)"
+      },
+      {
+        "id": "vigilia_cega",
+        "name": "Forte da Vigília Cega",
+        "type": "Ruína Fortificada (Watchtower)",
+        "tier": 1,
+        "function": "Ponto de vigia avançado, controle do pico",
+        "garrison": 10,
+        "incomePerWeek": 0,
+        "supplyFrom": "Valenfort (rota dura pelo gelo)"
+      },
+      {
+        "id": "fenrir",
+        "name": "Fortaleza Subterrânea de Fenrir",
+        "type": "Fortaleza industrial subterrânea",
+        "tier": 2,
+        "function": "Forja, fundição, 3 minas de prata",
+        "garrison": 20,
+        "incomePerWeek": 100,
+        "incomePerMonth": 400,
+        "silverMines": 3,
+        "supplyFrom": "Valenfort",
+        "responsavel": "Baldur (forja) / Garrick (segurança)"
+      }
+    ],
+    "villages": [
+      {
+        "name": "Falcoa",
+        "direction": "Sul",
+        "distanceDays": 2,
+        "products": "Grãos, couro",
+        "relation": "Comercial / Informante",
+        "status": "Protectorate",
+        "agentRef": "C",
+        "contractFSU": true
+      },
+      {
+        "name": "Pedra Alta",
+        "direction": "Sul",
+        "distanceDays": 3,
+        "products": "Pedra, carvão",
+        "relation": "Tensa / Embargo",
+        "status": "Embargo ativo",
+        "notes": "Alberico preso na pedreira, Dona Lira administra"
+      },
+      {
+        "name": "Vila do Vale",
+        "direction": "Sul",
+        "distanceDays": 4,
+        "products": "Lã, queijo",
+        "relation": "Pendente",
+        "status": "Aguardando contato (reconstruída como Posto Sul)"
+      },
+      {
+        "name": "Casa Gray",
+        "direction": "Norte",
+        "distanceDays": 5,
+        "products": "Minério, cavalos",
+        "relation": "+2 Amigável (aliado regional)",
+        "status": "Relação ativa"
+      },
+      {
+        "name": "Clã do Rio",
+        "direction": "Sul",
+        "distanceDays": 6,
+        "products": "Peixe, sal",
+        "relation": "Pendente",
+        "status": "Aguardando contato"
+      }
+    ],
+    "equipmentInventory": {
+      "armory": [
+        {
+          "item": "Armadura de couro",
+          "type": "Armor",
+          "quality": "Padrão",
+          "qty": 110
+        },
+        {
+          "item": "Cota de malha",
+          "type": "Armor",
+          "quality": "Padrão",
+          "qty": 45
+        },
+        {
+          "item": "Armadura de placas",
+          "type": "Armor",
+          "quality": "Padrão",
+          "qty": 12
+        },
+        {
+          "item": "Escudos",
+          "type": "Armor",
+          "quality": "Padrão",
+          "qty": 35
+        },
+        {
+          "item": "Lanças",
+          "type": "Weapon",
+          "quality": "Padrão",
+          "qty": 180
+        },
+        {
+          "item": "Espadas curtas",
+          "type": "Weapon",
+          "quality": "Padrão",
+          "qty": 140
+        },
+        {
+          "item": "Arcos longos",
+          "type": "Weapon",
+          "quality": "Padrão",
+          "qty": 75
+        },
+        {
+          "item": "Flechas",
+          "type": "Ammo",
+          "quality": "Padrão",
+          "qty": 2000
+        },
+        {
+          "item": "Bestas",
+          "type": "Weapon",
+          "quality": "Padrão",
+          "qty": 10,
+          "notes": "Encomendadas a Baldur (200 SD)"
+        },
+        {
+          "item": "Roupas de inverno",
+          "type": "Clothing",
+          "quality": "Padrão",
+          "qty": 187
+        },
+        {
+          "item": "Ferramentas",
+          "type": "Tool",
+          "quality": "Padrão",
+          "qty": 75
+        },
+        {
+          "item": "Braçadeiras vermelhas",
+          "type": "Evidence",
+          "quality": "—",
+          "qty": 1,
+          "notes": "Apreendida — Ponte do Rio"
+        }
+      ],
+      "production": {
+        "ferramentas": {
+          "source": "Forja (Baldur)",
+          "perWeek": 6
+        },
+        "bestas": {
+          "source": "Forja (Baldur)",
+          "total": 10,
+          "cost": 200
+        }
+      },
+      "personalEquipment": {
+        "rodrigo": "Martelo de Prata do Sol Negro (lendário) + Fidelis (espada longa) + Armadura hereditária",
+        "aldren": "Espada longa + Cota de malha + Escudo",
+        "garrick": "Espada + Armadura de couro reforçada",
+        "mira": "Arco curto + Adaga + Armadura leve",
+        "roric": "Adagas (múltiplas) + Armadura leve oculta",
+        "seren": "Adaga cerimonial + Roupas de corte",
+        "elara": "Sem equipamento de combate",
+        "sorrel": "Espada curta + Armadura de cavaleiro"
+      }
+    },
+    "mountBreeding": {
+      "status": "Inicial — estabelecendo cavalaria",
+      "mounts": [
+        {
+          "type": "Pôneis de montanha",
+          "source": "Bronzeford",
+          "qty": 6,
+          "quality": "Regular",
+          "use": "Patrulha montada",
+          "note": "Resistentes ao frio"
+        },
+        {
+          "type": "Jennets",
+          "source": "Casa Gray",
+          "qty": 16,
+          "quality": "Regular",
+          "use": "Cavalaria",
+          "cost": 160
+        },
+        {
+          "type": "Cavalos leves",
+          "source": "Casa Gray",
+          "qty": 2,
+          "quality": "Boa",
+          "use": "Mensageiros"
+        },
+        {
+          "type": "Trenós",
+          "source": "Casa Gray",
+          "qty": 2,
+          "quality": "Boa",
+          "use": "Transporte inverno"
+        },
+        {
+          "type": "Brasa",
+          "source": "Rodrigo",
+          "qty": 1,
+          "quality": "Superior",
+          "use": "Montaria pessoal"
+        }
+      ],
+      "breedingProgram": {
+        "status": "Não iniciado",
+        "responsible": "Elara (proposta compra matriz Casa Gray)",
+        "objective": "Criação própria de cavalos"
+      }
+    },
+    "commanderDuelTracker": {
+      "note": "Nenhum duelo registrado até o momento"
+    }
+  },
+  "diplomacy": {
+    "relations": [
+      {
+        "house": "Harvel",
+        "opinion": 2,
+        "status": "Aliado",
+        "notes": "Aliança Tríplice. Relação sólida."
+      },
+      {
+        "house": "Aldric",
+        "opinion": 2,
+        "status": "Aliado",
+        "notes": "Aliança Tríplice. Relação sólida."
+      },
+      {
+        "house": "Casa Gray",
+        "opinion": 2,
+        "status": "Aliado Regional",
+        "notes": "Orin Gray — peça chave no Conselho da Passagem"
+      },
+      {
+        "house": "Thornwall",
+        "opinion": 3,
+        "status": "Leal",
+        "notes": "Elara é parceira de Rodrigo, mãe de Lyra."
+      },
+      {
+        "house": "Pedra Alta",
+        "opinion": -1,
+        "status": "Tensa / Embargo",
+        "notes": "Alberico preso na pedreira."
+      },
+      {
+        "house": "Alveria (Kostas)",
+        "opinion": null,
+        "status": "Comércio ativo",
+        "notes": "3 contratos assinados. Rota marítima ativa."
+      },
+      {
+        "house": "Rainha-Mãe Isadora",
+        "opinion": null,
+        "status": "Apoio real",
+        "notes": "Ratificou ações bypassando Caspian."
+      },
+      {
+        "house": "Chanceler E. Vance",
+        "opinion": null,
+        "status": "Aliado Político",
+        "notes": "Sabe do contrato Fenrir. Apoia Valenfort."
+      },
+      {
+        "house": "Stonebrook",
+        "opinion": 0,
+        "status": "Ausente (reconstrução — incêndio)",
+        "notes": "Lady Elowen"
+      },
+      {
+        "house": "Ashford",
+        "opinion": 0,
+        "status": "Ausente (luto — sucessão)",
+        "notes": "Lord Theron"
+      },
+      {
+        "house": "Blackmoor",
+        "opinion": null,
+        "status": "💀 Extinta",
+        "notes": "Eldric executado Thawrise 19."
+      },
+      {
+        "house": "Voss",
+        "opinion": -2,
+        "status": "Foragido",
+        "notes": "Dorian Voss fugitivo"
+      },
+      {
+        "house": "Orm",
+        "opinion": -2,
+        "status": "Preso",
+        "notes": "Tybalt Orm preso por alta traição"
+      },
+      {
+        "house": "Vance (Caspian)",
+        "opinion": null,
+        "status": "Preso na Capital",
+        "notes": "Aguardando julgamento"
+      },
+      {
+        "house": "Fenrir",
+        "opinion": null,
+        "status": "💀 Extinta",
+        "notes": "Legado: 3 minas de prata, fortaleza subterrânea"
+      },
+      {
+        "house": "Stormcrown",
+        "opinion": null,
+        "status": "🔴 Oculta",
+        "notes": "Elyra escondida como Valéria"
+      }
+    ],
+    "alliancesAndTreaties": [
+      {
+        "name": "Aliança Tríplice",
+        "parties": "Valenfort, Harvel, Aldric",
+        "type": "Aliança Formal",
+        "status": "Ativa",
+        "terms": "Apoio militar, logístico e de inteligência mútua"
+      },
+      {
+        "name": "Conselho da Passagem",
+        "parties": "Valenfort, Gray, Bronzeford, Stonebrook, Ashford",
+        "type": "Bloco Regional",
+        "status": "Ativo",
+        "terms": "Bloco político e militar estabelecido em Harvestfall 345"
+      }
+    ],
+    "promises": [
+      {
+        "promise": "Fundo de Emergência",
+        "parties": "Conselho da Passagem",
+        "status": "✅ Criado (500 SD)"
+      },
+      {
+        "promise": "Posto Sul",
+        "parties": "Valenfort e Ashford",
+        "status": "✅ Permanente (10 cavaleiros Ashford)"
+      },
+      {
+        "promise": "Pecuária Regional",
+        "parties": "Conselho da Passagem",
+        "status": "✅ Ativa (Gerold)"
+      },
+      {
+        "promise": "Contrato de FSU",
+        "parties": "Valenfort e Falcoa",
+        "status": "✅ Ativo (50 FSU, 12 meses)"
+      }
+    ],
+    "heraldry": [
+      {
+        "house": "Valenfort",
+        "blazon": "Lobo cinzento em campo verde",
+        "colors": "Verde e cinza",
+        "symbol": "Lobo",
+        "motto": "A Passagem Sobrevive"
+      },
+      {
+        "house": "Gray",
+        "blazon": "Martelo e bigorna em campo prata",
+        "colors": "Prata e cinza",
+        "symbol": "Martelo",
+        "motto": "—"
+      },
+      {
+        "house": "Blackmoor",
+        "blazon": "Corvo negro em campo vermelho",
+        "colors": "Vermelho e preto",
+        "symbol": "Corvo",
+        "motto": "—"
+      },
+      {
+        "house": "Stormcrown",
+        "blazon": "Coroa partida em campo azul",
+        "colors": "Azul e ouro",
+        "symbol": "Coroa Partida",
+        "motto": "Antiga bandeira real"
+      },
+      {
+        "house": "Fenrir",
+        "blazon": "Lobo negro em campo de gelo",
+        "colors": "Branco e preto",
+        "symbol": "Lobo",
+        "motto": "—"
+      },
+      {
+        "house": "Orm",
+        "blazon": "Sol negro partido em campo dourado",
+        "colors": "Dourado e preto",
+        "symbol": "Sol Negro",
+        "motto": "—"
+      }
+    ],
+    "tradeRoutes": [
+      {
+        "route": "Valenfort ↔ Capital",
+        "goods": "Madeira, couro",
+        "frequency": "Mensal",
+        "status": "Aguardando momento político"
+      },
+      {
+        "route": "Valenfort ↔ Falcoa",
+        "goods": "Grãos, couro, ferramentas",
+        "frequency": "Contínuo",
+        "status": "🟢 Ativo"
+      },
+      {
+        "route": "Valenfort ↔ Pedra Alta",
+        "goods": "Pedra, carvão",
+        "frequency": "Semanal",
+        "status": "🔴 Embargo"
+      },
+      {
+        "route": "Valenfort ↔ Gray",
+        "goods": "Cavalos, minério de ferro",
+        "frequency": "Mensal",
+        "status": "🟢 Ativo"
+      },
+      {
+        "route": "Valenfort ↔ Alveria (Kostas)",
+        "goods": "Prata, madeira, couro ↔ cavalos, aço",
+        "frequency": "Mensal (navio)",
+        "status": "🟢 Ativo via Porto Velho"
+      },
+      {
+        "route": "Valenfort ↔ Hollowford",
+        "goods": "Grão, ferramentas",
+        "frequency": "Semanal",
+        "status": "🟢 Ativo"
+      },
+      {
+        "route": "Valenfort ↔ Três Pontas",
+        "goods": "Madeira, ferro",
+        "frequency": "Bi-semanal",
+        "status": "🟢 Ativo"
+      },
+      {
+        "route": "Valenfort ↔ Rio Caedor",
+        "goods": "Pedra, sal",
+        "frequency": "Mensal",
+        "status": "🟡 Infrequente"
+      }
+    ],
+    "regionalFeudalSummary": [
+      {
+        "feudo": "Valenfort",
+        "type": "City",
+        "tier": "4→5",
+        "lord": "Rodrigo",
+        "votes": 3,
+        "population": 7500,
+        "soldiers": 315,
+        "incomePerWeek": 494,
+        "economy": "Diversificada"
+      },
+      {
+        "feudo": "Gray",
+        "type": "Town",
+        "tier": 3,
+        "lord": "Orin Gray",
+        "votes": 2,
+        "population": 3000,
+        "soldiers": 120,
+        "incomePerWeek": 200,
+        "economy": "Cavalaria, Mineração"
+      },
+      {
+        "feudo": "Bronzeford",
+        "type": "Town",
+        "tier": 2,
+        "lord": "Aldus",
+        "votes": 1,
+        "population": 1500,
+        "soldiers": 60,
+        "incomePerWeek": 120,
+        "economy": "Passagem mineira, Comércio"
+      },
+      {
+        "feudo": "Stonebrook",
+        "type": "Town",
+        "tier": 2,
+        "lord": "Lady Elowen",
+        "votes": 1,
+        "population": 1200,
+        "soldiers": 40,
+        "incomePerWeek": 100,
+        "economy": "Agricultura"
+      },
+      {
+        "feudo": "Ashford",
+        "type": "Town",
+        "tier": 2,
+        "lord": "Lord Theron",
+        "votes": 1,
+        "population": 1200,
+        "soldiers": 40,
+        "incomePerWeek": 100,
+        "economy": "Comércio fluvial"
+      },
+      {
+        "feudo": "Falcoa",
+        "type": "Village",
+        "tier": null,
+        "lord": null,
+        "votes": "Voz",
+        "population": 400,
+        "economy": "Grãos, Couro"
+      },
+      {
+        "feudo": "Pedra Alta",
+        "type": "Village",
+        "tier": null,
+        "lord": "Adm. temporária",
+        "votes": "Voz",
+        "population": 350,
+        "economy": "Pedra, Carvão"
+      },
+      {
+        "feudo": "Vila do Vale",
+        "type": "Village",
+        "tier": null,
+        "lord": "Queimada / Posto Sul",
+        "votes": "Voz",
+        "population": 50,
+        "economy": "Ponto de apoio"
+      }
+    ],
+    "tribalRelations": [
+      {
+        "group": "Toghrul Khan (Estepe)",
+        "leader": "Toghrul",
+        "location": "Norte, além do Rio Velrin",
+        "relation": "🟢 Neutro",
+        "status": "Comércio Aberto",
+        "notes": "Contato via Agente K; 60 SD resgate; convite comércio"
+      },
+      {
+        "group": "Filhos do Eclipse (Montanhas)",
+        "leader": "Capitão Malachar",
+        "location": "Recuados para leste",
+        "strength": "100+",
+        "relation": "🔴 Hostil (dormente)",
+        "status": "Inativo desde Greening 26",
+        "notes": "Facção alveriana, financiados por Orion Vane"
+      },
+      {
+        "group": "Tribos Selvagens (Dentes de Gelo)",
+        "location": "Dentes de Gelo",
+        "relation": "💀 Neutralizado",
+        "status": "Eliminado",
+        "notes": "Aniquilados na expedição"
+      }
+    ],
+    "hiddenIntentions": {
+      "crownCouncil": "A Capital está em caos com a morte de Tybalt Orm e prisão de Caspian. Rainha-Mãe e Chanceler focados em estabilizar política interna — ignoram o Norte."
+    }
+  },
+  "councils": {
+    "valenfort": {
+      "name": "Conselho de Valenfort (Interno)",
+      "nature": "Conselho do senhor feudal com seus comandados",
+      "stability": 8,
+      "powers": [
+        "Advise",
+        "Lobby",
+        "Obstruct",
+        "Inform",
+        "Judge",
+        "Choose"
+      ],
+      "averageLoyalty": 6,
+      "seats": [
+        {
+          "order": 1,
+          "role": "Marechal",
+          "name": "Aldren",
+          "disposition": "Loyal Supporter",
+          "loyalty": 6
+        },
+        {
+          "order": 2,
+          "role": "Intendente",
+          "name": "Gerold",
+          "disposition": "Pragmatic Ally",
+          "loyalty": 6
+        },
+        {
+          "order": 3,
+          "role": "Chanceler",
+          "name": "Lady Seren",
+          "disposition": "Loyal Supporter",
+          "loyalty": 4
+        },
+        {
+          "order": 4,
+          "role": "Conselheira",
+          "name": "Elara",
+          "disposition": "Loyal Supporter",
+          "loyalty": 6,
+          "note": "Afastada pós-parto (Lyra)"
+        },
+        {
+          "order": 5,
+          "role": "Mestre dos Sussurros",
+          "name": "Roric",
+          "disposition": "Pragmatic Ally",
+          "loyalty": 6
+        },
+        {
+          "order": 6,
+          "role": "Comandante Patrulhas",
+          "name": "Garrick",
+          "disposition": "Pragmatic Ally",
+          "loyalty": 5
+        }
+      ],
+      "factions": [
+        {
+          "name": "Aldren + Gerold",
+          "type": "Par aliado",
+          "note": "Apoio mútuo"
+        },
+        {
+          "name": "Roric + Garrick",
+          "type": "Par aliado",
+          "note": "Apoio mútuo"
+        },
+        {
+          "name": "Seren",
+          "type": "Neutra",
+          "note": "Pragmática, busca aumentar influência"
+        },
+        {
+          "name": "Elara",
+          "type": "Ligada a Rodrigo",
+          "note": "Mãe de Lyra"
+        }
+      ],
+      "pendingAgenda": [
+        "Caravana regular para a Capital — Seren + Gerold",
+        "Matriz de criação de cavalos (Casa Gray) — Elara",
+        "Engenheiro Mestre — busca ativa",
+        "Contrato Fenrir — avaliar Kaelen Thorn antes de abrir baú",
+        "Preparação agrícola — ferramentas, sementes, mão de obra",
+        "Alocação de terras — Tomas + Mara + 4 famílias"
+      ],
+      "attendance": [
+        {
+          "member": "Aldren",
+          "lastSession": "Frostwane 17",
+          "note": "Comando Geral"
+        },
+        {
+          "member": "Gerold",
+          "lastSession": "Frostwane 17",
+          "note": "Estoques estáveis"
+        },
+        {
+          "member": "Seren",
+          "lastSession": "Frostwane 17",
+          "note": "Documentação"
+        },
+        {
+          "member": "Elara",
+          "lastSession": "Frostwane 17",
+          "note": "Repouso (gravidez ~8 meses)"
+        },
+        {
+          "member": "Roric",
+          "lastSession": "Frostwane 17",
+          "note": "Intel concluída"
+        },
+        {
+          "member": "Garrick",
+          "lastSession": "Frostwane 17",
+          "note": "18 cavaleiros, patrulha conjunta"
+        }
+      ]
+    },
+    "passagemCinzenta": {
+      "name": "Conselho da Passagem Cinzenta (Regional)",
+      "nature": "Assembleia de casas nobres e vilas livres da Passagem do Leste",
+      "president": "Sir Rodrigo de Valenfort (1º mandato)",
+      "mandateYears": 4,
+      "nextElection": "Frostwane, Ano 349",
+      "seats": [
+        {
+          "order": 1,
+          "house": "Valenfort",
+          "representative": "Rodrigo",
+          "votes": 3,
+          "status": "Ativo"
+        },
+        {
+          "order": 2,
+          "house": "Gray",
+          "representative": "Orin Gray",
+          "votes": 2,
+          "status": "Ativo"
+        },
+        {
+          "order": 3,
+          "house": "Bronzeford",
+          "representative": "Aldus",
+          "votes": 1,
+          "status": "Ativo"
+        },
+        {
+          "order": 4,
+          "house": "Stonebrook",
+          "representative": "Lady Elowen",
+          "votes": 1,
+          "status": "Ausente (incêndio)"
+        },
+        {
+          "order": 5,
+          "house": "Ashford",
+          "representative": "Lord Theron",
+          "votes": 1,
+          "status": "Ausente (luto)"
+        },
+        {
+          "order": null,
+          "house": "Vilarejos (voz, sem voto)",
+          "representative": "Falcoa, Pedra Alta, Vila do Vale",
+          "status": "Consultivos"
+        }
+      ],
+      "rules": [
+        "1. Presidente eleito a cada 4 anos. Não pode ser reeleito 2x seguidas.",
+        "2. Guerra exige 2/3 dos votos.",
+        "3. Ausência em convocação de emergência = perda de voz ativa no ciclo.",
+        "4. Duas ausências consecutivas = perda do assento até próxima eleição.",
+        "5. Vilarejos têm voz mas não voto.",
+        "6. Bronzeford tem voto permanente em decisões de comércio e segurança."
+      ],
+      "emergencyFund": {
+        "created": "Frostwane 17, Ano 345",
+        "size": 500,
+        "contributions": {
+          "Valenfort": 200,
+          "Gray": 125,
+          "Bronzeford": 60,
+          "Stonebrook": 60,
+          "Ashford": "30 SD (+25 SD no próximo conselho)"
+        },
+        "administrator": "Gerold (Valenfort)",
+        "rules": "Até 50 SD: liberação imediata. Acima: votação por carta entre os assentos.",
+        "repay": "Beneficiado devolve em 12 meses sem juros, em produto/moeda.",
+        "firstUse": "Falcoa — 8 FSU (80 SD) rateado conforme proporção"
+      },
+      "pendingAgenda": [
+        "Relato do presidente sobre Darius/Kostas (Alveria)",
+        "Pedra Alta — tutela do Conselho durante sentença de Alberico",
+        "Resultado do julgamento de Hank, o Vermelho (Bronzeford)",
+        "Revisão do Posto Sul — performance e custos"
+      ]
+    },
+    "representatives": [
+      {
+        "name": "Lady Seren",
+        "represents": "Valenfort",
+        "credentials": "Plenos poderes diplomacia/comércio",
+        "limit": "Não pode declarar guerra"
+      },
+      {
+        "name": "Gerold",
+        "represents": "Valenfort",
+        "credentials": "Plenos poderes comércio/finanças",
+        "limit": "Não pode firmar alianças"
+      },
+      {
+        "name": "Garrick",
+        "represents": "Valenfort",
+        "credentials": "Autoridade militar limitada",
+        "limit": "Defesa local apenas"
+      },
+      {
+        "name": "Roric",
+        "represents": "Valenfort",
+        "credentials": "Autoridade secreta",
+        "limit": "Nenhuma oficial"
+      },
+      {
+        "name": "Orin Gray",
+        "represents": "Casa Gray",
+        "credentials": "Plenos poderes"
+      },
+      {
+        "name": "Aldus",
+        "represents": "Bronzeford",
+        "credentials": "Plenos poderes"
+      }
+    ],
+    "warCouncil": {
+      "convocation": "Marechal Aldren ou Senhor Rodrigo",
+      "mandatoryMembers": [
+        "Aldren",
+        "Garrick",
+        "Roderick",
+        "Mira",
+        "Roric"
+      ],
+      "advisoryMembers": [
+        "Gerold",
+        "Seren",
+        "Elara"
+      ],
+      "quorum": "3 de 5 membros obrigatórios + Senhor",
+      "procedimento": [
+        "1. Marechal expõe situação tática e opções",
+        "2. Cada comandante reporta estado de suas forças",
+        "3. Roric reporta inteligência disponível",
+        "4. Gerold reporta recursos (se convocado)",
+        "5. Debate e votação consultiva",
+        "6. Senhor decide e emite ordens verbais",
+        "7. Gerold registra decisão em ata"
+      ],
+      "rules": [
+        "Voto é consultivo — o Senhor decide.",
+        "Em ausência do Senhor, Marechal decide com aprovação de 2/3 do conselho.",
+        "Guerra ofensiva exige aprovação do Conselho da Passagem (2/3 dos votos regionais).",
+        "Guerra defensiva: decisão imediata do Senhor ou Marechal."
+      ],
+      "succession": [
+        "Garrick (tático)",
+        "Roderick (guarnição + campo)",
+        "Mira (se ambos caírem)"
+      ]
+    }
+  },
+  "spyNetwork": {
+    "spymaster": "Roric",
+    "spySkill": 5,
+    "totalAgents": 14,
+    "costPerMonth": 60,
+    "costPerWeek": 15,
+    "trainingNote": "Treinamento concluído: +1 Skill a todos os agentes veteranos",
+    "infrastructure": {
+      "safeHouseCapital": "Alugada (10 SD/mês)",
+      "safeHouseNorth": "Em estabelecimento",
+      "intelligenceRoom": "Porão da torre leste (só Roric + Rodrigo têm chave)"
+    },
+    "activeAgents": [
+      {
+        "ref": "Roric",
+        "location": "Valenfort",
+        "cover": "Mestre dos Sussurros",
+        "skill": 5,
+        "status": "Disponível"
+      },
+      {
+        "ref": "A",
+        "location": "Valenfort",
+        "cover": "Taverna do Ferreiro",
+        "skill": 3,
+        "status": "Ativo"
+      },
+      {
+        "ref": "B",
+        "location": "Valenfort",
+        "cover": "Sargento guarnição",
+        "skill": 4,
+        "status": "Ativo"
+      },
+      {
+        "ref": "C",
+        "location": "Falcoa",
+        "cover": "Estalajadeiro",
+        "skill": 3,
+        "status": "Ativo"
+      },
+      {
+        "ref": "D",
+        "location": "Torre Leste",
+        "cover": "Sargento plantão",
+        "skill": 3,
+        "status": "Ativo"
+      },
+      {
+        "ref": "E",
+        "location": "Capital",
+        "cover": "Contato mercantil",
+        "skill": 4,
+        "status": "Ativo"
+      },
+      {
+        "ref": "F",
+        "location": "Casa Gray",
+        "cover": "Viajante/comerciante",
+        "skill": 2,
+        "status": "Ativo"
+      },
+      {
+        "ref": "G",
+        "location": "Garganta Cinzenta",
+        "cover": "Guarda da torre",
+        "skill": 2,
+        "status": "Ativo"
+      },
+      {
+        "ref": "H",
+        "location": "Capital",
+        "cover": "Estalajadeiro",
+        "skill": 2,
+        "status": "Novo"
+      },
+      {
+        "ref": "I",
+        "location": "Capital",
+        "cover": "Escriba",
+        "skill": 3,
+        "status": "Novo"
+      },
+      {
+        "ref": "J",
+        "location": "Capital",
+        "cover": "Porto",
+        "skill": 2,
+        "status": "Novo"
+      },
+      {
+        "ref": "K",
+        "location": "Norte",
+        "cover": "Rota de Fenrir",
+        "skill": 2,
+        "status": "Novo"
+      },
+      {
+        "ref": "L",
+        "location": "Valenfort",
+        "cover": "Especialista docs/selos",
+        "skill": 4,
+        "status": "Novo"
+      },
+      {
+        "ref": "M",
+        "location": "Norte",
+        "cover": "Comerciante peles",
+        "skill": 2,
+        "status": "Novo"
+      },
+      {
+        "ref": "N",
+        "location": "Capital",
+        "cover": "Ourivesaria Silas Vane",
+        "skill": 2,
+        "status": "Novo"
+      }
+    ],
+    "intelligenceGathered": [
+      {
+        "date": "Deepfrost 10-11, Ano 345",
+        "source": "Rodrigo (Casa Gray)",
+        "info": "Orin Gray apoia conselho regional. 5 gerações, pasto inverno + mina ferro + cavalos."
+      },
+      {
+        "date": "Ashfall, Ano 345",
+        "source": "Roric",
+        "info": "Blackmoor perdeu-se no leste."
+      },
+      {
+        "date": "Greening ~Dia 5",
+        "source": "Roric",
+        "info": "Blackmoor deixou Casa Gray, seguiu leste."
+      },
+      {
+        "date": "Frostwane, Ano 1",
+        "source": "Casa Gray (carta)",
+        "info": "Blackmoor esteve lá, já partiu."
+      },
+      {
+        "date": "Longdark, Ano 0",
+        "source": "Roric",
+        "info": "Inicia rastreio de Blackmoor."
+      }
+    ],
+    "blackmailHeld": "Nenhum"
+  },
+  "activeMissions": {
+    "mainQuests": [
+      "O Destino de Elyra Stormcrown — revelar aos Lordes do Sul? Coroá-la?",
+      "A Coroa de Pedra — manter em segredo ou usar como barganha diplomática?",
+      "A Sétima Fortaleza (Pico do Firmamento) — guarnecer ou abandonar?",
+      "As Outras Fortalezas de Orm — localizar as 4 restantes"
+    ],
+    "detail": [
+      {
+        "id": "M01",
+        "name": "Inteligência Interna — Valenfort",
+        "responsible": "Roric",
+        "status": "Em andamento",
+        "progress": "Corin identificado e sob vigilância. 7 agentes. Custo: 24 SD/mês."
+      },
+      {
+        "id": "M02",
+        "name": "Engenheiro Mestre — Recrutamento",
+        "responsible": "Seren, Gerold, Roric",
+        "status": "Cartas enviadas, aguardando",
+        "trigger": "Próxima caravana ou indicação de Vance/Solon",
+        "note": "Sem engenheiro, obras Tier 5 atrasam."
+      },
+      {
+        "id": "M03",
+        "name": "Investigação do Rumor na Capital",
+        "responsible": "Roric + Seren",
+        "status": "Em andamento",
+        "progress": "Rastro: Orris (escriba do Ministério dos Registros) pagou com moeda antiga por 'homem de capuz'."
+      },
+      {
+        "id": "M04",
+        "name": "Clérigo da Capital (para o Templo)",
+        "responsible": "Seren",
+        "status": "Anotado",
+        "progress": "Incluir na pauta diplomática de Seren quando for à Capital."
+      },
+      {
+        "id": "M05",
+        "name": "Patrulha Conjunta — Roubo de Comboio (Estrada Real)",
+        "responsible": "Garrick + 5 batedores Bronzeford",
+        "status": "Aprovada",
+        "force": "15 homens (10 Valenfort + 5 Bronzeford)"
+      },
+      {
+        "id": "M06",
+        "name": "Fundo de Emergência Regional",
+        "responsible": "Gerold",
+        "status": "✅ Criado (500 SD)",
+        "note": "Contribuições definidas. Administrado por Gerold. Primeiro uso: Falcoa (8 FSU)."
+      },
+      {
+        "id": "M07",
+        "name": "Investigação de Silas Vane",
+        "responsible": "Roric + Seren",
+        "status": "Provas em preparação",
+        "evidence": [
+          "Carta de Vane para Leoric (data do ataque)",
+          "Meia-moeda",
+          "Confissão de Leoric e Joss",
+          "Tinta de ourives confirmada"
+        ]
+      },
+      {
+        "id": "M08",
+        "name": "Diplomacia — Stonebrook e Ashford",
+        "responsible": "Seren",
+        "status": "Cartas enviadas",
+        "details": "Stonebrook: grão a preço de custo. Ashford: condolências + 50 SD."
+      },
+      {
+        "id": "M09",
+        "name": "Confirmar Protocolo Solon",
+        "responsible": "Roric",
+        "status": "✅ Resolvida (Highsun 7)",
+        "progress": "Mestre Solon confirmou a queima de todos os registros de Elyra. Chanceler Vance alerta: espiões investigam expedição aos Dentes de Gelo."
+      },
+      {
+        "id": "M10",
+        "name": "Pedra Alta — Resolução Diplomática",
+        "responsible": "Seren + Gerold",
+        "status": "Pendente de decisão",
+        "options": [
+          "Renovar embargo",
+          "Perdoar Alberico com condições",
+          "Manter tutela de Dona Lira"
+        ]
+      },
+      {
+        "id": "M11",
+        "name": "Corvo — Loose Ends (Rede Residual)",
+        "responsible": "Roric",
+        "status": "Pendente",
+        "toInvestigate": [
+          "Silas Vane (Capital, foragido)",
+          "Dorn (sócio de Orion Vane)",
+          "Carta queimada de Alberico, o Velho",
+          "Contatos em Alveria"
+        ]
+      },
+      {
+        "id": "M12",
+        "name": "As Fortalezas de Orm — Exploração",
+        "responsible": "Roric + Rodrigo",
+        "status": "Pesquisa inicial",
+        "known": [
+          "Torre do Pacto (conhecida)",
+          "Vigília Cega (ocupada)",
+          "Pico do Firmamento (aberta)"
+        ],
+        "unknown": 4,
+        "clue": "Códice Metálico do Sol Negro pode conter coordenadas. Mestre Solon tem conhecimento."
+      },
+      {
+        "id": "M13",
+        "name": "Coroa de Pedra — Decisão Política",
+        "responsible": "Rodrigo",
+        "status": "🔒 No cofre pessoal",
+        "options": [
+          "Manter oculta",
+          "Usar como trunfo diplomático",
+          "Revelar para legitimar Elyra"
+        ]
+      },
+      {
+        "id": "M14",
+        "name": "Códice Metálico do Sol Negro — Pesquisa",
+        "responsible": "Roric + Mestre Solon",
+        "status": "Decifrado parcialmente",
+        "discovered": "Linhagem Stormcrown descende da filha oculta de Orm",
+        "toDiscover": [
+          "Localização das outras 4 fortalezas",
+          "Mais artefatos",
+          "Rituais",
+          "Profecias"
+        ]
+      }
+    ],
+    "completedMissions": [
+      {
+        "name": "Patrulha para Harvel",
+        "owner": "Sgt. Roderick",
+        "result": "Foragidos eliminados. 0 baixas."
+      },
+      {
+        "name": "Contato com Casa Gray",
+        "owner": "Seren/Gerold",
+        "result": "Relação fortalecida para +2."
+      },
+      {
+        "name": "Rastrear Blackmoor",
+        "owner": "Roric",
+        "result": "Fracasso parcial — rastro perdido no leste."
+      },
+      {
+        "name": "Garrick — apoio a Roric",
+        "owner": "Garrick",
+        "result": "Apoio logístico prestado."
+      },
+      {
+        "name": "Defesa Preventiva — Blackmoor",
+        "owner": "Rodrigo + Aldren + Roric + Gerold",
+        "result": "Blackmoor executado. 0 baixas."
+      },
+      {
+        "name": "Seren — Conselho da Coroa",
+        "owner": "Seren",
+        "result": "Investigador real virá na primavera."
+      },
+      {
+        "name": "Confirmar Protocolo Solon",
+        "owner": "Roric",
+        "result": "Solon queimou registros de Elyra. Vance confirma lealdade."
+      }
+    ],
+    "availableAgents": [
+      "Roric (inteligência)",
+      "Garrick (escoltas/reforço)",
+      "Mira (reconhecimento)"
+    ]
+  },
+  "hiddenHeir": {
+    "name": "Elyra Stormcrown",
+    "age": 19,
+    "aliases": [
+      {
+        "alias": "Elyra Fenrir",
+        "type": "Nome oficial de cobertura",
+        "purpose": "Ocultar sobrenome Stormcrown"
+      },
+      {
+        "alias": "Valéria",
+        "type": "Disfarce diário",
+        "purpose": "Prima adoentada na Torre Leste"
+      }
+    ],
+    "relationToRodrigo": "Prima (sangue Fenrir — ramo cadete de Orm). Romance recíproco em segredo.",
+    "claimStrength": "Strong (Direct Royal Daughter)",
+    "status": "Hidden Claimant",
+    "revelationStatus": "Revelada a Rodrigo (Greening 16). Oculta do resto do continente.",
+    "bloodline": "Legítima — filha direta do último rei. Também descendente de Fenrir (ramo cadete de Orm).",
+    "specialResource": "Royal Signet (+50% ransom, +1 claim strength)",
+    "location": {
+      "current": "Torre Leste (disfarçada de 'Valéria', prima adoentada)",
+      "holdingType": "Ancient Bastion (Fortaleza Secreta original)",
+      "region": "Montanhas do Sul",
+      "defensibility": "Extreme",
+      "visibility": "Hidden",
+      "population": "Very Low",
+      "supplies": "Limited but sustainable"
+    },
+    "personalData": {
+      "health": "Saudável",
+      "ambition": "Sobreviver e reivindicar o Trono Vazio do Norte — ao lado de Rodrigo",
+      "flaw": "Alvo da Coroa — qualquer deslize expõe Rodrigo como traidor",
+      "temperament": "Cautelosa — prefere evitar conflito direto",
+      "priority": "Sobrevivência (da linhagem e dos guardiões)",
+      "fear": "Descoberta — pânico se identidade for revelada"
+    },
+    "combatStats": {
+      "commanderTier": 2,
+      "initiative": -1,
+      "weapon": "Espada Curta (3d6) — treinamento básico",
+      "mount": "Palfrey (montaria de viagem)"
+    },
+    "forces": {
+      "SD": 550,
+      "FSU": 4,
+      "timber": 35,
+      "iron": 15,
+      "stone": 25,
+      "soldiers": 60,
+      "swornKnights": 10,
+      "engineers": "1d3",
+      "horses": 7,
+      "warhorses": 3
+    },
+    "discovery": "Códice Metálico do Sol Negro revelou linhagem de Elyra descende da filha secreta de Orm (Greening 16, Ano 345)",
+    "knownByFactions": {
+      "elyrasGuardians": true,
+      "sirRodrigo": true,
+      "elara": true,
+      "blackmoor": false,
+      "gray": false,
+      "crownCouncil": false
+    },
+    "proclamation": "A Proclamação do Corvo ainda não ocorreu.",
+    "timeline": [
+      {
+        "date": "Ashfall 22, Ano 345",
+        "event": "Estado registrado. Herdeira oculta, não revelada."
+      },
+      {
+        "date": "Greening 16, Ano 345",
+        "event": "Códice Metálico revela linhagem Stormcrown. Rodrigo descobre verdade. Elyra levada à Torre Leste."
+      }
+    ],
+    "notes": "Guardiões monitoram discretamente a Passagem do Leste. Romance em segredo (Elara é parceira atual de Rodrigo — situação delicada)."
+  },
+  "worldSecrets": [
+    {
+      "id": "WS-001",
+      "title": "Dossiê Dorian Voss",
+      "classification": "SECRETO",
+      "summary": "Bastardo da Casa Voss, ourives, busca o baú de ferro de Fenrir. Última localização: Alveria.",
+      "status": "Ativo",
+      "threatLevel": "Médio"
+    },
+    {
+      "id": "WS-002",
+      "title": "Baú de Ferro de Fenrir",
+      "classification": "SECRETO",
+      "summary": "Contrato de dívida de prata com casa do sul. Segunda chave recuperada (Heward, Falcoa). Baú pode ser aberto.",
+      "status": "Aguardando decisão",
+      "threatLevel": "Médio"
+    },
+    {
+      "id": "WS-003",
+      "title": "Vazamento para Coroa (Dossiê #005)",
+      "classification": "SECRETO",
+      "summary": "Carta com tinta de ourives vazou informações restritas. Vazamento veio de Blackmoor via Corvo.",
+      "status": "Resolvido",
+      "threatLevel": "Neutralizado"
+    },
+    {
+      "id": "WS-004",
+      "title": "Herdeira Stormcrown (Dossiê #006)",
+      "classification": "ULTRA-SECRETO",
+      "summary": "Elyra protegida em Valenfort. Informante sumiu. Alguém poderoso protege o segredo.",
+      "status": "Suspensa (reativar via arquivos frios)",
+      "threatLevel": "Crítico"
+    },
+    {
+      "id": "WS-005",
+      "title": "Blackmoor Timeline",
+      "classification": "RESOLVIDO",
+      "summary": "Eldric executado Thawrise 19. Revelou dívida de honra não cobrada com o pai de Rodrigo.",
+      "status": "Resolvido",
+      "threatLevel": "Neutralizado"
+    },
+    {
+      "id": "WS-006",
+      "title": "Plano de Ataque de Blackmoor",
+      "classification": "GM-ONLY",
+      "summary": "Blackmoor planejava atacar Valenfort Thawrise 346 com 50-80 mercenários.",
+      "status": "Resolvido",
+      "threatLevel": "Neutralizado"
+    },
+    {
+      "id": "WS-007",
+      "title": "Esquema Blackmoor/Crespo (Dossiê #010)",
+      "classification": "RESOLVIDO",
+      "summary": "Crespo executado. Provas enviadas à Coroa.",
+      "status": "Resolvido",
+      "threatLevel": "Neutralizado"
+    },
+    {
+      "id": "WS-008",
+      "title": "Selo Falso (Dossiê #011)",
+      "classification": "RESOLVIDO",
+      "summary": "Selo novo forjado por Baldur (Ashfall 17). Selo antigo invalidado.",
+      "status": "Resolvido",
+      "threatLevel": "Neutralizado"
+    },
+    {
+      "id": "WS-009",
+      "title": "Malcom Ourives (Dossiê #012)",
+      "classification": "RESOLVIDO",
+      "summary": "Ourives Malcom, mestre de Dorian Voss, morto por Blackmoor. Ponta limpa.",
+      "status": "Resolvido",
+      "threatLevel": "Neutralizado"
+    },
+    {
+      "id": "WS-010",
+      "title": "Acampamento Norte (Dossiê #013)",
+      "classification": "GM-ONLY",
+      "summary": "Agentes K+M reportam bandeira preta/prata além do Velrin. Pode ser remanescente Blackmoor ou tribo. Aguardando confirmação.",
+      "status": "Não confirmado",
+      "threatLevel": "Médio"
+    }
+  ],
+  "livroNegroDetail": {
+    "dossie001_DorianVoss": {
+      "nome": "Dorian Voss",
+      "idade": 28,
+      "profissao": "Ourives formado na Capital",
+      "ultimaLocalizacao": "Alveria (passagem comprada há 3 semanas)",
+      "padrao": "Circula entre norte e Capital, sem base fixa",
+      "forca": "6-10 homens armados",
+      "objetivoPrimario": "Baú de ferro de Fenrir — contrato de prata",
+      "objetivoSecundario": "Impedir Valenfort de explorar legado Fenrir",
+      "statusChave": "Voss obteve a primeira (Aldwood). Não sabe da segunda."
+    },
+    "dossie002_CasaFenrir": {
+      "tipo": "Casa menor do norte, mineradora de prata",
+      "extincao": "Guerra das Minas de Prata (22 anos atrás)",
+      "legado": "Rede de túneis, 3 minas de prata, 1 fortaleza subterrânea com fundição industrial",
+      "contrato": "Dívida de prata com 'casa do sul' — no baú de ferro",
+      "ultimoLorde": "Desconhecido"
+    },
+    "dossie003_CasaVoss": {
+      "tipo": "Mercadores de prata, intermediários Fenrir↔sul",
+      "extincao": "Mesma guerra que Fenrir",
+      "sobrevivente": "Dorian Voss (bastardo)",
+      "contatoCapital": "Silas Vane, ourives, Rua dos Ourives",
+      "mensageiroNorte": "Ex-soldado de Fenrir — conhece túneis, minas e baú"
+    },
+    "dossie004_Corvo": {
+      "nome": "\"Corvo\" (fixer do submundo)",
+      "descricao": "Magro, capa cinza, cicatriz no queixo",
+      "base": "Taverna do Velho Cais, distrito ribeirinho (Capital)",
+      "status": "💀 Morto no Forte da Vigília Cega (Longdark 14)",
+      "conexoes": "Visto com homem bem-vestido vindo do norte"
+    },
+    "dossie005_Vazamento": {
+      "status": "Caso encerrado — vazamento veio de Blackmoor via Corvo",
+      "tinta": "Tinta de ourives (mais escura que a padrão do Ministério)"
+    },
+    "dossie006_Stormcrown": {
+      "status": "Suspensa (perigosa — informante sumiu)",
+      "aviso": "\"Essa pergunta já matou gente melhor que você.\"",
+      "conclusao": "Alguém muito poderoso protege o segredo. Reativar só por arquivos frios."
+    },
+    "dossie007_CoroaDePedra": {
+      "status": "Investigação iniciada (sigilo máximo)",
+      "agentes": "E (Capital, arquivos comércio), L (Valenfort, docs), F (Casa Gray, tradição oral)"
+    },
+    "dossie008_Clerigo": {
+      "status": "Anotado para primavera — Seren + Kaelen Thorn"
+    },
+    "dossie009_PlanoObras": {
+      "fase1": "Pedreira (80 SD) + Praça (300 SD) + Templo (~380 SD)",
+      "fase2": "Escola (~400 SD) + Prefeitura (TBD)",
+      "pecuaria": "~300 SD (retorno em produto/trabalho)"
+    },
+    "dossie010_BlackmoorCrespo": {
+      "status": "✅ Fechado",
+      "descricao": "Esquema Blackmoor/Crespo. Crespo executado. Provas enviadas à Coroa."
+    },
+    "dossie011_SeloFalso": {
+      "status": "✅ Selo novo forjado (Baldur, Ashfall 17)",
+      "descricao": "Selo antigo de Valenfort invalidado. Novo selo em uso."
+    },
+    "dossie012_Malcom": {
+      "status": "❌ Morto",
+      "descricao": "Ourives Malcom (Capital, mestre de Dorian Voss) executado por Blackmoor. Ponta limpa — sem como interrogar."
+    },
+    "dossie013_AcampamentoNorte": {
+      "status": "🟡 Não confirmado",
+      "descricao": "Agentes K+M reportam bandeira preta/prata além do Velrin. Pode ser remanescente Blackmoor ou tribo nômade. Aguardando confirmação de Mira ou Agente K reforçado."
+    },
+    "observacoes": [
+      "1. Voss quer o papel, não a prata — o contrato de dívida vale mais que as minas.",
+      "2. Alguém protege Voss na Capital. Silas Vane é a ponta visível.",
+      "3. Blackmoor planejava ataque na primavera (346) — ameaça neutralizada Thawrise 19.",
+      "4. Rede dobrou de tamanho — agora há backup em cada região.",
+      "5. Kaelen Thorn (historiadora real) prometida para primavera — atrasada, ainda não chegou."
+    ],
+    "chaveAlternativa": {
+      "segundaChave": "✅ RECUPERADA — Heward, ferreiro aposentado de Falcoa, guardou sob a bigorna por 22 anos",
+      "chainOfCustody": "Tobin Ferroazul → Heward (Falcoa) → Roric → Rodrigo",
+      "chaveFalsa": "No colar de Rodrigo (isca)",
+      "chaveCofrePessoal": "Na bota direita de Rodrigo (abre o cofre do LIVRO_NEGRO)"
+    },
+    "nextSteps": [
+      "✅ ~~Descobrir quem vazou para Varen~~ — Fechado: Blackmoor via Corvo",
+      "✅ ~~Preparar defesa contra Blackmoor~~ — Neutralizado Thawrise 19",
+      "✅ ~~Segunda chave de Tobin Ferroazul~~ — RECUPERADA (Heward, Falcoa)",
+      "🔄 Confirmar acampamento norte (Mira + batedores ou Agente K reforçado)",
+      "🕵️ Localizar Dorian Voss — mandado da Coroa emitido",
+      "📝 Receber Kaelen Thorn (atrasada — verão)",
+      "Rastrear ex-soldado de Fenrir (mensageiro norte de Silas Vane)",
+      "Coroa de Pedra — investigação contínua (Roric, longo prazo)",
+      "Clérigo da Capital — Seren sondar"
+    ]
+  },
+  "mercenaries": {
+    "knownBands": [],
+    "historicalHires": [],
+    "marketReference": {
+      "Capital": {
+        "recruitmentTime": "1-3 days",
+        "quality": "Tier 2-4",
+        "typicalCost": "50-200 SD"
+      },
+      "Três Pontas": {
+        "recruitmentTime": "3-7 days",
+        "quality": "Tier 1-3",
+        "typicalCost": "30-150 SD"
+      },
+      "Porto Velho": {
+        "recruitmentTime": "5-10 days",
+        "quality": "Tier 1-4",
+        "typicalCost": "40-300 SD"
+      },
+      "Alveria": {
+        "recruitmentTime": "7-14 days",
+        "quality": "Tier 2-5",
+        "typicalCost": "60-500 SD"
+      }
+    },
+    "contractTemplate": {
+      "duration": null,
+      "pay": null,
+      "shields": null,
+      "provisions": null,
+      "specialTerms": null
+    },
+    "notableIndividuals": [],
+    "blackmoorFormerMercenaries": {
+      "original": 60,
+      "killedPortaoFalso": 40,
+      "fledWithBlackmoor": 18,
+      "captured": 2,
+      "inWorkGang": 5,
+      "survivorsScattered": true,
+      "organizedRemnant": false
+    },
+    "corvoNetwork": {
+      "status": "Dismantled",
+      "fixerStatus": "Dead (Frostwane 17 / Forte Vigília Cega)",
+      "remainingAccounts": "~100-200 SD (unconfirmed)"
+    }
+  },
+  "fortalezasOrm": {
+    "known": [
+      {
+        "id": "fort_torre_pacto",
+        "name": "Torre do Pacto",
+        "status": "Conhecida, não explorada"
+      },
+      {
+        "id": "fort_vigilia_cega",
+        "name": "Forte da Vigília Cega",
+        "status": "Ocupado por Valenfort"
+      },
+      {
+        "id": "fort_pico_firmamento",
+        "name": "Pico do Firmamento / Sétima Fortaleza",
+        "status": "Aberta, Coroa de Pedra recuperada"
+      }
+    ],
+    "unknown": 4,
+    "clue": "Códice Metálico do Sol Negro pode conter coordenadas. Mestre Solon (Alveria) tem conhecimento.",
+    "lore": "Orm, o Construtor do Mundo, criou 7 fortalezas. Fenrir era ramo cadete de Orm. Símbolo: sol negro partido."
+  },
+  "genealogy": {
+    "lastUpdated": "Highsun 7, Ano 345",
+    "trees": [
+      {
+        "house": "Orm",
+        "tree": "Orm, o Construtor do Mundo → Filho Primogênito (linha principal de Orm) + Filha Oculta Stormcrown → Elyra Stormcrown. Linhas cadetes: Fenrir, Torre do Pacto, Vigília Cega, Pico do Firmamento."
+      },
+      {
+        "house": "Valenfort",
+        "tree": "Senhor anterior (pai de Rodrigo) → Sir Rodrigo de Valenfort (n. 308). Parceira: Elara Thornwall → Lyra (n. 345). Romance: Elyra Stormcrown (futura esposa? — intenção)."
+      },
+      {
+        "house": "Stormcrown",
+        "tree": "Último Rei → Herdeiro legítimo (morto) + Filha Oculta Stormcrown (registros queimados) → Elyra Stormcrown (n. 326, 19 anos). Escondida como Valéria Fenrir na Torre Leste."
+      },
+      {
+        "house": "Voss",
+        "tree": "Casa Voss (mercantes) → Lorde Voss (desaparecido) + Dorian Voss (bastardo, ourives, protegido de Silas Vane, conexão Corvo/Caspian, Alveria fugitivo)."
+      },
+      {
+        "house": "Vance",
+        "tree": "Chanceler Edmundo Vance → Caspian Vance (primo/sobrinho, preso Longdark 6, 345) + outros herdeiros leais à Coroa."
+      },
+      {
+        "house": "Fenrir",
+        "tree": "Tobin Ferroazul (último Senhor de Fenrir) → herdeiros desconhecidos (linha extinta). Contrato de Prata (dívida) com casa do sul. Cláusula Sétima: direitos passam à herdeira por sangue feminino → Elyra Stormcrown."
+      },
+      {
+        "house": "Gray",
+        "note": "Orin Gray, 5 gerações em Três Pontas. Aliado regional (+2). Recursos: pasto inverno, mina ferro, cavalos."
+      },
+      {
+        "house": "Harvel",
+        "note": "Lorde Harvel. Aliado formal (+2, Aliança Tríplice). Perdeu terras para Blackmoor."
+      },
+      {
+        "house": "Aldric",
+        "note": "Lorde Aldric. Aliado formal (+2, Aliança Tríplice). Perdeu parente para Blackmoor."
+      },
+      {
+        "house": "Thornwall",
+        "note": "Elara Thornwall (viúva de guerra). Leal (+3). Reside em Valenfort."
+      },
+      {
+        "house": "Blackmoor",
+        "note": "Eldric Blackmoor (executado). Extinta. Terras confiscadas pela Coroa."
+      }
+    ]
+  },
+  "distances": {
+    "reference": "G.21 — Regional Distance Reference (Age of Shattered Oaths Rulebook V.6.7.3, p. 748)",
+    "travelTimesBetweenRegions": {
+      "adjacentRoad": "3-6 weeks",
+      "acrossOneRegion": "2-5 weeks",
+      "coastToCoast": "2-3 months",
+      "northToSouth": "4-5 months"
+    },
+    "travelSpeedsByTerrain": {
+      "road": "30 km/day (1.0x)",
+      "plains": "24 km/day (0.8x)",
+      "hills": "18 km/day (0.6x)",
+      "forest": "15 km/day (0.5x)",
+      "mountains": "10 km/day (0.33x)",
+      "swamp": "8 km/day (0.25x)",
+      "riverBoat": "40 km/day (1.33x)"
+    },
+    "fromValenfort": [
+      {
+        "destination": "Hollowford",
+        "region": "Central Plains",
+        "time": "4 days",
+        "terrain": "Plains (road)"
+      },
+      {
+        "destination": "Três Pontas",
+        "region": "Central Plains",
+        "time": "6 days",
+        "terrain": "Plains (road)"
+      },
+      {
+        "destination": "Casa Gray",
+        "region": "Central Plains",
+        "time": "8 days",
+        "terrain": "Plains"
+      },
+      {
+        "destination": "Rio Caedor",
+        "region": "Central Plains",
+        "time": "3 days",
+        "terrain": "Plains"
+      },
+      {
+        "destination": "Capital (Iron Seat)",
+        "region": "Central Plains",
+        "time": "2 weeks",
+        "terrain": "Plains (road)"
+      },
+      {
+        "destination": "Fronteira Leste",
+        "region": "Eastern Forests",
+        "time": "2-3 weeks",
+        "terrain": "Plains + forest"
+      },
+      {
+        "destination": "Montanhas do Sul",
+        "region": "Southern Mountains",
+        "time": "3-4 weeks",
+        "terrain": "Plains + mountains"
+      },
+      {
+        "destination": "Terras do Norte",
+        "region": "Northern Snowlands",
+        "time": "5-6 weeks",
+        "terrain": "Plains + snowlands"
+      },
+      {
+        "destination": "Estepe Nômade",
+        "region": "Nomad Steppe",
+        "time": "4-5 weeks",
+        "terrain": "Plains + grassland"
+      },
+      {
+        "destination": "Costa Oeste",
+        "region": "Western Rivers",
+        "time": "2-3 weeks",
+        "terrain": "Plains + river"
+      }
+    ],
+    "climate": {
+      "region": "Montanhas do Sul (Passagem do Leste)",
+      "elevation": "~1.200m (Valenfort)",
+      "monthly": [
+        {
+          "month": "Frostwane",
+          "season": "Winter",
+          "dayTemp": -5,
+          "nightTemp": -15,
+          "precip": "Snow (heavy)",
+          "wind": "Strong",
+          "note": "White Death"
+        },
+        {
+          "month": "Deepfrost",
+          "season": "Winter",
+          "dayTemp": -8,
+          "nightTemp": -18,
+          "precip": "Snow (extreme)",
+          "wind": "Very Strong",
+          "note": "Cold waves"
+        },
+        {
+          "month": "Longdark",
+          "season": "Winter",
+          "dayTemp": -10,
+          "nightTemp": -20,
+          "precip": "Snow (moderate)",
+          "wind": "Strong",
+          "note": "Hungerwake"
+        },
+        {
+          "month": "Thawrise",
+          "season": "Spring",
+          "dayTemp": 5,
+          "nightTemp": -2,
+          "precip": "Rain (moderate)",
+          "wind": "Moderate",
+          "note": "Mudbirth"
+        },
+        {
+          "month": "Greening",
+          "season": "Spring",
+          "dayTemp": 12,
+          "nightTemp": 4,
+          "precip": "Rain (light)",
+          "wind": "Light",
+          "note": "Green Rising"
+        },
+        {
+          "month": "Highsun",
+          "season": "Summer",
+          "dayTemp": 22,
+          "nightTemp": 12,
+          "precip": "Dry",
+          "wind": "Light",
+          "note": "Sunreach"
+        },
+        {
+          "month": "Harvestfall",
+          "season": "Autumn",
+          "dayTemp": 15,
+          "nightTemp": 6,
+          "precip": "Rain (moderate)",
+          "wind": "Moderate",
+          "note": "First Frost"
+        },
+        {
+          "month": "Ashfall",
+          "season": "Autumn",
+          "dayTemp": 8,
+          "nightTemp": 0,
+          "precip": "Rain/Snow mix",
+          "wind": "Moderate-Strong",
+          "note": "Redfall"
+        }
+      ],
+      "regionalNotes": {
+        "dentesDeGelo": "15-25°C colder than Valenfort. Permafrost.",
+        "capital": "5-8°C warmer than Valenfort. Milder winters.",
+        "costaLeste": "Maritime. 3-5°C milder. More precipitation.",
+        "alveria": "Similar to Valenfort but more coastal influence.",
+        "estepe": "Dry continental. Hot summers, very cold winters."
+      }
+    }
+  },
+  "caravanLedger": {
+    "activeCaravans": [],
+    "pendingCaravans": [],
+    "referenceTiers": [
+      {
+        "tier": 1,
+        "cargoCap": 10,
+        "crew": 5,
+        "escort": 5,
+        "monthlyCost": 15,
+        "monthlyRevenue": 30
+      },
+      {
+        "tier": 2,
+        "cargoCap": 25,
+        "crew": 8,
+        "escort": 10,
+        "monthlyCost": 30,
+        "monthlyRevenue": 70
+      },
+      {
+        "tier": 3,
+        "cargoCap": 60,
+        "crew": 12,
+        "escort": 20,
+        "monthlyCost": 60,
+        "monthlyRevenue": 180
+      },
+      {
+        "tier": 4,
+        "cargoCap": 150,
+        "crew": 20,
+        "escort": 50,
+        "monthlyCost": 120,
+        "monthlyRevenue": 400
+      },
+      {
+        "tier": 5,
+        "cargoCap": 400,
+        "crew": 30,
+        "escort": "100+",
+        "monthlyCost": 250,
+        "monthlyRevenue": 1000
+      }
+    ],
+    "valenfortRoutes": {
+      "valenfortToHollowford": {
+        "partner": "Local market",
+        "frequency": "Weekly",
+        "goods": "Grain, tools",
+        "status": "Active"
+      },
+      "valenfortToTresPontas": {
+        "partner": "Casa Gray",
+        "frequency": "Bi-weekly",
+        "goods": "Timber, iron",
+        "status": "Active"
+      },
+      "valenfortToRioCaedor": {
+        "partner": "River trade",
+        "frequency": "Monthly",
+        "goods": "Stone, salt",
+        "status": "Infrequent"
+      }
+    }
+  },
+  "regionalTrade": {
+    "demandModifiers": {
+      "Central Plains": 1.0,
+      "Western Rivers": 1.2,
+      "Eastern Forests": 1.1,
+      "Southern Mountains": 1.3,
+      "Northern Snowlands": 1.5,
+      "Nomad Steppe": 1.2
+    },
+    "exportsByRegion": {
+      "Central Plains": "Grain, livestock, leather",
+      "Western Rivers": "Fish, river goods, salt",
+      "Eastern Forests": "Timber, furs, herbs",
+      "Southern Mountains": "Iron, stone, metal goods",
+      "Northern Snowlands": "Furs, ivory, fish",
+      "Nomad Steppe": "Horses, leather, wool"
+    },
+    "importsByRegion": {
+      "Central Plains": "Iron, timber, salt",
+      "Western Rivers": "Timber, iron, grain",
+      "Eastern Forests": "Iron, grain, salt",
+      "Southern Mountains": "Grain, timber, cloth",
+      "Northern Snowlands": "Grain, timber, iron",
+      "Nomad Steppe": "Grain, iron, weapons"
+    },
+    "priceReference": {
+      "Grain": 2,
+      "Iron": 5,
+      "Timber": 3,
+      "Stone": 4,
+      "Salt": 6,
+      "Leather": 3,
+      "Wool": 2,
+      "Wine": 10,
+      "Fur": 8,
+      "Horse": 30,
+      "Warhorse": 100
+    },
+    "tradeAgreements": [
+      {
+        "partner": "Casa Gray",
+        "agreement": "Trade pact",
+        "terms": "Mutual defense + trade",
+        "status": "Active"
+      },
+      {
+        "partner": "Hollowford",
+        "agreement": "Market access",
+        "terms": "Weekly grain trade",
+        "status": "Active"
+      },
+      {
+        "partner": "Alveria (Kostas)",
+        "agreement": "Commercial contract",
+        "terms": "Prata, madeira, couro ↔ cavalos, aço",
+        "status": "Active (navio via Porto Velho)"
+      }
+    ]
+  },
+  "crowns": [
+    {
+      "id": "stone",
+      "name": "Coroa de Pedra",
+      "region": "Southern Mountains",
+      "unlocked": true,
+      "progress": 1,
+      "maxProgress": 5,
+      "requirements": [
+        "Consolidar Valenfort como Cidade (Tier 5)",
+        "Revelar a linhagem Stormcrown de Elyra",
+        "Obter apoio militar do Conselho da Passagem Cinzenta",
+        "Recuperar a Fortaleza Subterrânea de Fenrir (completo)",
+        "Coroar Elyra como herdeira legítima do Norte"
+      ]
+    }
+  ],
+  "family": {
+    "rodrigo": {
+      "partner": {
+        "name": "Elara Thornwall",
+        "type": "Parceira (não casamento formal)",
+        "age": "35-40",
+        "affection": 5,
+        "children": [
+          "Lyra de Valenfort"
+        ]
+      },
+      "children": [
+        {
+          "name": "Lyra de Valenfort",
+          "age": "~3 meses (99 dias)",
+          "gender": "Female",
+          "mother": "Elara Thornwall",
+          "alive": true,
+          "note": "Nasceu Deepfrost 28, Ano 345"
+        }
+      ],
+      "romance": {
+        "name": "Elyra Stormcrown",
+        "house": "Stormcrown",
+        "age": 19,
+        "relation": "Prima (sangue Fenrir)",
+        "affection": 5,
+        "type": "Amor recíproco (segredo)",
+        "status": "Planejando casamento futuro",
+        "discovered": "Greening 16, Ano 345"
+      }
+    }
+  },
+  "worldLedger": {
+    "currentDate": {
+      "day": 7,
+      "month": "Highsun",
+      "year": 345,
+      "week": 1
+    },
+    "activeConflicts": [
+      {
+        "name": "Pedra Alta Embargo",
+        "parties": "Valenfort vs Alberico (preso)",
+        "status": "Ongoing",
+        "description": "Comércio cortado. Alberico na pedreira. Dona Lira administrando."
+      }
+    ],
+    "nobleHouses": [
+      {
+        "name": "Valenfort",
+        "currentLord": "Sir Rodrigo",
+        "seat": "Valenfort",
+        "tier": 5,
+        "status": "Active",
+        "allies": [
+          "Harvel",
+          "Aldric",
+          "Gray"
+        ],
+        "opinion": 0
+      },
+      {
+        "name": "Harvel",
+        "currentLord": "Lorde Harvel",
+        "tier": 2,
+        "status": "Ally",
+        "allies": [
+          "Valenfort",
+          "Aldric"
+        ],
+        "opinion": 2
+      },
+      {
+        "name": "Aldric",
+        "currentLord": "Lorde Aldric",
+        "tier": 2,
+        "status": "Ally",
+        "allies": [
+          "Valenfort",
+          "Harvel"
+        ],
+        "opinion": 2
+      },
+      {
+        "name": "Gray",
+        "currentLord": "Orin Gray",
+        "seat": "Três Pontas",
+        "tier": 3,
+        "status": "Regional Ally",
+        "allies": [
+          "Valenfort"
+        ],
+        "opinion": 2
+      },
+      {
+        "name": "Thornwall",
+        "currentLord": "Elara (regente)",
+        "seat": "Thornwall",
+        "tier": 2,
+        "status": "Leal",
+        "allies": [
+          "Valenfort"
+        ],
+        "opinion": 3
+      },
+      {
+        "name": "Blackmoor",
+        "currentLord": "Eldric (executado)",
+        "seat": "Valenfort (perdido)",
+        "tier": 0,
+        "status": "Extinta",
+        "enemies": [
+          "Valenfort"
+        ],
+        "opinion": 0
+      },
+      {
+        "name": "Vance",
+        "currentLord": "Chanceler Edmundo",
+        "seat": "Capital",
+        "tier": 5,
+        "status": "Ally",
+        "allies": [
+          "Valenfort"
+        ],
+        "opinion": 2
+      },
+      {
+        "name": "Alveria (Kostas)",
+        "currentLord": "Kostas",
+        "seat": "Alveria Velha",
+        "tier": 2,
+        "status": "Trade Partner",
+        "allies": [
+          "Valenfort"
+        ],
+        "opinion": 1
+      },
+      {
+        "name": "Stonebrook",
+        "currentLord": "Lady Elowen",
+        "seat": "Stonebrook",
+        "tier": 2,
+        "status": "Absent (recovery — fire)",
+        "opinion": 0
+      },
+      {
+        "name": "Ashford",
+        "currentLord": "Lord Theron",
+        "seat": "Ashford",
+        "tier": 2,
+        "status": "Absent (mourning — succession)",
+        "opinion": 0
+      },
+      {
+        "name": "Fenrir",
+        "currentLord": "— (extinta)",
+        "seat": "Fortaleza Subterrânea",
+        "tier": 0,
+        "status": "Extinta",
+        "opinion": 0
+      },
+      {
+        "name": "Stormcrown",
+        "currentLord": "Elyra (oculta)",
+        "seat": "—",
+        "tier": 0,
+        "status": "Oculta",
+        "opinion": 0
+      },
+      {
+        "name": "Voss",
+        "currentLord": "Dorian (fugitivo)",
+        "seat": "—",
+        "tier": 0,
+        "status": "Foragido",
+        "opinion": -2
+      },
+      {
+        "name": "Orm",
+        "currentLord": "Tybalt (preso)",
+        "seat": "Capital",
+        "tier": 0,
+        "status": "Preso",
+        "opinion": -2
+      }
+    ],
+    "rareEventStatus": {
+      "youngPretender": {
+        "active": true,
+        "name": "Elyra Stormcrown",
+        "identity": "Filha direta do último rei",
+        "location": "Torre Leste (disfarçada de Valéria)",
+        "knownToRodrigo": true,
+        "relationToRodrigo": "Amor recíproco (segredo)",
+        "claimStrength": "Strong (Direct Royal Daughter)",
+        "specialResource": "Royal Signet",
+        "discoveryDate": "Greening 16, Ano 345"
+      },
+      "warmYear": {
+        "active": false
+      },
+      "snowBearMigration": {
+        "active": false
+      },
+      "blindTraveler": {
+        "active": false
+      },
+      "schemer": {
+        "active": false
+      }
+    },
+    "atmosphere": "Clear, cool",
+    "notableDeaths": [
+      {
+        "name": "Corvo",
+        "title": "Fixer do submundo",
+        "date": "Longdark 14, Ano 345",
+        "cause": "Morto no Forte da Vigília Cega por Rodrigo"
+      },
+      {
+        "name": "Eldric de Blackmoor",
+        "title": "Conde (foragido)",
+        "date": "Thawrise 19, Ano 345",
+        "cause": "Executado por Rodrigo nas margens do Velrin"
+      },
+      {
+        "name": "Tybalt Orm",
+        "title": "Guardião da Garganta do Gigante",
+        "date": "Greening 9, Ano 345",
+        "cause": "Morreu na prisao (causas naturais) apos ser preso por alta traicao"
+      },
+      {
+        "name": "Sir Vance",
+        "title": "Emissário de Blackmoor",
+        "date": "Longdark, Ano 0",
+        "cause": "Executado por traição"
+      }
+    ]
+  },
+  "timeline": {
+    "phase1_Exilio": [
+      {
+        "date": "Deepfrost, Ano 0",
+        "event": "A Traição de Blackmoor — forja cartas, compra testemunhas. Rodrigo declarado traidor."
+      },
+      {
+        "date": "Deepfrost, Ano 0",
+        "event": "A Queda de Valenfort — Rodrigo perde Valenfort. Leva Fidelis, armadura, Brasa, 35 veteranos."
+      },
+      {
+        "date": "Longdark, Ano 0",
+        "event": "Refúgio na Torre de Corvopedra — a Companhia da Passagem Cinzenta é formada."
+      }
+    ],
+    "phase2_Reconstrucao": [
+      {
+        "date": "Longdark → Thawrise, Ano 0",
+        "event": "Reconstrução e alianças iniciais."
+      },
+      {
+        "date": "Thawrise, Ano 0",
+        "event": "Elara Thornwall alia-se a Rodrigo."
+      },
+      {
+        "date": "Thawrise, Ano 0",
+        "event": "Garrick junta-se à causa (ex-mercenário de Blackmoor, traído)."
+      },
+      {
+        "date": "Greening, Ano 0",
+        "event": "Roric torna-se Mestre dos Sussurros."
+      },
+      {
+        "date": "Greening, Ano 0",
+        "event": "Sabotagem na Torre Leste — Rodrigo sabota fortificação de Blackmoor."
+      },
+      {
+        "date": "Greening, Ano 0",
+        "event": "Captura do Emissário de Blackmoor — provas da conspiração obtidas."
+      }
+    ],
+    "phase3_Capital": [
+      {
+        "date": "Highsun, Ano 0",
+        "event": "Partida para a Capital com provas contra Blackmoor."
+      },
+      {
+        "date": "Highsun, Ano 0",
+        "event": "Aliados na Capital: Harvel, Aldric, Lady Seren unem-se a Rodrigo."
+      },
+      {
+        "date": "Highsun, Ano 0",
+        "event": "Julgamento no Conselho da Coroa — Blackmoor derrotado politicamente. Rodrigo reconhecido como Senhor legítimo."
+      }
+    ],
+    "phase4_ReconstrucaoValenfort": [
+      {
+        "date": "Highsun tardio, Ano 0",
+        "event": "Retorno a Valenfort como senhor legítimo."
+      },
+      {
+        "date": "Highsun tardio, Ano 0",
+        "event": "Aldren nomeado Marechal."
+      },
+      {
+        "date": "Ashfall, Ano 0",
+        "event": "Gerold nomeado Intendente. Primeiras obras (ampliação depósito, iluminação muralha)."
+      },
+      {
+        "date": "Ashfall, Ano 0",
+        "event": "Lady Seren nomeada Chanceler. Elara nomeada Conselheira Diplomática."
+      },
+      {
+        "date": "Ashfall, Ano 0",
+        "event": "Garrick nomeado Comandante de Escoltas. Roric nomeado Mestre dos Sussurros."
+      },
+      {
+        "date": "Harvestfall → Longdark, Ano 0",
+        "event": "Reconstrução econômica: serraria, curtume, caça, pesca, patrulhas, milícia."
+      },
+      {
+        "date": "Longdark, Ano 0",
+        "event": "Roric inicia rastreio de Blackmoor."
+      },
+      {
+        "date": "Frostwane, Ano 1",
+        "event": "Casa Gray: primeira carta — Blackmoor esteve lá, já partiu para leste."
+      }
+    ],
+    "phase5_Aliangas": [
+      {
+        "date": "Greening ~Dia 1, Ano 1",
+        "event": "Aliança Tríplice assinada (Valenfort, Harvel, Aldric)."
+      },
+      {
+        "date": "Greening ~Dia 1, Ano 1",
+        "event": "Banquete em Valenfort — celebração das alianças."
+      },
+      {
+        "date": "Greening ~Dia 2, Ano 1",
+        "event": "Lady Seren formalizada como Chanceler."
+      },
+      {
+        "date": "Greening ~Dia 4, Ano 1",
+        "event": "Casa Gray: segunda carta — encontro neutro marcado em Três Pontas."
+      },
+      {
+        "date": "Greening ~Dia 5, Ano 1",
+        "event": "Roric perde rastro de Blackmoor (seguiu para leste)."
+      },
+      {
+        "date": "Greening ~Dia 6, Ano 1",
+        "event": "Patrulha para Harvel (Sgt. Roderick, 6 homens)."
+      },
+      {
+        "date": "Greening ~Dia 8, Ano 1",
+        "event": "Reunião do Conselho — estruturação da caça/pesca, Casa de Salga."
+      }
+    ],
+    "timeSkip": [
+      {
+        "date": "Greening ~Dia 14, Ano 345",
+        "event": "Encontro com Casa Gray (Três Pontas) — Seren+Gerold. Canal diplomático aberto, relação +2."
+      },
+      {
+        "date": "Greening ~Dia 20, Ano 345",
+        "event": "Patrulha de Roderick retorna — foragidos eliminados, 0 baixas. Roderick = Capitão da Guarnição."
+      },
+      {
+        "date": "Highsun ~Dia 10, Ano 345",
+        "event": "Roric retorna — perdeu rastro de Blackmoor definitivamente. Blackmoor aliado a mercenários/nômades."
+      },
+      {
+        "date": "Highsun tardio, Ano 345",
+        "event": "Construções concluídas (espaço coberto, sinalização, iluminação, alojamentos, 2º poço). Milícia formada."
+      },
+      {
+        "date": "Highsun tardio, Ano 345",
+        "event": "Promoções: Mira → Comandante Batedores (Tier 2). Tobin → Sargento (Tier 2)."
+      },
+      {
+        "date": "Ashfall ~Dia 5, Ano 345",
+        "event": "Gravidez de Elara confirmada (~3 meses)."
+      },
+      {
+        "date": "Ashfall Dia 22, Ano 345",
+        "event": "Preparação para o inverno."
+      },
+      {
+        "date": "Ashfall ~Dia 25, Ano 345",
+        "event": "Compras de inverno (lenha 60, carvão 25, roupas 187 conjuntos, ferramentas 75). Tesouro: ~4.434 SD."
+      },
+      {
+        "date": "Ashfall ~Dia 27, Ano 345",
+        "event": "Inspeção de casas concluída — reparos em telhados e vedação."
+      },
+      {
+        "date": "Ashfall Dia 30, Ano 345",
+        "event": "Estado final pré-inverno: guarnição 185, FSU ~35 (3.7 semanas)."
+      }
+    ],
+    "winter345": [
+      {
+        "date": "Longdark m12, ~Dia 1-30, Ano 345",
+        "event": "Silêncio do Inverno — consumo de estoques, patrulhas curtas de revezamento."
+      },
+      {
+        "date": "Frostwane ~Dia 17, Ano 345",
+        "event": "Escaramuça na Garganta Cinzenta — 12 mercenários atacam. 4 mortos, 3 fogem, 5 capturados. Contratados por 'Corvo' (capa cinza, cicatriz)."
+      },
+      {
+        "date": "Frostwane 18-24, Ano 345",
+        "event": "Roric investiga 'Corvo' — fixer da Capital, Taverna do Velho Cais."
+      },
+      {
+        "date": "Frostwane 18-24, Ano 345",
+        "event": "Garrick reforça Garganta. Mira rastreia fugitivos."
+      },
+      {
+        "date": "Frostwane 18-24, Ano 345",
+        "event": "Seren prepara dossiê e parte para a Capital."
+      },
+      {
+        "date": "Frostwane 25-30, Ano 345",
+        "event": "Agente confirma: Corvo opera na Taverna do Velho Cais."
+      },
+      {
+        "date": "Frostwane 30, Ano 345",
+        "event": "Seren parte para a Capital com 3 soldados."
+      }
+    ],
+    "deepfrost345": [
+      {
+        "date": "Deepfrost 3-4, Ano 345",
+        "event": "Seren chega à Capital (9 dias). Busca audiência no Conselho da Coroa."
+      },
+      {
+        "date": "Deepfrost 6, Ano 345",
+        "event": "Mercador de Bronzeford oferece 6 pôneis (90 SD). Compra aprovada."
+      },
+      {
+        "date": "Deepfrost 9, Ano 345",
+        "event": "Fogo no depósito de grãos — ~3 FSU perdidos."
+      },
+      {
+        "date": "Deepfrost 12, Ano 345",
+        "event": "Crise de comida — caçada emergencial (+6 FSU cabras). Estoque estabiliza."
+      },
+      {
+        "date": "Deepfrost 15-16, Ano 345",
+        "event": "Frio extremo — 2 idosos morrem de pneumonia. Mestre Alard trata 5 doentes."
+      },
+      {
+        "date": "Deepfrost 2, Ano 345",
+        "event": "Gerold inicia planejamento agrícola de primavera."
+      },
+      {
+        "date": "Deepfrost 2, Ano 345",
+        "event": "Juramento de Sangue na Sala Grande — lealdade consolidada. Custo: 25 SD, 4 FSU."
+      },
+      {
+        "date": "Deepfrost 4, Ano 345",
+        "event": "Roric identifica Corin (ex-Blackmoor) como infiltrado. Sob vigilância."
+      },
+      {
+        "date": "Deepfrost 10-11, Ano 345",
+        "event": "Visita diplomática à Casa Gray — propõe Conselho Regional. Relação +2."
+      },
+      {
+        "date": "Deepfrost 18 a Longdark 3, Ano 345",
+        "event": "Obras de defesa: 2 ballistas (80), muralha (90), portão (40), hospital (120). Total: 330 SD."
+      },
+      {
+        "date": "Deepfrost 28, Ano 345",
+        "event": "Nasce Lyra de Valenfort — filha de Rodrigo e Elara."
+      }
+    ],
+    "longdark345": [
+      {
+        "date": "Longdark 3, Ano 345",
+        "event": "Rede de informantes ativada (4 agentes, 14 SD/mês)."
+      },
+      {
+        "date": "Longdark 3, Ano 345",
+        "event": "Conselho debate upgrade para Tier 5 (City). Frente 2 (atração imigrantes) escolhida."
+      },
+      {
+        "date": "Longdark 3-4, Ano 345",
+        "event": "Audiência pública instituída — 1ª marcada para Longdark 10."
+      },
+      {
+        "date": "Longdark 4, Ano 345",
+        "event": "Estábulo (60 SD) e paragem de carroças aprovados."
+      },
+      {
+        "date": "Longdark 4, Ano 345",
+        "event": "Hierarquia militar documentada por Aldren."
+      },
+      {
+        "date": "Longdark 4, Ano 345",
+        "event": "Conselho de emergência: crise de comida. Racionamento em vigor."
+      },
+      {
+        "date": "Longdark 5, Ano 345",
+        "event": "Heward pego como especulador — multa 50 SD + confisco 6 FSU."
+      },
+      {
+        "date": "Longdark 9, Ano 345",
+        "event": "Gerold retorna de Barrow com 4 FSU (50 SD)."
+      },
+      {
+        "date": "Longdark 10, Ano 345",
+        "event": "1ª Audiência Pública — 23 pessoas, 3 casos."
+      },
+      {
+        "date": "Longdark 11, Ano 345",
+        "event": "Carta de Seren: Conselho da Coroa reconheceu ataque. Investigador real virá."
+      },
+      {
+        "date": "Longdark 11, Ano 345",
+        "event": "Família de artesãos (Tomas + Mara) chega — mais 4 famílias interessadas."
+      },
+      {
+        "date": "Longdark 14, Ano 345",
+        "event": "Estábulo concluído. Gerold retorna de Bronzeford com 8 FSU (110 SD)."
+      },
+      {
+        "date": "Longdark 16, Ano 345",
+        "event": "Resposta de Casa Gray: 10 FSU por 100 SD. Elara aceita."
+      },
+      {
+        "date": "Longdark 22, Ano 345",
+        "event": "Seren retorna: investigador real virá na primavera. Corvo sumiu."
+      },
+      {
+        "date": "Longdark 24, Ano 345",
+        "event": "Grão de Casa Gray chega (+10 FSU, 100 SD). Estoque: ~28 FSU."
+      },
+      {
+        "date": "Longdark 30, Ano 345",
+        "event": "Orin nomeado Mestre de Obras (4 SD/sem). Busca por Engenheiro Mestre iniciada."
+      },
+      {
+        "date": "Longdark 30, Ano 345",
+        "event": "Prisioneiros retidos para investigador real. Estoque: ~26 FSU."
+      }
+    ],
+    "harvestfall345Arc": [
+      {
+        "date": "Harvestfall 20-24, Ano 345",
+        "event": "Segunda chave do baú de Fenrir recuperada em Falcoa (Heward). Baú aberto."
+      },
+      {
+        "date": "Harvestfall 25, Ano 345",
+        "event": "1º Conselho da Passagem Cinzenta: Gray, Bronzeford, Stonebrook, Ashford reunidos. Rodrigo eleito presidente."
+      },
+      {
+        "date": "Harvestfall 25, Ano 345",
+        "event": "Isolda Vance convocada — reconhece selo da Casa Voss. Contrato arquivado como 'Ata — Item 7'."
+      },
+      {
+        "date": "Harvestfall 26, Ano 345",
+        "event": "Plano de obras do feudo aprovado (pedreira, praça, templo, pecuária, escola, prefeitura)."
+      },
+      {
+        "date": "Harvestfall 26, Ano 345",
+        "event": "Ordens a Roric: investigar Coroa de Pedra e herdeira Stormcrown (vias indiretas)."
+      }
+    ],
+    "ashfall345Arc": [
+      {
+        "date": "Ashfall 3, Ano 345",
+        "event": "Rotas comerciais firmadas (Falcoa, Pedra Alta). Mina 2 autorizada."
+      },
+      {
+        "date": "Ashfall 5, Ano 345",
+        "event": "Isolda retorna de Três Pontas: provas de falsificação de selo."
+      },
+      {
+        "date": "Ashfall 5, Ano 345",
+        "event": "Roric descobre que selo de Valenfort foi falsificado em Três Pontas."
+      },
+      {
+        "date": "Ashfall 6, Ano 345",
+        "event": "Roric + Garrick partem para Três Pontas para capturar escrivão Crespo."
+      },
+      {
+        "date": "Ashfall 16, Ano 345",
+        "event": "Roric captura Crespo. Conexão Corvo/Blackmoor/Voss confirmada."
+      },
+      {
+        "date": "Ashfall 17, Ano 345",
+        "event": "Novo selo forjado (Baldur). Crespo executado. Dossiê enviado à Coroa."
+      },
+      {
+        "date": "Ashfall 38, Ano 345",
+        "event": "Resposta da Coroa: Blackmoor declarado traidor. Mandado de busca para Dorian Voss."
+      },
+      {
+        "date": "Ashfall 40, Ano 345",
+        "event": "Templo de Valenfort inicia construção (380 SD, Vane/Orin)."
+      },
+      {
+        "date": "Ashfall 45, Ano 345",
+        "event": "Praça concluída. Relatórios dos agentes: possível acampamento Blackmoor no norte."
+      },
+      {
+        "date": "Ashfall 54, Ano 345",
+        "event": "Agente K resgatado pela tribo Toghrul (60 SD resgate). Convite para comércio."
+      },
+      {
+        "date": "Ashfall 28, Ano 345",
+        "event": "Operação em Alveria: Seren libertada. Caspian preso. Corvo foge."
+      },
+      {
+        "date": "Ashfall 30, Ano 345",
+        "event": "Rodrigo chega à Capital. Reunião com Chanceler Vance. Dívida Fenrir prescrita."
+      },
+      {
+        "date": "Ashfall 30, Ano 345",
+        "event": "Livro de Orm comprado. Cláusula Sétima: direitos da Passagem → herdeiro por laço de sangue feminino. Conexão com Elyra."
+      }
+    ],
+    "longdark345CapitalArc": [
+      {
+        "date": "Longdark 1, Ano 345",
+        "event": "Encontro nas Catacumbas do Velho Septo — Corvo escapa. Emissário capturado: Tybalt Orm é o patrono."
+      },
+      {
+        "date": "Longdark 2, Ano 345",
+        "event": "A Queda de Tybalt Orm — audiência com Rainha-Mãe e Chanceler. Tybalt preso por alta traição."
+      },
+      {
+        "date": "Longdark 6, Ano 345",
+        "event": "Roric e Seren retornam. Ordem de Fogo: Solon queimará registros de Elyra."
+      },
+      {
+        "date": "Longdark 7, Ano 345",
+        "event": "Partida imediata da Capital rumo ao Forte da Vigília Cega."
+      },
+      {
+        "date": "Longdark 14, Ano 345",
+        "event": "Infiltração no Forte da Vigília Cega — A Queda do Corvo. Rodrigo mata Corvo. Elyra protegida."
+      },
+      {
+        "date": "Longdark 14, Ano 345",
+        "event": "O Pacto de Sangue — Rodrigo revela identidade a Elyra. Oferece aliança como igual."
+      },
+      {
+        "date": "Longdark 14, Ano 345",
+        "event": "Canções de Inverno — Rodrigo retorna a Valenfort. Reencontra Elara e Lyra. Gerold espalha ouro entre bardos."
+      },
+      {
+        "date": "Longdark 15, Ano 345",
+        "event": "Conselho da Herdeira — Rodrigo revela Elyra ao conselho. Elyra batizada como 'Elyra Fenrir'."
+      },
+      {
+        "date": "Longdark 15, Ano 345",
+        "event": "Alices do Tier 5 — 1.500 SD rede Roric, 1.000 SD Orin pavimentação."
+      },
+      {
+        "date": "Longdark 30, Ano 345",
+        "event": "Passagem Comercial — Valenfort se tornará Cidade Comercial (Tier 5)."
+      }
+    ],
+    "blackmoorArc": [
+      {
+        "date": "Frostwane 5-7, Ano 345",
+        "event": "Batedores confirmam acampamento Blackmoor no Velrin. 60 mercenários."
+      },
+      {
+        "date": "Frostwane 11, Ano 345",
+        "event": "Heward de Pedra Alta identificado como fornecedor de Blackmoor."
+      },
+      {
+        "date": "Frostwane 14, Ano 345",
+        "event": "Seren e Garrick retornam de Pedra Alta. Heward silenciado. Alberico neutro."
+      },
+      {
+        "date": "Frostwane 17, Ano 345",
+        "event": "Valenfort cancela comércio com Pedra Alta (decisão direta de Rodrigo)."
+      },
+      {
+        "date": "Thawrise 18, Ano 345",
+        "event": "Operação Portão Falso — 40 mercenários mortos. Blackmoor foge com 18."
+      },
+      {
+        "date": "Thawrise 19-21, Ano 345",
+        "event": "Perseguição a Blackmoor até Porto Velho. Preso sem resistência."
+      },
+      {
+        "date": "Thawrise 19, Ano 345",
+        "event": "MORTE DE ELDRIC BLACKMOOR — executado por Rodrigo nas margens do Velrin."
+      }
+    ],
+    "postBlackmoor": [
+      {
+        "date": "Thawrise 1, Ano 345",
+        "event": "Cerimônia: Sorrel cavaleiro (Tier 3). Roric título vitalício. Tobin capitão (Tier 2). Aldren 'Escudo da Passagem'."
+      },
+      {
+        "date": "Thawrise 3, Ano 345",
+        "event": "Disfarce de Elyra: cabelo pintado, cores Fenrir, Torre Leste como 'prima doente'. 3.000 SD obras Tier 5."
+      },
+      {
+        "date": "Thawrise 5, Ano 345",
+        "event": "Expansão minas de prata (Minas 1-3). Renda +400 SD/mês."
+      },
+      {
+        "date": "Thawrise 7, Ano 345",
+        "event": "Julgamentos da Primavera: tabelamento igualitário, exílio de escudeiro, missas no pátio militar."
+      },
+      {
+        "date": "Thawrise 8, Ano 345",
+        "event": "Pacto de Fogo e Sangue — aliança matrimonial tácita com Elyra. Roric foca na Coroa de Pedra."
+      },
+      {
+        "date": "Thawrise 9, Ano 345",
+        "event": "Expansão Urbana: 1.000 SD para Escola Municipal e Prefeitura."
+      },
+      {
+        "date": "Greening 7, Ano 345",
+        "event": "Escola e Prefeitura concluídas. Roric retorna com pergaminhos do Sol Negro."
+      },
+      {
+        "date": "Greening 9, Ano 345",
+        "event": "Expedição aos Dentes de Gelo — Rodrigo + Mira + Roric + 10 veteranos. Em busca da Coroa de Pedra."
+      },
+      {
+        "date": "Greening 12, Ano 345",
+        "event": "Mira descobre acampamento dos Filhos do Eclipse (100+, Capitão Malachar, bandeira sol negro)."
+      },
+      {
+        "date": "Greening 16, Ano 345",
+        "event": "RETORNO TRIUNFAL — Coroa de Pedra, Martelo de Prata, Códice Metálico. Elyra descobre linhagem Stormcrown."
+      },
+      {
+        "date": "Greening 16 (tarde), Ano 345",
+        "event": "Lei do Asilo + Novo Distrito (400 SD, 20T, 20S)."
+      },
+      {
+        "date": "Greening 19-26, Ano 345",
+        "event": "Roric infiltra Filhos do Eclipse. Malachar — ex-oficial alveriano. Retiram-se em 10 dias."
+      },
+      {
+        "date": "Greening 23, Ano 345",
+        "event": "Primeiros refugiados chegam (-4 FSU). Obras seguem."
+      },
+      {
+        "date": "Greening 30, Ano 345",
+        "event": "Currais concluídos. Fazenda em Terraços operacional. Elara informada sobre Elyra."
+      },
+      {
+        "date": "Highsun 1, Ano 345",
+        "event": "Transição para Highsun (Verão)."
+      },
+      {
+        "date": "Highsun 7, Ano 345",
+        "event": "Resposta da Capital: Solon queimou registros de Elyra. Vance alerta sobre espiões."
+      }
+    ]
+  },
+  "pendencies": [
+    {
+      "id": "D01",
+      "area": "Urbano",
+      "title": "Novo Distrito — conclusão imediata",
+      "context": "Obras em fase final (4-9 dias). Orin e Vane aguardam instruções.",
+      "options": [
+        "Aguardar conclusão natural",
+        "Acelerar com mão de obra extra (+custo)",
+        "Inspecionar pessoalmente"
+      ],
+      "urgency": "Baixa"
+    },
+    {
+      "id": "D02",
+      "area": "Diplomacia",
+      "title": "Pedra Alta — embargo ou reconciliação?",
+      "context": "Alberico na pedreira, pena quase finda. Dona Lira administra.",
+      "options": [
+        "Perdoar Alberico e reintegrar com condições",
+        "Renovar embargo",
+        "Manter tutela de Dona Lira"
+      ],
+      "urgency": "Média"
+    },
+    {
+      "id": "D03",
+      "area": "Recrutamento",
+      "title": "Engenheiro Mestre",
+      "context": "Sem engenheiro, expansão Tier 5 atrasa.",
+      "options": [
+        "Aguardar indicação do Chanceler Vance",
+        "Enviar Roric para recrutar na Capital",
+        "Contratar engenheiro de Alveria"
+      ],
+      "urgency": "Alta"
+    },
+    {
+      "id": "D04",
+      "area": "Inteligência",
+      "title": "Rede Residual de Corvo",
+      "context": "Silas Vane, Dorn (cobrador), carta queimada de Alberico.",
+      "options": [
+        "Priorizar captura de Silas Vane",
+        "Rastrear Dorn",
+        "Decifrar carta queimada"
+      ],
+      "urgency": "Média"
+    },
+    {
+      "id": "D05",
+      "area": "Exploração",
+      "title": "Fortalezas de Orm",
+      "context": "4 fortalezas desconhecidas. Códice Metálico pode ter coordenadas.",
+      "options": [
+        "Decifrar Códice",
+        "Consultar Mestre Solon",
+        "Enviar expedição"
+      ],
+      "urgency": "Baixa"
+    },
+    {
+      "id": "D06",
+      "area": "Estratégia",
+      "title": "Coroa de Pedra — revelar ou manter segredo?",
+      "context": "Artefato lendário no cofre. Pode legitimar Elyra ou atrair inimigos.",
+      "options": [
+        "Manter oculta",
+        "Usar como trunfo diplomático seletivo",
+        "Revelar para coroar Elyra"
+      ],
+      "urgency": "Alta"
+    },
+    {
+      "id": "D07",
+      "area": "Família/Política",
+      "title": "Elyra — revelar publicamente ou manter oculta?",
+      "context": "Herdeira do trono. Protegida na Torre Leste. Romance com Rodrigo.",
+      "options": [
+        "Manter oculta",
+        "Revelar apenas ao Conselho da Passagem",
+        "Preparar revelação pública gradual"
+      ],
+      "urgency": "Alta"
+    },
+    {
+      "id": "D08",
+      "area": "Contra-inteligência",
+      "title": "Espiões na Capital",
+      "context": "Alguém investiga a expedição aos Dentes de Gelo.",
+      "options": [
+        "Roric investiga origem",
+        "Seren sonda a corte",
+        "Plantar desinformação"
+      ],
+      "urgency": "Alta"
+    },
+    {
+      "id": "D09",
+      "area": "Tesouro",
+      "title": "Baú de Ferro de Fenrir",
+      "context": "Segunda chave recuperada. Kaelen Thorn chega na primavera.",
+      "options": [
+        "Abrir o baú agora",
+        "Aguardar Kaelen Thorn",
+        "Usar contrato como moeda de troca"
+      ],
+      "urgency": "Média"
+    }
+  ],
+  "appendixG": {
+    "statusSummary": {
+      "completo": 8,
+      "citado": 7,
+      "systemOnly": 12,
+      "naoIniciado": 42,
+      "total": 69
+    },
+    "note": "Ver CAMPANHA/APPENDIX_G.md para o inventário completo dos 69 templates G.1-G.69"
+  }
+}

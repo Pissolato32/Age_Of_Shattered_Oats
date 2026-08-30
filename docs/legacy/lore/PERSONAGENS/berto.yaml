@@ -1,0 +1,14 @@
+meta_header: '## ⛓️ NPC — BERTO (PRESO)'
+sheet_type: NPC RECORD
+fields:
+  name: Berto
+  age: ~30
+  gender: Masculino
+  status: false
+  location: Masmorras de Valenfort
+  role_occupation: Ex-soldado de Valenfort
+  health: Preso
+  ambition: —
+  notes: >
+    Preso ao tentar forçar o cofre de Rodrigo. Recebeu 30 SD de Alveria de um
+    homem de capa (cicatriz no queixo, sotaque leste). Em confissão.

@@ -25,7 +25,7 @@ export function runStressTest(ticksCount: number = 10000, snapshotInterval: numb
 } {
   console.log(`=== INICIANDO SIMULAÇÃO DE ESTRESSE DETERMINÍSTICA (${ticksCount} TICKS) ===`);
   const startTime = 0;
-  let currentState: CampaignState = createInitialState("Alric", "Stormcrest", "Noble Ruler");
+  let currentState: CampaignState = createInitialState("Noble Ruler", "Stormcrest");
   const snapshots: SimulationSnapshot[] = [];
 
   for (let tick = 1; tick <= ticksCount; tick++) {

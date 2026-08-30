@@ -1,0 +1,11 @@
+meta_header: '## 🧑‍🌾 NPC MENOR — FINN'
+sheet_type: NPC RECORD
+fields:
+  name: Finn
+  age: 16-20
+  gender: —
+  status: true
+  location: Valenfort
+  roleoccupation: —
+  health: —
+  ambition: —

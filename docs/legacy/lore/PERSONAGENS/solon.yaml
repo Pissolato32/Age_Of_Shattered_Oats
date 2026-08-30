@@ -1,0 +1,11 @@
+meta_header: '## 📜 NPC MENOR — MESTRE SOLON'
+sheet_type: NPC RECORD
+fields:
+  name: Solon
+  age: '62'
+  gender: —
+  status: true
+  location: Alveria
+  roleoccupation: —
+  health: —
+  ambition: —

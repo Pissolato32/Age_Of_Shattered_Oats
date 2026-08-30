@@ -1,12 +1,467 @@
 import { CampaignState, Character, WeeklyLedger, ArmyUnit, Holdings, ResourcePatch, NobleHouse, TurnResult } from "./types";
 import { INITIAL_HOUSES, REGIONS, MONTHS } from "./data";
-import { globalRNG } from "./core/RandomService";
+import { globalRNG, RandomService } from "./core/RandomService";
 import { globalEventStore } from "./core/EventStore";
+import { Relationship } from "./domain/relationship/Relationship";
+import { MemoryLog } from "./domain/relationship/MemoryLog";
+import { CommanderAIService, CombatContext, CommanderProfile, CombatTactic } from "./domain/npc_ai/CommanderAIService";
+import { VisibilityService } from "./domain/visibility/VisibilityService";
+import { MarketService, MarketPriceResult } from "./domain/commerce/services/MarketService";
+import { CombatStatsCalculator, CombatStatsResult } from "./domain/items/CombatStatsCalculator";
+import { SuccessionService, Relative } from "./domain/kingdom/services/SuccessionService";
+import { ProductionService, HoldingEconomy, EconomyTickResult } from "./domain/kingdom/services/ProductionService";
+import { FoodService } from "./domain/kingdom/services/FoodService";
+import { LaborService } from "./domain/kingdom/services/LaborService";
+import { TreasuryService, ExpenseOutcome } from "./domain/kingdom/services/TreasuryService";
+import { ConstructionService, ConstructionRefundResult, ResourcePatchQuality } from "./domain/kingdom/services/ConstructionService";
+import { PayrollService, UpkeepCosts, DesertionResult } from "./domain/military/services/PayrollService";
+import { BreedingService } from "./domain/military/services/BreedingService";
+import { createNarrativeContext, ExecutionReport, NarrativeCommand, NarrativeContext, ObserverProjection, NarrativeQueryContext } from "./lib/narrativeContracts";
+import { createObserverProjection } from "./lib/narrativeProjection";
+import { NarrativeResolutionResult, resolveNarrativeCommand as resolveNarrativeCommandCore } from "./lib/narrativeExecution";
+import { resolveEmergentIncidents } from "./domain/events/EmergentIncidentPipeline";
+
+/**
+ * Builds an observer-scoped narrative context from an already-authorized projection.
+ * CampaignState filtering remains an Engine responsibility for a future integration step.
+ */
+export function buildNarrativeContext(
+  projection: ObserverProjection,
+  executionReport: ExecutionReport,
+  query?: NarrativeQueryContext
+): NarrativeContext {
+  return createNarrativeContext(projection, executionReport, query);
+}
+
+/**
+ * Creates an explicit observer projection from CampaignState using a deny-by-default allow-list.
+ */
+export function buildObserverProjection(
+  state: CampaignState,
+  observer: ObserverProjection['observer'],
+  queryScope?: NarrativeQueryContext['temporalScope']
+): ObserverProjection {
+  return createObserverProjection(state, observer, queryScope);
+}
+
+/**
+ * Authoritative Engine boundary: resolves an interpreted NarrativeCommand through
+ * the existing deterministic rules and represents only real consequences as an
+ * ExecutionReport of deltas/facts (never a CampaignState snapshot). The injected
+ * RandomService is consumed only for MRS magnitude draws (default: globalRNG).
+ */
+export function resolveNarrativeCommand(
+  command: NarrativeCommand,
+  state: CampaignState,
+  rng?: RandomService
+): NarrativeResolutionResult {
+  return resolveNarrativeCommandCore(command, state, rng);
+}
+
+/**
+ * Calculates mount breeding success rates based on primary region suitability and holding tier limits using canonical BreedingService rules.
+ */
+export function calculateMountBreedingSuccessRate(
+  baseSuccessRate: number,
+  primaryRegion: string | undefined,
+  mountId: string,
+  location: string,
+  holdingTier: number
+): number {
+  return BreedingService.calculateSuccessRate(baseSuccessRate, primaryRegion, mountId, location, holdingTier);
+}
+
+/**
+ * Calculates total military wages for army units and garrison using canonical PayrollService rules.
+ */
+export function calculateMilitaryWages(units: { size: number }[], garrison: number): { armyWages: number; garrisonWages: number; totalWages: number } {
+  const unitSizes = units.map(u => u.size);
+  return PayrollService.calculateMilitaryWages(unitSizes, garrison);
+}
+
+/**
+ * Resolves troop desertion checks for unpaid wage streaks using canonical PayrollService rules and globalRNG.
+ */
+export function resolveTroopDesertion(unpaidWeeks: number, prng = globalRNG): DesertionResult {
+  return PayrollService.resolveDesertion(unpaidWeeks, prng);
+}
+
+/**
+ * Calculates the 50% resource refund for a cancelled construction project using canonical ConstructionService rules.
+ */
+export function calculateConstructionRefund(costSd: number, costTimber: number, costStone: number): ConstructionRefundResult {
+  return ConstructionService.calculateRefund(costSd, costTimber, costStone);
+}
+
+/**
+ * Resolves resource patch quality upon construction completion using canonical ConstructionService rules and globalRNG.
+ */
+export function resolveResourcePatchQuality(prng = globalRNG): ResourcePatchQuality {
+  return ConstructionService.resolvePatchQuality(prng);
+}
+
+/**
+ * Calculates weekly economic production (SD & FSU) for a holding using canonical ProductionService rules.
+ */
+export function calculateWeeklyProduction(holding: HoldingEconomy, isWinter: boolean): EconomyTickResult {
+  return ProductionService.calculateWeeklyProduction(holding, isWinter);
+}
+
+/**
+ * Calculates food consumption requirements for civilian population and military forces using FoodService rules.
+ */
+export function calculateFoodConsumption(population: number, militarySize: number): { civilianFsu: number; militaryFsu: number; totalFsu: number } {
+  const civilianFsu = FoodService.calculateCivilianConsumption(population);
+  const militaryFsu = FoodService.calculateMilitaryConsumption(militarySize);
+  return { civilianFsu, militaryFsu, totalFsu: civilianFsu + militaryFsu };
+}
+
+/**
+ * Calculates total labor pool and available labor capacity using LaborService rules.
+ */
+export function calculateLaborCapacity(population: number, patches: { laborAllocated?: number }[]): { totalPool: number; allocated: number; available: number } {
+  const totalPool = LaborService.calculateLaborPool(population);
+  const allocated = LaborService.calculateAllocatedLabor(patches);
+  const available = LaborService.calculateAvailableLabor(population, patches);
+  return { totalPool, allocated, available };
+}
+
+/**
+ * Calculates derived character Armor Class (AC) and Initiative bonus using canonical CombatStatsCalculator rules.
+ */
+export function calculateCharacterCombatStats(character: { stats: Partial<Character['stats']> }): CombatStatsResult {
+  return CombatStatsCalculator.calculateStats(character);
+}
+
+/**
+ * Recalculates and updates derived AC and Initiative in CampaignState character stats based on equipped armor, shield, and mount.
+ */
+export function recalculateCharacterStats(state: CampaignState): void {
+  const derived = calculateCharacterCombatStats(state.character);
+  state.character.stats.ac = derived.ac;
+  state.character.stats.initiativeBonus = derived.initiativeBonus;
+}
+
+/**
+ * Calculates ordered succession list for a set of relatives using canonical SuccessionService rules.
+ */
+export function calculateSuccessionOrder(relatives: Relative[]): Relative[] {
+  return SuccessionService.getSuccessionOrder(relatives);
+}
+
+/**
+ * Resolves dynastic succession when a ruler abdicates or dies, promoting the highest-ranked heir to ruler according to primogeniture.
+ */
+export function resolveDynasticSuccession(
+  state: CampaignState,
+  mode: 'abdicate' | 'death'
+): { success: boolean; oldLordName: string; primaryHeirName?: string; reason?: string } {
+  const livingChildren = (state.family?.children || []).filter(c => c.alive);
+  if (livingChildren.length === 0) {
+    return {
+      success: false,
+      oldLordName: state.character.name,
+      reason: "No living heirs available in family line."
+    };
+  }
+
+  // Convert target FamilyChild[] to domain Relative[]
+  const relatives: Relative[] = livingChildren.map(c => ({
+    id: c.name,
+    name: c.name,
+    relation: 'child',
+    age: c.age,
+    isLegitimate: true,
+    gender: c.gender
+  }));
+
+  // Determine heir using pure SuccessionService primogeniture algorithm
+  const sortedRelatives = calculateSuccessionOrder(relatives);
+  const primaryRelative = sortedRelatives[0];
+
+  const primaryHeir = livingChildren.find(c => c.name === primaryRelative.name) || livingChildren[0];
+  const oldLordName = state.character.name;
+
+  // Apply character updates cleanly
+  state.character.name = primaryHeir.name;
+  state.character.age = Math.max(16, primaryHeir.age);
+  state.character.gender = (primaryHeir.gender as 'Male' | 'Female') || state.character.gender;
+  state.character.reputation = Math.max(0, Math.floor(state.character.reputation / 2));
+  state.character.backstory = `Assumiu o controle da Casa ${state.character.house} aos ${state.character.age} anos, após a ${mode === 'abdicate' ? 'abdicação voluntária' : 'morte no campo'} de seu antecessor, ${oldLordName}.`;
+
+  // Remove promoted heir from children array
+  state.family.children = state.family.children.filter(c => c.name !== primaryHeir.name);
+
+  // Appoint new primary heir if any children remain using SuccessionService
+  if (state.family.children.length > 0) {
+    const remainingRelatives: Relative[] = state.family.children.filter(c => c.alive).map(c => ({
+      id: c.name,
+      name: c.name,
+      relation: 'child',
+      age: c.age,
+      isLegitimate: true,
+      gender: c.gender
+    }));
+    const nextSorted = calculateSuccessionOrder(remainingRelatives);
+    if (nextSorted.length > 0) {
+      const nextHeirName = nextSorted[0].name;
+      state.family.children.forEach(c => {
+        c.isHeir = (c.name === nextHeirName);
+      });
+    }
+  }
+
+  // Record world event in ledger
+  state.worldLedger.majorEvents.push({
+    date: `W${state.weeklyLedger.week}, M${state.weeklyLedger.month}`,
+    event: `Sucessão Dinástica: ${primaryHeir.name} assume a Casa ${state.character.house}`,
+    region: state.character.location.region,
+    involved: `${oldLordName} -> ${primaryHeir.name}`,
+    resolved: "Yes"
+  });
+
+  return {
+    success: true,
+    oldLordName,
+    primaryHeirName: primaryHeir.name
+  };
+}
+
+/**
+ * Translates target calendar month name (e.g. "Greening", "Frostwane") to 1..12 month index for MarketService.
+ */
+export function getMonthNumberFromName(monthName: string): number {
+  if (!monthName) return 1;
+  const clean = monthName.trim().replace(/\s+/g, '_');
+  const index = MONTHS.indexOf(clean);
+  if (index >= 0) {
+    return index + 1;
+  }
+  const lower = clean.toLowerCase();
+  if (lower.includes("frostwane")) return 1;
+  if (lower.includes("deepfrost")) return 2;
+  if (lower.includes("thawrise")) return 3;
+  if (lower.includes("greening")) return 4;
+  if (lower.includes("highsun_1") || lower === "highsun") return 5;
+  if (lower.includes("highsun_2")) return 6;
+  if (lower.includes("harvestfall_1") || lower === "harvestfall") return 7;
+  if (lower.includes("harvestfall_2")) return 8;
+  if (lower.includes("ashfall_1") || lower === "ashfall") return 9;
+  if (lower.includes("ashfall_2")) return 10;
+  if (lower.includes("longdark_1") || lower === "longdark") return 11;
+  if (lower.includes("longdark_2")) return 12;
+  return 1;
+}
+
+/**
+ * Calculates dynamic material/commodity market prices using canonical MarketService rules.
+ */
+export function calculateMaterialPrice(
+  basePrice: number,
+  materialId: string,
+  regionId: string,
+  monthName: string,
+  stock = 0,
+  marketCapacity = 150
+): MarketPriceResult {
+  const service = new MarketService();
+  const monthNumber = getMonthNumberFromName(monthName);
+  return service.calculatePrice(basePrice, materialId, regionId, monthNumber, stock, marketCapacity);
+}
+
+/**
+ * Calculates canonical monotonic absolute week-tick from CampaignState currentDate (base year 342, 12 months/year, 4 weeks/month = 48 weeks/year).
+ */
+export function getAbsoluteCampaignTurn(year: number, month?: string | number, week?: number): number {
+  const baseYear = 342;
+  let monthIdx = 0;
+
+  if (typeof month === 'string') {
+    monthIdx = Math.max(0, Math.min(11, getMonthNumberFromName(month) - 1));
+  } else if (typeof month === 'number') {
+    monthIdx = month > 0 && month <= 12 ? month - 1 : Math.max(0, Math.min(11, month));
+  }
+
+  const safeWeek = week !== undefined && week !== null ? Math.max(1, Math.min(4, week)) : 1;
+  return Math.max(1, (year - baseYear) * 48 + monthIdx * 4 + safeWeek);
+}
+
+/**
+ * Normalizes landmark or region names to standard VisibilityService hubs ('valenfort' | 'blackmoor' | 'harvel' | 'capital').
+ */
+export function normalizeLocationToHub(locationName?: string): string {
+  if (!locationName) return "valenfort";
+  const loc = locationName.toLowerCase();
+  if (loc.includes("valenfort") || loc.includes("stormcrest")) return "valenfort";
+  if (loc.includes("blackmoor") || loc.includes("bogthrone")) return "blackmoor";
+  if (loc.includes("harvel") || loc.includes("ironridge") || loc.includes("south")) return "harvel";
+  if (loc.includes("capital") || loc.includes("royal") || loc.includes("central")) return "capital";
+  return loc;
+}
+
+/**
+ * Asserts whether a campaign event or rumor at eventLocation is visible to an observer.
+ */
+export function isEventVisibleToObserver(
+  observerLocation: string,
+  eventLocation: string,
+  currentTurn: number,
+  eventTurn: number
+): boolean {
+  const visService = new VisibilityService();
+  const normObserver = normalizeLocationToHub(observerLocation);
+  const normEvent = normalizeLocationToHub(eventLocation);
+  return visService.canObserverSeeEvent(normObserver, normEvent, currentTurn, eventTurn);
+}
+
+/**
+ * Returns worldSecrets filtered by fog-of-war spatial visibility rules for the current campaign state.
+ */
+export function getVisibleWorldSecrets(state: CampaignState): Array<any> {
+  if (!state.worldSecrets) return [];
+  const currentTurn = getAbsoluteCampaignTurn(
+    state.worldLedger.currentDate.year,
+    state.worldLedger.currentDate.month,
+    state.worldLedger.currentDate.week
+  );
+  const playerLoc = (state.character.location as any).currentLandmark || state.character.location.landmark || state.character.location.region || "Valenfort Citadel";
+
+  return state.worldSecrets.filter(sec => {
+    // If secret is already revealed or has no origin location, it is immediately visible
+    if (sec.revealed || !sec.originLocation) return true;
+    const eventTurn = sec.originTurn !== undefined ? sec.originTurn : 1;
+    return isEventVisibleToObserver(playerLoc, sec.originLocation, currentTurn, eventTurn);
+  });
+}
+
+/**
+ * Adjusts a noble house's opinion score using canonical Relationship domain rules (-3..+3 bounds).
+ */
+export function adjustHouseOpinion(house: NobleHouse, delta: number, sourceId: string = "Player"): void {
+  const rel = new Relationship({
+    sourceId,
+    targetId: house.name,
+    opinion: house.opinion,
+    relationshipType: house.status || "Neutra"
+  });
+  rel.adjustOpinion(delta);
+  house.opinion = rel.opinion;
+}
+
+/**
+ * Sets a noble house's opinion score directly, enforcing canonical Relationship domain bounds (-3..+3).
+ */
+export function setHouseOpinion(house: NobleHouse, targetOpinion: number, sourceId: string = "Player"): void {
+  const rel = new Relationship({
+    sourceId,
+    targetId: house.name,
+    opinion: targetOpinion,
+    relationshipType: house.status || "Neutra"
+  });
+  house.opinion = rel.opinion;
+}
+
+/**
+ * Derives a deterministic effective commander profile for an NPC unit if custom settings are omitted.
+ */
+export function getEffectiveCommanderProfile(
+  enemyUnit: ArmyUnit,
+  customProfile?: Partial<CommanderProfile>
+): CommanderProfile {
+  let temperament: CommanderProfile['temperament'] = 'Disciplined';
+  let priority: CommanderProfile['priority'] = 'Victory';
+  let fear: CommanderProfile['fear'] = 'Encirclement';
+
+  const nameLower = (enemyUnit.name || '').toLowerCase();
+  if (nameLower.includes('levy') || nameLower.includes('skeleton')) {
+    temperament = 'Wary';
+    priority = 'Survival';
+    fear = 'Loss';
+  } else if (nameLower.includes('swords') || nameLower.includes('free company')) {
+    temperament = 'Aggressive';
+    priority = 'Glory';
+    fear = 'Fire';
+  } else if (nameLower.includes('guard') || nameLower.includes('retinue')) {
+    temperament = 'Disciplined';
+    priority = 'Orders';
+    fear = 'Encirclement';
+  }
+
+  return {
+    temperament: customProfile?.temperament || temperament,
+    priority: customProfile?.priority || priority,
+    fear: customProfile?.fear || fear,
+  };
+}
+
+/**
+ * Builds a deterministic CombatContext from target ArmyUnit properties.
+ * morale: unit.morale (1..10) is scaled to 0..100 for context evaluation.
+ * hpPercent: (size / maxSize) * 100 bounded between 0 and 100.
+ */
+export function buildCombatContext(
+  enemyUnit: ArmyUnit,
+  playerUnit: ArmyUnit,
+  options?: { terrainAdvantage?: boolean; fearTriggered?: boolean; isAllyRetreating?: boolean }
+): CombatContext {
+  const maxSize = enemyUnit.maxSize || 50;
+  const hpPercent = maxSize > 0 ? Math.min(100, Math.max(0, Math.round((enemyUnit.size / maxSize) * 100))) : 100;
+  const moraleScaled = Math.min(100, Math.max(0, Math.round((enemyUnit.morale ?? 5) * 10)));
+
+  return {
+    hpPercent,
+    morale: moraleScaled,
+    isOutnumbered: playerUnit.size > enemyUnit.size,
+    isHalfStrength: enemyUnit.size <= Math.floor(maxSize / 2),
+    isAllyRetreating: options?.isAllyRetreating ?? false,
+    terrainAdvantage: options?.terrainAdvantage ?? false,
+    fearTriggered: options?.fearTriggered ?? false,
+  };
+}
+
+/**
+ * Maps legacy CombatTactic to target engine combat action.
+ * 'Charge' -> 'Charge'
+ * 'Attack' -> 'Keep Attacking'
+ * 'Defend', 'Traps', 'Rearguard', 'Retreat' -> 'Defend'
+ */
+export function mapTacticToEngineAction(tactic: CombatTactic): 'Keep Attacking' | 'Defend' | 'Charge' {
+  switch (tactic) {
+    case 'Charge':
+      return 'Charge';
+    case 'Attack':
+      return 'Keep Attacking';
+    case 'Defend':
+    case 'Traps':
+    case 'Rearguard':
+    case 'Retreat':
+    default:
+      return 'Defend';
+  }
+}
+
+/**
+ * Resolves an NPC combat tactical action deterministically using CommanderAIService.
+ */
+export function resolveNpcCombatAction(
+  enemyUnit: ArmyUnit,
+  playerUnit: ArmyUnit,
+  customProfile?: Partial<CommanderProfile>,
+  options?: { terrainAdvantage?: boolean; fearTriggered?: boolean; isAllyRetreating?: boolean }
+): 'Keep Attacking' | 'Defend' | 'Charge' {
+  const context = buildCombatContext(enemyUnit, playerUnit, options);
+  const profile = getEffectiveCommanderProfile(enemyUnit, customProfile);
+  const aiService = new CommanderAIService();
+  const tactic = aiService.selectCombatTactic(context, profile);
+  return mapTacticToEngineAction(tactic);
+}
 
 // Generate a blank initial campaign state
-export function createInitialState(archetype: any, region: string): CampaignState {
+export function createInitialState(archetype: any, region: string, resetRng: boolean = true): CampaignState {
   // Reset RNG to deterministic seed for each new campaign
-  globalRNG.setSeed(424242);
+  if (resetRng) {
+    globalRNG.setSeed(424242);
+  }
   const isNecro = archetype === "Necromancer";
   
   return {
@@ -71,7 +526,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
     army: {
       units: [
         isNecro 
-          ? { id: `levy_${globalRNG.nextInt(0, 1000000)}`, name: "Skeleton Guards", size: 10, maxSize: 10, tier: 1, ac: 3, weapon: "Fists", mount: "None", morale: 6, type: "Skeletons" }
+          ? { id: "levy_skeleton_1", name: "Skeleton Guards", size: 10, maxSize: 10, tier: 1, ac: 3, weapon: "Fists", mount: "None", morale: 6, type: "Skeletons" }
           : { id: "u_1", name: "Landed Levy", size: 60, maxSize: 60, tier: 1, ac: 3, weapon: "Spears", mount: "None", morale: 4, type: "Levy" }
       ],
       garrisonSize: isNecro ? 0 : 40
@@ -117,7 +572,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
       currentDate: { day: 1, month: "Greening", year: 342, week: 1 },
       activeConflicts: [],
       majorEvents: [],
-      nobleHouses: INITIAL_HOUSES,
+      nobleHouses: JSON.parse(JSON.stringify(INITIAL_HOUSES)),
       rareEventStatus: {
         warmYear: { active: false, lastOccurredYear: 312 },
         youngPretender: { active: false },
@@ -156,7 +611,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         requirements: ['Obter rotas de comércio com holdings fluviais', 'Eleição pelo Conselho do Rio', 'Firmar cartas de fealdade com lordes mercantes']
       },
       {
-        id: `horn_${globalRNG.nextInt(0, 1000000)}`,
+        id: 'northwind',
         name: 'Crown of the North Wind (Gelo)',
         region: 'Northern Snowlands',
         unlocked: false,
@@ -165,7 +620,7 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         requirements: ['Sobreviver ao frio profundo de uma Nevasca no Norte', 'Abater uma fera ou urso da neve']
       },
       {
-        id: `skeleton_${globalRNG.nextInt(0, 1000000)}`,
+        id: 'greendrake',
         name: 'Crown of the Green Drake (Florestas)',
         region: 'Eastern Forests',
         unlocked: false,
@@ -221,7 +676,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         difficultyClass: 18,
         criticality: 'Critical',
         compromisedChance: 0.25,
-        obsoleteInWeeks: 12
+        obsoleteInWeeks: 12,
+        originLocation: 'Harvel Pass',
+        originTurn: 1
       },
       {
         id: 'secret_2',
@@ -234,7 +691,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         difficultyClass: 14,
         criticality: 'High',
         compromisedChance: 0.15,
-        obsoleteInWeeks: 8
+        obsoleteInWeeks: 8,
+        originLocation: 'Blackmoor Keep',
+        originTurn: 1
       },
       {
         id: 'secret_3',
@@ -247,7 +706,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
         difficultyClass: 10,
         criticality: 'Medium',
         compromisedChance: 0.08,
-        obsoleteInWeeks: 6
+        obsoleteInWeeks: 6,
+        originLocation: 'Valenfort Citadel',
+        originTurn: 1
       }
     ],
     discoveredArtifacts: [
@@ -262,9 +723,9 @@ export function createInitialState(archetype: any, region: string): CampaignStat
       }
     ],
     advisors: {
-      counselorName: globalRNG.pick(["Mara", "Gwen", "Elysia", "Vanya", "Lorea", "Sybilla", "Alys", "Isolde"]),
-      stewardName: globalRNG.pick(["Barth", "Lorn", "Garrick", "Tymon", "Brogan", "Cormac", "Harlan", "Theron"]),
-      spyMasterName: globalRNG.pick(["Ren", "Sylas", "Kaelen", "Lyra", "Fiona", "Valia", "Morwen", "Rook"])
+      counselorName: "Tobin",
+      stewardName: "Gerold",
+      spyMasterName: "Roric"
     },
     revealedRegions: [region || "Central Plains"],
     tribalRelations: [
@@ -425,6 +886,11 @@ export function rollWeather(region: string, season: string, isWarmYear: boolean)
 
 // Execute Weekly Turn Resolution (PHASE 1 to PHASE 6)
 export function resolveWeeklyTurn(state: CampaignState): { updatedState: CampaignState; turnResult: TurnResult } {
+  // Fail-closed gate (M18.9-C4): block advancing weekly turn if a scene is currently OPEN
+  if (state.sessionLog?.activeScene && state.sessionLog.activeScene.status === 'OPEN') {
+    throw new Error(`Cannot advance weekly turn while an active scene (${state.sessionLog.activeScene.sceneId}) is OPEN`);
+  }
+
   const s = JSON.parse(JSON.stringify(state)) as CampaignState;
   
   const isNecro = s.character.archetype === "Necromancer";
@@ -435,6 +901,29 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     foodChanges: 0,
     militaryChanges: { wagesPaid: 0, desertions: 0, moralePenalty: 0 },
     eventLog: []
+  };
+
+  s.weeklyLedger.incomeDetail = {
+    holdings: 0,
+    patches: 0,
+    trade: 0,
+    tribute: 0,
+    taxes: 0,
+    loot: 0,
+    other: 0
+  };
+  s.weeklyLedger.expenseDetail = {
+    wages: 0,
+    garrison: 0,
+    foodPurchases: 0,
+    construction: 0,
+    recruitment: 0,
+    mercenaries: 0,
+    tributePaid: 0,
+    engineerWages: 0,
+    shipUpkeep: 0,
+    holdingMaintenance: 0,
+    other: 0
   };
 
   // Advance Week
@@ -460,6 +949,29 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
         s.family.children.forEach(c => c.age += 1);
       }
       turnResult.eventLog.push(`ANO NOVO: O ano ${nextYear} começa gélido nas terras despedaçadas. Todos os membros de sua linhagem envelhecem um ano.`);
+
+      // Royal Tithe / Wealth Friction (Rule M18.3.C: 8% on excess > 2000 SD)
+      const titheResult = TreasuryService.calculateRoyalTithe(s.weeklyLedger.silverdew);
+      if (titheResult.titheAmount > 0) {
+        s.weeklyLedger.silverdew = titheResult.remainingSilverdew;
+        if (!s.weeklyLedger.expenseDetail) {
+          s.weeklyLedger.expenseDetail = {
+            wages: 0,
+            garrison: 0,
+            foodPurchases: 0,
+            construction: 0,
+            recruitment: 0,
+            mercenaries: 0,
+            tributePaid: 0,
+            engineerWages: 0,
+            shipUpkeep: 0,
+            holdingMaintenance: 0,
+            other: 0
+          };
+        }
+        s.weeklyLedger.expenseDetail.tributePaid = (s.weeklyLedger.expenseDetail.tributePaid || 0) + titheResult.titheAmount;
+        turnResult.eventLog.push(`Dízimo Real da Coroa: -${titheResult.titheAmount} SD recolhidos em tributo imperial sobre o excedente da tesouraria.`);
+      }
     }
     nextMonth = MONTHS[nextMonthIdx];
   }
@@ -519,6 +1031,9 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   turnResult.eventLog.push(`Clima: ${w.weather}`);
 
   // 2. Production (PHASE 1)
+  // Recalculate weekly available civilian labor pool
+  s.holdings.laborPool = LaborService.calculateAvailableLabor(s.holdings.population, s.holdings.resourcePatches);
+
   let holdingBaseIncome = 0;
   if (!isNecro) {
     const type = s.holdings.type;
@@ -534,13 +1049,15 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   let patchIron = 0;
   let patchStone = 0;
 
+  const isWinter = season === "Deepfrost" || (season as string) === "Inverno";
   s.holdings.resourcePatches.forEach((p) => {
     const yieldW = p.yieldPerDay * 7 * w.foragingMod;
     const incomeW = p.incomePerDay * 7;
     patchIncome += incomeW;
 
-    if (p.type === "Grain Field") patchFood += yieldW;
-    else if (p.type === "Timber Camp") patchTimber += yieldW;
+    if (p.type === "Grain Field") {
+      patchFood += isWinter ? yieldW * 0.5 : yieldW;
+    } else if (p.type === "Timber Camp") patchTimber += yieldW;
     else if (p.type === "Iron Mine") patchIron += yieldW;
     else if (p.type === "Stone Quarry") patchStone += yieldW;
   });
@@ -554,6 +1071,8 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     s.weeklyLedger.materials.timber += patchTimber;
     s.weeklyLedger.materials.iron += patchIron;
     s.weeklyLedger.materials.stone += patchStone;
+    s.weeklyLedger.incomeDetail.holdings = holdingBaseIncome;
+    s.weeklyLedger.incomeDetail.patches = patchIncome;
     turnResult.incomeChanges = { holdings: holdingBaseIncome, patches: patchIncome };
     turnResult.foodChanges = patchFood;
     turnResult.eventLog.push(`Produção: ${holdingBaseIncome + patchIncome} SD gerados, ${patchFood.toFixed(1)} FSU coletados.`);
@@ -561,26 +1080,43 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
 
   // 3. Consumption (PHASE 2)
   let totalWages = 0;
-  let totalFoodConsumption = 0;
+  let totalMilitaryUnitsSize = 0;
+  const activeTroopUnits: { size: number; morale: number }[] = [];
 
   s.army.units.forEach((u) => {
     if (u.morale <= 0) return;
     if (u.type !== "Skeletons" && u.type !== "Skeleton Archers" && !isNecro) {
-      totalWages += u.size * 0.1;
-      totalFoodConsumption += u.size * 0.01;
+      activeTroopUnits.push(u);
+      totalMilitaryUnitsSize += u.size;
     }
   });
 
   if (!isNecro) {
-    totalWages += s.holdings.garrison * 0.05;
-    totalFoodConsumption += s.holdings.garrison * 0.01;
+    totalMilitaryUnitsSize += s.holdings.garrison;
 
-    if (s.weeklyLedger.food >= totalFoodConsumption) {
-      s.weeklyLedger.food -= totalFoodConsumption;
+    // Use PayrollService for canonical military wage calculations
+    const wageCalculation = PayrollService.calculateMilitaryWages(
+      activeTroopUnits.map(u => u.size),
+      s.holdings.garrison
+    );
+    totalWages = wageCalculation.totalWages;
+
+    // Use FoodService for military food consumption calculation
+    const totalFoodConsumption = FoodService.calculateMilitaryConsumption(totalMilitaryUnitsSize);
+
+    const foodState = { treasuryFsu: s.weeklyLedger.food, famineTicks: s.weeklyLedger.famineTicks };
+    const foodOutcome = FoodService.applyFoodConsumption(
+      foodState,
+      totalFoodConsumption
+    );
+
+    if (!foodOutcome.famineStarted) {
+      s.weeklyLedger.food = foodState.treasuryFsu;
+      s.weeklyLedger.famineTicks = 0;
       turnResult.foodChanges -= totalFoodConsumption;
     } else {
-      const diff = totalFoodConsumption - s.weeklyLedger.food;
       s.weeklyLedger.food = 0;
+      s.weeklyLedger.famineTicks = foodState.famineTicks;
       turnResult.militaryChanges.moralePenalty += 1; // Fome gera penalidade
       s.army.units.forEach(u => {
         u.morale = Math.max(1, u.morale - 1);
@@ -591,12 +1127,68 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
       });
     }
 
-    if (s.weeklyLedger.silverdew >= totalWages) {
-      s.weeklyLedger.silverdew -= totalWages;
+    // Granary Capacity & Excess Spoilage (Rule M18.3.B)
+    const granaryCap = FoodService.getGranaryCapacity(s.holdings.type);
+    const spoilageResult = FoodService.calculateExcessSpoilage(s.weeklyLedger.food, granaryCap);
+    if (spoilageResult.spoiledFsu > 0) {
+      s.weeklyLedger.food = spoilageResult.preservedFsu;
+      turnResult.eventLog.push(`Celeiros: ${spoilageResult.spoiledFsu.toFixed(1)} FSU de grãos deterioraram por falta de espaço coberto.`);
+    }
+
+    const treasuryState = { treasurySd: s.weeklyLedger.silverdew };
+    const treasuryOutcome = TreasuryService.deductExpenses(
+      treasuryState,
+      totalWages
+    );
+
+    if (!treasuryOutcome.defaulted) {
+      s.weeklyLedger.silverdew = treasuryState.treasurySd; // remaining SD
       turnResult.militaryChanges.wagesPaid = totalWages;
+      if (!s.weeklyLedger.expenseDetail) {
+        s.weeklyLedger.expenseDetail = { wages: 0, garrison: 0, foodPurchases: 0, construction: 0, recruitment: 0, mercenaries: 0, tributePaid: 0, engineerWages: 0, shipUpkeep: 0, holdingMaintenance: 0, other: 0 };
+      }
+      s.weeklyLedger.expenseDetail.wages = wageCalculation.armyWages;
+      s.weeklyLedger.expenseDetail.garrison = wageCalculation.garrisonWages;
+      const payrollState = { units: s.army.units, unpaidTicks: s.weeklyLedger.unpaidWagesTicks };
+      PayrollService.applyPaymentOutcome(payrollState, true);
+      s.weeklyLedger.unpaidWagesTicks = 0;
     } else {
+      s.weeklyLedger.silverdew = 0;
       turnResult.militaryChanges.moralePenalty += 2;
-      s.army.units.forEach(u => u.morale = Math.max(1, u.morale - 2));
+      const payrollState = { units: s.army.units, unpaidTicks: s.weeklyLedger.unpaidWagesTicks };
+      PayrollService.applyPaymentOutcome(payrollState, false);
+      s.weeklyLedger.unpaidWagesTicks = payrollState.unpaidTicks;
+
+      // Resolve unpaid wage streak desertions via PayrollService and globalRNG
+      const desertionCheck = PayrollService.resolveDesertion(s.weeklyLedger.unpaidWagesTicks, globalRNG);
+      if (desertionCheck.deserted && desertionCheck.deserterCount > 0) {
+        const actualDeserters = PayrollService.applyDesertionToUnits(s.army.units, desertionCheck.deserterCount);
+        turnResult.militaryChanges.desertions += actualDeserters;
+        turnResult.eventLog.push(`Salários Atrasados: ${actualDeserters} soldados desertaram por falta de pagamento.`);
+      }
+    }
+
+    // Holding Base Maintenance / Upkeep (Rule M18.3.A)
+    const holdingUpkeep = ProductionService.getHoldingUpkeepPerWeek(s.holdings.type);
+    if (!s.weeklyLedger.expenseDetail) {
+      s.weeklyLedger.expenseDetail = {
+        wages: 0,
+        garrison: 0,
+        foodPurchases: 0,
+        construction: 0,
+        recruitment: 0,
+        mercenaries: 0,
+        tributePaid: 0,
+        engineerWages: 0,
+        shipUpkeep: 0,
+        holdingMaintenance: 0,
+        other: 0
+      };
+    }
+    s.weeklyLedger.expenseDetail.holdingMaintenance = holdingUpkeep;
+    s.weeklyLedger.silverdew = Math.max(0, s.weeklyLedger.silverdew - holdingUpkeep);
+    if (holdingUpkeep > 0) {
+      turnResult.eventLog.push(`Manutenção Feudal: ${holdingUpkeep} SD despendidos na conservação de ${s.holdings.type}.`);
     }
   }
 
@@ -610,7 +1202,7 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
         // Random chance of exposure per week (based on exposureChance)
         if (globalRNG.next() < s.falseLineage.exposureChance) {
           s.falseLineage.isExposed = true;
-          s.worldLedger.nobleHouses.forEach(h => h.opinion = -3);
+          s.worldLedger.nobleHouses.forEach(h => setHouseOpinion(h, -3));
           s.character.reputation = 0;
           s.army.units.forEach(u => {
             u.morale = Math.max(1, u.morale - 2);
@@ -621,7 +1213,7 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
       } else {
         // Exposed because can't pay
         s.falseLineage.isExposed = true;
-        s.worldLedger.nobleHouses.forEach(h => h.opinion = -3);
+        s.worldLedger.nobleHouses.forEach(h => setHouseOpinion(h, -3));
         s.character.reputation = 0;
         s.army.units.forEach(u => {
           u.morale = Math.max(1, u.morale - 2);
@@ -667,8 +1259,8 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
   // 4. Random events
   s.worldLedger.nobleHouses.forEach((house) => {
     const drift = globalRNG.nextInt(1, 6);
-    if (drift === 1) house.opinion = Math.max(-3, house.opinion - 1);
-    else if (drift === 6) house.opinion = Math.min(3, house.opinion + 1);
+    if (drift === 1) adjustHouseOpinion(house, -1);
+    else if (drift === 6) adjustHouseOpinion(house, 1);
   });
 
   if (globalRNG.next() < 0.02) {
@@ -683,7 +1275,102 @@ export function resolveWeeklyTurn(state: CampaignState): { updatedState: Campaig
     }
   }
 
-  return { updatedState: s, turnResult };
+  // 5. Temporal Dynamics: Vows, Memory Decay, and Pending Consequences
+  const absoluteTurn = getAbsoluteCampaignTurn(
+    s.worldLedger.currentDate.year,
+    s.worldLedger.currentDate.month,
+    s.worldLedger.currentDate.week
+  );
+
+  // 5a. Process noble house vows expiration
+  if (s.worldLedger.nobleHouses && Array.isArray(s.worldLedger.nobleHouses)) {
+    s.worldLedger.nobleHouses.forEach((house) => {
+      if (house.vows && Array.isArray(house.vows)) {
+        const rel = new Relationship({
+          sourceId: s.character.house || "PlayerHouse",
+          targetId: house.name,
+          opinion: house.opinion,
+          relationshipType: house.status || "Neutra",
+          stateJson: { vows: house.vows }
+        });
+        const expired = rel.checkVowsExpired(absoluteTurn);
+        if (expired.length > 0) {
+          expired.forEach((v) => {
+            turnResult.eventLog.push(`JURAMENTO EXPIRADO: O pacto "${v.type}" com a Casa ${house.name} chegou ao prazo final no Turno ${absoluteTurn}.`);
+            s.worldLedger.majorEvents.push({
+              date: `W${s.worldLedger.currentDate.week}, M${s.worldLedger.currentDate.month}, Y${s.worldLedger.currentDate.year}`,
+              event: `Juramento "${v.type}" expirado com Casa ${house.name}`,
+              region: house.region || s.character.location.region,
+              involved: `${s.character.name} -> ${house.name}`,
+              resolved: "Yes"
+            });
+          });
+          house.vows = rel.stateJson.vows;
+        }
+      }
+    });
+  }
+
+  // 5b. Process memory decay for character
+  if (s.character.memories && Array.isArray(s.character.memories)) {
+    s.character.memories.forEach((m) => {
+      const memInstance = new MemoryLog({
+        id: m.id,
+        ownerId: m.ownerId,
+        subjectId: m.subjectId,
+        description: m.description,
+        importance: m.importance,
+        tickRegistered: m.tickRegistered,
+        decayed: m.decayed
+      });
+      m.decayed = memInstance.evaluateDecay(absoluteTurn);
+    });
+  }
+
+  // 5c. Process pending consequences
+  if (s.sessionLog && s.sessionLog.pendingConsequences && Array.isArray(s.sessionLog.pendingConsequences)) {
+    s.sessionLog.pendingConsequences.forEach((pc) => {
+      if (!pc.resolved && absoluteTurn >= pc.triggerTurn) {
+        pc.resolved = true;
+        turnResult.eventLog.push(`CONSEQUÊNCIA CONCRETIZADA: ${pc.description}`);
+        s.worldLedger.majorEvents.push({
+          date: `W${s.worldLedger.currentDate.week}, M${s.worldLedger.currentDate.month}, Y${s.worldLedger.currentDate.year}`,
+          event: `Consequência Concretizada: ${pc.description}`,
+          region: s.character.location.region,
+          involved: pc.originAction || "CampaignConsequence",
+          resolved: "Yes"
+        });
+      }
+    });
+  }
+
+  // 5d. Emergent Incidents Layer (M18.9-C4)
+  const campaignSeed = s.character?.name ? `${s.character.name}_${s.character.house}` : 'default_campaign_seed';
+  const incidentResult = resolveEmergentIncidents(s, absoluteTurn, campaignSeed);
+  const finalState = incidentResult.updatedState;
+  incidentResult.eventLogs.forEach(log => turnResult.eventLog.push(log));
+
+  // 5e. Record turn resolution in EventStore
+  const nextSeq = (finalState.eventStore?.length || 0) + 1;
+  const recordedTurnEvent = globalEventStore.record('WEEKLY_TURN_RESOLVED', {
+    turn: absoluteTurn,
+    year: finalState.worldLedger.currentDate.year,
+    month: finalState.worldLedger.currentDate.month,
+    week: finalState.worldLedger.currentDate.week,
+    season: finalState.weeklyLedger.season,
+    silverdew: finalState.weeklyLedger.silverdew,
+    food: finalState.weeklyLedger.food
+  }, finalState.worldLedger.currentDate.week, nextSeq);
+
+  if (!finalState.eventStore) {
+    finalState.eventStore = [];
+  }
+  finalState.eventStore.push(recordedTurnEvent);
+
+  // Expose incident pipeline result for narrative composition by callers (M18.9-E)
+  turnResult.incidentResult = incidentResult;
+
+  return { updatedState: finalState, turnResult };
 }
 
 // Generate human-readable save state block
@@ -749,144 +1436,155 @@ export function importStateFromText(textBlock: string): CampaignState {
       throw new Error("O savegame fornecido não é um objeto de estado válido.");
     }
 
-    // Auto-populate / sanitize defaults for missing structures
-    const defaultState = createInitialState(
-      parsedState.character?.archetype || "Noble Ruler", 
-      parsedState.character?.location?.region || "Southern Mountains"
-    );
-
-    // Merge character safely
-    const character = { ...defaultState.character, ...parsedState.character };
-    character.stats = { ...defaultState.character.stats, ...parsedState.character?.stats };
-    character.location = { ...defaultState.character.location, ...parsedState.character?.location };
-    character.banner = { ...defaultState.character.banner, ...parsedState.character?.banner };
-    character.nicknames = parsedState.character?.nicknames || defaultState.character.nicknames;
-
-    // Sanitize character null overrides
-    if (character.archetype === null || character.archetype === undefined) character.archetype = "Noble Ruler";
-    if (character.gender === null || character.gender === undefined) character.gender = "Male";
-    if (character.reputation === null || character.reputation === undefined) character.reputation = 0;
-    if (character.stats.ac === null || character.stats.ac === undefined) character.stats.ac = 4;
-    if (character.stats.initiativeBonus === null || character.stats.initiativeBonus === undefined) character.stats.initiativeBonus = 1;
-    if (character.location.subregion === null || character.location.subregion === undefined) character.location.subregion = "The Frontier";
-    if (character.location.distanceNearTown === null || character.location.distanceNearTown === undefined) character.location.distanceNearTown = 3;
-    if (character.location.distanceNearCastle === null || character.location.distanceNearCastle === undefined) character.location.distanceNearCastle = 0;
-    if (character.location.distanceCapital === null || character.location.distanceCapital === undefined) character.location.distanceCapital = 4;
-
-    // Merge weeklyLedger safely
-    const weeklyLedger = { ...defaultState.weeklyLedger, ...parsedState.weeklyLedger };
-    weeklyLedger.materials = { ...defaultState.weeklyLedger.materials, ...parsedState.weeklyLedger?.materials };
-
-    // Sanitize weeklyLedger null overrides
-    if (weeklyLedger.week === null || weeklyLedger.week === undefined) weeklyLedger.week = 1;
-    if (weeklyLedger.weather === null || weeklyLedger.weather === undefined) weeklyLedger.weather = "Cold and Windy";
-
-    // Merge army safely
-    const army = { ...defaultState.army, ...parsedState.army };
-    army.garrisonDetail = parsedState.army?.garrisonDetail || parsedState.army?.garrison?.detail || parsedState.garrisonDetail || parsedState.garrison?.detail;
-    army.commandStructure = parsedState.army?.commandStructure || parsedState.army?.chainOfCommand || parsedState.commandStructure || parsedState.chainOfCommand;
-    army.militia = parsedState.army?.militia || parsedState.militia;
-    
-    if (parsedState.army?.units && Array.isArray(parsedState.army.units)) {
-      army.units = parsedState.army.units.map((u: any, idx: number) => {
-        const sizeVal = (u.size !== undefined && u.size !== null) ? u.size : 30;
-        const maxSizeVal = (u.maxSize !== undefined && u.maxSize !== null) ? u.maxSize : sizeVal;
-        return {
-          id: `u_recruited_${globalRNG.nextInt(0, 1000000)}`,
-          name: u.name || "Guarda Desconhecida",
-          size: sizeVal,
-          maxSize: maxSizeVal,
-          tier: (u.tier !== undefined && u.tier !== null) ? u.tier : 1,
-          ac: (u.ac !== undefined && u.ac !== null) ? u.ac : 3,
-          weapon: u.weapon || "Spear",
-          mount: u.mount || "None",
-          morale: (u.morale !== undefined && u.morale !== null) ? u.morale : 5,
-          type: u.type
-        };
-      });
-    }
-
-    // Merge holdings safely
-    const holdings = { ...defaultState.holdings, ...parsedState.holdings };
-    holdings.villages = parsedState.holdings?.villages || parsedState.villages || [];
-    holdings.otherHoldings = parsedState.holdings?.otherHoldings || parsedState.otherHoldings || [];
-    if (parsedState.holdings?.fortification) {
-      holdings.fortification = { ...defaultState.holdings.fortification, ...parsedState.holdings.fortification };
-    }
-    if (parsedState.holdings?.residentSmith) {
-      holdings.residentSmith = { ...defaultState.holdings.residentSmith, ...parsedState.holdings.residentSmith };
-    }
-
-    // Merge inventory safely
-    const inventory = {
-      horns: parsedState.inventory?.horns || defaultState.inventory.horns,
-      smudgeBundles: {
-        sage: parsedState.inventory?.smudgeBundles?.sage !== undefined ? parsedState.inventory.smudgeBundles.sage : 0,
-        cedar: parsedState.inventory?.smudgeBundles?.cedar !== undefined ? parsedState.inventory.smudgeBundles.cedar : 0,
-        sweetgrass: parsedState.inventory?.smudgeBundles?.sweetgrass !== undefined ? parsedState.inventory.smudgeBundles.sweetgrass : 0,
-        tobacco: parsedState.inventory?.smudgeBundles?.tobacco !== undefined ? parsedState.inventory.smudgeBundles.tobacco : 0,
-      }
-    };
-
-    // Merge advisors safely
-    const advisors = { ...defaultState.advisors, ...parsedState.advisors };
-
-    // Populate worldLedger
-    const worldLedger = parsedState.worldLedger || defaultState.worldLedger;
-
-    // Populate other missing sections
-    const crowns = parsedState.crowns || defaultState.crowns;
-    const worldSecrets = parsedState.worldSecrets || defaultState.worldSecrets;
-    const falseLineage = parsedState.falseLineage || defaultState.falseLineage;
-    const revealedRegions = parsedState.revealedRegions || defaultState.revealedRegions;
-    const narrativeHistory = parsedState.narrativeHistory || defaultState.narrativeHistory;
-
-    const mergedState: CampaignState = {
-      id: `evt_${globalRNG.nextInt(0, 1000000)}`,
-      sequence: 0,
-      type: "CAMPAIGN_INIT",
-      payload: {},
-      timestamp: `1970-01-01T00:00:00Z`,
-      week: 1,
-      ...defaultState,
-      character,
-      weeklyLedger,
-      army,
-      holdings,
-      inventory,
-      advisors,
-      worldLedger,
-      crowns,
-      worldSecrets,
-      falseLineage,
-      revealedRegions,
-      narrativeHistory,
-      councils: parsedState.councils || defaultState.councils,
-      spyNetwork: parsedState.spyNetwork || defaultState.spyNetwork,
-      equipmentInventory: parsedState.equipmentInventory || defaultState.equipmentInventory,
-      mountBreeding: parsedState.mountBreeding || parsedState.holdings?.mountBreeding,
-      tradeRoutes: parsedState.tradeRoutes || parsedState.diplomacy?.tradeRoutes,
-      caravanLedger: parsedState.caravanLedger || defaultState.caravanLedger,
-      regionalTrade: parsedState.regionalTrade || defaultState.regionalTrade,
-      tribalRelations: parsedState.tribalRelations || parsedState.diplomacy?.tribalRelations || defaultState.tribalRelations,
-      meta: parsedState.meta,
-      executiveBrief: parsedState.executiveBrief,
-      characters: parsedState.characters,
-      diplomacy: parsedState.diplomacy,
-      livroNegroDetail: parsedState.livroNegroDetail,
-      mercenaries: parsedState.mercenaries,
-      fortalezasOrm: parsedState.fortalezasOrm,
-      genealogy: parsedState.genealogy,
-      distances: parsedState.distances,
-      hiddenHeir: parsedState.hiddenHeir,
-      discoveredArtifacts: parsedState.discoveredArtifacts || defaultState.discoveredArtifacts,
-      family: parsedState.family || defaultState.family
-    };
-
-    return mergedState;
+    return sanitizeState(parsedState);
   } catch (error: any) {
     throw new Error(`Falha ao carregar campanha: ${error.message}`);
   }
+}
+
+/**
+ * Normalizes and sanitizes any partial or incoming CampaignState object, ensuring
+ * that all default domains, arrays, army units, and nested structures exist safely.
+ */
+export function sanitizeState(parsedState: any): CampaignState {
+  if (!parsedState || typeof parsedState !== 'object') {
+    return createInitialState("Noble Ruler", "Southern Mountains");
+  }
+
+  // Auto-populate / sanitize defaults for missing structures
+  const defaultState = createInitialState(
+    parsedState.character?.archetype || "Noble Ruler", 
+    parsedState.character?.location?.region || "Southern Mountains",
+    false
+  );
+
+  // Merge character safely
+  const character = { ...defaultState.character, ...parsedState.character };
+  character.stats = { ...defaultState.character.stats, ...parsedState.character?.stats };
+  character.location = { ...defaultState.character.location, ...parsedState.character?.location };
+  character.banner = { ...defaultState.character.banner, ...parsedState.character?.banner };
+  character.nicknames = parsedState.character?.nicknames || defaultState.character.nicknames;
+
+  // Sanitize character null overrides
+  if (character.archetype === null || character.archetype === undefined) character.archetype = "Noble Ruler";
+  if (character.gender === null || character.gender === undefined) character.gender = "Male";
+  if (character.reputation === null || character.reputation === undefined) character.reputation = 0;
+  if (character.stats.ac === null || character.stats.ac === undefined) character.stats.ac = 4;
+  if (character.stats.initiativeBonus === null || character.stats.initiativeBonus === undefined) character.stats.initiativeBonus = 1;
+  if (character.location.subregion === null || character.location.subregion === undefined) character.location.subregion = "The Frontier";
+  if (character.location.distanceNearTown === null || character.location.distanceNearTown === undefined) character.location.distanceNearTown = 3;
+  if (character.location.distanceNearCastle === null || character.location.distanceNearCastle === undefined) character.location.distanceNearCastle = 0;
+  if (character.location.distanceCapital === null || character.location.distanceCapital === undefined) character.location.distanceCapital = 4;
+
+  // Merge weeklyLedger safely
+  const weeklyLedger = { ...defaultState.weeklyLedger, ...parsedState.weeklyLedger };
+  weeklyLedger.materials = { ...defaultState.weeklyLedger.materials, ...parsedState.weeklyLedger?.materials };
+
+  // Sanitize weeklyLedger null overrides
+  if (weeklyLedger.week === null || weeklyLedger.week === undefined) weeklyLedger.week = 1;
+  if (weeklyLedger.weather === null || weeklyLedger.weather === undefined) weeklyLedger.weather = "Cold and Windy";
+
+  // Merge army safely
+  const army = { ...defaultState.army, ...parsedState.army };
+  army.garrisonDetail = parsedState.army?.garrisonDetail || parsedState.army?.garrison?.detail || parsedState.garrisonDetail || parsedState.garrison?.detail;
+  army.commandStructure = parsedState.army?.commandStructure || parsedState.army?.chainOfCommand || parsedState.commandStructure || parsedState.chainOfCommand;
+  army.militia = parsedState.army?.militia || parsedState.militia;
+  
+  if (parsedState.army?.units && Array.isArray(parsedState.army.units)) {
+    army.units = parsedState.army.units.map((u: any, idx: number) => {
+      const sizeVal = (u.size !== undefined && u.size !== null) ? u.size : 30;
+      const maxSizeVal = (u.maxSize !== undefined && u.maxSize !== null) ? u.maxSize : sizeVal;
+      return {
+        id: u.id || `u_recruited_${idx + 1}`,
+        name: u.name || "Guarda Desconhecida",
+        size: sizeVal,
+        maxSize: maxSizeVal,
+        tier: (u.tier !== undefined && u.tier !== null) ? u.tier : 1,
+        ac: (u.ac !== undefined && u.ac !== null) ? u.ac : 3,
+        weapon: u.weapon || "Spear",
+        mount: u.mount || "None",
+        morale: (u.morale !== undefined && u.morale !== null) ? u.morale : 5,
+        type: u.type || "Levy"
+      };
+    });
+  }
+
+  // Merge holdings safely
+  const holdings = { ...defaultState.holdings, ...parsedState.holdings };
+  holdings.villages = parsedState.holdings?.villages || parsedState.villages || [];
+  holdings.otherHoldings = parsedState.holdings?.otherHoldings || parsedState.otherHoldings || [];
+  if (parsedState.holdings?.fortification) {
+    holdings.fortification = { ...defaultState.holdings.fortification, ...parsedState.holdings.fortification };
+  }
+  if (parsedState.holdings?.residentSmith) {
+    holdings.residentSmith = { ...defaultState.holdings.residentSmith, ...parsedState.holdings.residentSmith };
+  }
+
+  // Merge inventory safely
+  const inventory = {
+    horns: parsedState.inventory?.horns || defaultState.inventory.horns,
+    smudgeBundles: {
+      sage: parsedState.inventory?.smudgeBundles?.sage !== undefined ? parsedState.inventory.smudgeBundles.sage : 0,
+      cedar: parsedState.inventory?.smudgeBundles?.cedar !== undefined ? parsedState.inventory.smudgeBundles.cedar : 0,
+      sweetgrass: parsedState.inventory?.smudgeBundles?.sweetgrass !== undefined ? parsedState.inventory.smudgeBundles.sweetgrass : 0,
+      tobacco: parsedState.inventory?.smudgeBundles?.tobacco !== undefined ? parsedState.inventory.smudgeBundles.tobacco : 0,
+    }
+  };
+
+  // Merge advisors safely
+  const advisors = { ...defaultState.advisors, ...parsedState.advisors };
+
+  // Populate worldLedger
+  const worldLedger = parsedState.worldLedger || defaultState.worldLedger;
+
+  // Populate other missing sections
+  const crowns = parsedState.crowns || defaultState.crowns;
+  const worldSecrets = parsedState.worldSecrets || defaultState.worldSecrets;
+  const falseLineage = parsedState.falseLineage || defaultState.falseLineage;
+  const revealedRegions = parsedState.revealedRegions || defaultState.revealedRegions;
+  const narrativeHistory = parsedState.narrativeHistory || defaultState.narrativeHistory;
+  const sessionLog = parsedState.sessionLog || defaultState.sessionLog;
+  const eventStore = parsedState.eventStore || defaultState.eventStore;
+
+  const mergedState: CampaignState = {
+    ...defaultState,
+    character,
+    weeklyLedger,
+    army,
+    holdings,
+    inventory,
+    advisors,
+    worldLedger,
+    sessionLog,
+    eventStore,
+    crowns,
+    worldSecrets,
+    falseLineage,
+    revealedRegions,
+    narrativeHistory,
+    councils: parsedState.councils || defaultState.councils,
+    spyNetwork: parsedState.spyNetwork || defaultState.spyNetwork,
+    equipmentInventory: parsedState.equipmentInventory || defaultState.equipmentInventory,
+    mountBreeding: parsedState.mountBreeding || parsedState.holdings?.mountBreeding,
+    tradeRoutes: parsedState.tradeRoutes || parsedState.diplomacy?.tradeRoutes,
+    caravanLedger: parsedState.caravanLedger || defaultState.caravanLedger,
+    regionalTrade: parsedState.regionalTrade || defaultState.regionalTrade,
+    tribalRelations: parsedState.tribalRelations || parsedState.diplomacy?.tribalRelations || defaultState.tribalRelations,
+    meta: parsedState.meta,
+    executiveBrief: parsedState.executiveBrief,
+    characters: parsedState.characters,
+    diplomacy: parsedState.diplomacy,
+    livroNegroDetail: parsedState.livroNegroDetail,
+    mercenaries: parsedState.mercenaries,
+    fortalezasOrm: parsedState.fortalezasOrm,
+    genealogy: parsedState.genealogy,
+    distances: parsedState.distances,
+    hiddenHeir: parsedState.hiddenHeir,
+    discoveredArtifacts: parsedState.discoveredArtifacts || defaultState.discoveredArtifacts,
+    family: parsedState.family || defaultState.family
+  };
+
+  return mergedState;
 }
 
 // Simulate one round of deterministic Mass Combat
