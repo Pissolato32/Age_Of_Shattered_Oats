@@ -164,31 +164,28 @@ graph TD
 | **Runtime** | Save / Load state persistence | `PASS` |
 | **Quality** | Full test suite (43/43), TypeScript, lint, and build passing | `PASS` |
 
----
+## 5. Post-Release Governance & Post-v1.0 Evolution
 
-## 5. Post-Release Governance
+### 5.1 Baseline v1.0 Architecture Freeze
+With the approval of the **v1.0 Release Candidate**, the foundational architecture of Age of Shattered Oaths is officially **FROZEN**.
+* The core 5-Phase architectural roadmap is concluded and canonical.
+* **No Parallel Subsystems:** No secondary state stores, parallel AI brains, or alternative event persistence engines may be introduced.
 
-With the approval of **v1.0 Release Candidate**, the foundational architecture of Age of Shattered Oaths is officially **FROZEN**.
+### 5.2 Post-v1.0 Evolution Track (M18–M25 Hardening & Calibration)
+The Milestones M18 through M25 represent the **Hardening, Observability, and Deep Calibration** track executing on top of the frozen v1.0 core:
+* **M18 — Living World Evolution & Campaign Calibration**: Dynamic incident simulation and emergent campaign calibration.
+* **M19 — Long-Horizon & Adversarial Simulation**: Multi-decade stability and exploit resistance testing.
+* **M20 — Historical Continuity**: Narrative memory decay and historical continuity audits.
+* **M21 — Full System Exercitation**: Deep stress testing across mechanical edge-cases.
+* **M22 — Emergent Campaign Quality**: Narrative-mechanical consistency and agency preservation under stress.
+* **M23 — Decision Surface Audit**: Action classification surface coverage and resolution accuracy.
+* **M24 — Campaign Observability**: Event logging, audit delta validation, and telemetry.
+* **M25 — State Persistence Audit**: Deterministic serialization, reload integrity, and snapshot replay guarantees.
 
-* **No New Milestones or Architectural Overhauls:** The core 5-Phase development roadmap is concluded.
-* **Maintenance & Content Scope Only:** Future development will focus strictly on:
-  1. Bug fixes for verified P0/P1 issues.
-  2. Numerical balance adjustments.
-  3. Content additions (new Codex lore, event tables, noble houses).
-  4. UI/UX styling and accessibility enhancements.
-  5. Performance and long-term simulation optimizations (e.g. `DEBT-001`).
-
-
----
-
-## 5. Post-Release Governance (Beyond v1.0)
-
-Once the Phase 5 Release Candidate is approved, development transitions from **Core Architecture** to **Content & Product Operations**:
-
-* Bug fixes & balance adjustments.
-* Content expansion (new noble houses, events, Codex lore nodes, regions).
-* UI/UX polish and visual asset enrichment.
-* Additional mechanical domains (if explicitly specified).
-* Performance optimizations (such as `DEBT-001` event pruning for multi-century campaigns).
-
-**No new architectural gates or parallel subsystems may be added.**
+### 5.3 Maintenance & Product Operations Rules
+Ongoing engineering beyond v1.0 is restricted strictly to:
+1. Bug fixes for verified P0/P1 defects.
+2. Numerical balance calibrations and Codex rule alignments.
+3. Content additions (new noble houses, historical events, regional lore nodes).
+4. UI/UX styling, accessibility, and visual asset enrichment.
+5. Simulation optimizations (e.g. `DEBT-001` event pruning for multi-century campaigns).

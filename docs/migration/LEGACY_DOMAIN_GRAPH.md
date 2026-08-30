@@ -1,10 +1,17 @@
-# LEGACY_DOMAIN_GRAPH.md
+> STATUS: HISTORICAL / SUPERSEDED
+>
+> Este documento representa o rascunho de triagem preliminar de dependências legadas.
+> Nota de Atualização: O domínio `Narrator` (inicialmente cogitado como candidato principal) foi formalmente **REJEITADO** devido ao acoplamento crítico com `StateApplicator` e mutações bidirecionais em disco (vide [NARRATOR_MIGRATION_READINESS.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/NARRATOR_MIGRATION_READINESS.md)).
+>
+> Referência Canônica de Consolidação: [MIGRATION_MATRIX.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/MIGRATION_MATRIX.md)
 
-## Visão Geral dos Domínios Legados
+---
 
-- **Character**: domínio já consolidado na nova base.
-- **Narrator**: candidato principal para migração; depende de `EventStore`, `SnapshotStore`, `RandomService`, `Clock`.
-- **Crime**: utiliza `RandomService` (RNG) e persistência via SQLite/TypeORM.
-- **Outros Domínios**: listados em `src/domain/` (consultar estrutura de diretórios).
+# LEGACY_DOMAIN_GRAPH.md (Rascunho Histórico)
 
-> Este documento serve como referência para entender as dependências entre os domínios legados.
+## Visão Geral dos Domínios Legados (Snapshot Preliminar)
+
+- **Character**: domínio consolidado na base (`src/domain/character/`).
+- **Narrator**: *Rejeitado formalmente* — a arquitetura canônica utiliza a pipeline determinística de `src/lib/` sem mutação de estado por IA.
+- **Crime**: utiliza `RandomService` (RNG) e persistência via SQLite/TypeORM (pendente de extração seletiva).
+- **Consolidação dos 16 Domínios**: Consulte a matriz central em [MIGRATION_MATRIX.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/MIGRATION_MATRIX.md).

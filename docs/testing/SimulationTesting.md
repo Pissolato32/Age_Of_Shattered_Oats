@@ -1,42 +1,53 @@
-# Simulation Testing Documentation
+# Simulation Testing Documentation [ACTIVE_SPEC]
 
-This document outlines the testing strategy for the simulation engine, covering various testing layers:
-
-## 1. Stress Tests
-- Runs the simulation for a large number of ticks (e.g., 10 000, 50 000, 100 000).
-- Checks deterministic invariants such as economy balances, travel day calculations, and random service seeding.
-- Generates a markdown report in `logs/`.
-
-## 2. Snapshot Generation
-- Enabled with the `--snapshot` flag (or `snapshot:*` npm scripts).
-- Saves a JSON snapshot every **1000 ticks** (configurable via `SNAPSHOT_INTERVAL`).
-- Snapshots are stored under `logs/snapshots/` as `snapshot_<tick>.json`.
-
-## 3. Replay Validation
-- The `ReplayValidator` tool loads all snapshots, computes a SHA‑256 hash of each snapshot’s state, and verifies deterministic ordering.
-- Run via `npm run snapshot:compare`.
-
-## 4. Snapshot‑Replay Integration Test
-- Executes a short snapshot run (`npm run snapshot:short`).
-- Immediately validates the generated snapshots with `ReplayValidator`.
-- Ensures the pipeline works end‑to‑end in CI.
-
-## 5. Documentation & Invariants
-- All test scripts are documented in `package.json` under `scripts`.
-- The `docs/SimulationTesting.md` file serves as a single source of truth for developers and CI pipelines.
+This document outlines the testing strategy for the deterministic simulation engine, covering continuous stress testing, snapshot generation, and bit-for-bit replay validation.
 
 ---
 
-### How to Use
-```bash
-# Run a full stress test
-npm run stress:long
+## 1. Deterministic Test Suite
+- Standard unit, domain, integration, calibration, and E2E suites are executed via:
+  ```bash
+  npm test
+  ```
+- All mechanical invariants are checked across 50+ test suites.
 
-# Run a short snapshot generation
-npm run snapshot:short
+---
 
-# Validate the replay of snapshots
-npm run snapshot:compare
-```
+## 2. Long-Horizon Stress Tests
+- Runs multi-thousand tick continuous simulation runs checking economy balances, travel mechanics, random service seeding, and memory stability:
+  ```bash
+  # Short run (10,000 ticks)
+  npm run stress:short
 
-> **Note**: The snapshot interval can be adjusted in `src/tools/StressTestRunner.ts` by changing the `SNAPSHOT_INTERVAL` constant.
+  # Medium run (50,000 ticks)
+  npm run stress:medium
+
+  # Long run (100,000 ticks)
+  npm run stress:long
+  ```
+- Detailed simulation output logs are generated under `logs/` and runtime console.
+
+---
+
+## 3. Snapshot Generation & Persistence
+- Snapshots record state slices across execution ticks to ensure deterministic persistence:
+  ```bash
+  # Run 100k tick snapshot generator
+  npm run snapshot:run
+  ```
+- Snapshots are stored under `snapshots/` or evaluated in-memory.
+
+---
+
+## 4. Replay Validation
+- The `ReplayValidator` (`src/tools/ReplayValidator.ts`) verifies bit-for-bit determinism and reproducible state hashes:
+  ```bash
+  npm run replay:validate
+  ```
+- Ensures replay executions from identical seeds produce identical mechanical states.
+
+---
+
+## 5. Canonical Reference
+- Test scripts and execution triggers are defined canonically in `package.json`.
+- This document lives canonically at [docs/testing/SimulationTesting.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/testing/SimulationTesting.md).

@@ -1,6 +1,18 @@
-# Architecture, Tooling and Verification Infrastructure: COMPLETE
+> STATUS: HISTORICAL / SUPERSEDED
+>
+> This document describes the initial pre-v1.0 infrastructure milestone freeze and the legacy toolchain (ARCA / CanonCompiler / InspectorConsole).
+> It is preserved strictly for historical context and MUST NOT be used as the authoritative description of current architecture.
+>
+> Canonical references:
+> - Current Roadmap & Milestones: [PROJECT_ROADMAP.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/development/PROJECT_ROADMAP.md)
+> - Domain Consolidation: [MIGRATION_MATRIX.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/migration/MIGRATION_MATRIX.md)
+> - Authority Hierarchy: [CANONICAL_DOCUMENTATION.md](file:///c:/Projetos/Age_Of_Shattered_Oats/docs/CANONICAL_DOCUMENTATION.md)
 
-As of July 17, 2026, all core architectural patterns, debugging toolchains, and verification structures for the tabletop campaign simulation engine are officially frozen. 
+---
+
+# Architecture, Tooling and Verification Infrastructure: COMPLETE (Historical)
+
+As of July 17, 2026, all core architectural patterns, debugging toolchains, and verification structures for the tabletop campaign simulation engine were frozen for the v0 baseline.
 
 ## Frozen Infrastructure Checklist
 - 🛠️ **CanonCompiler**: Automatically extracts and compiles game systems schema definitions (YAML) to runtime configurations (JSON).
@@ -17,7 +29,7 @@ As of July 17, 2026, all core architectural patterns, debugging toolchains, and 
   - 100% Unit Test coverage
   - 100% Simulation runtime triggers
 
-## Campaign Roadmap Milestones
+## Campaign Roadmap Milestones (Historical Pre-v1.0 Snapshot)
 
 ### 🏁 Milestone 0: Foundation [██████████] 100% COMPLETE
 All tooling, database schema architectures, CLI query tools, event sourcing repositories, AST annotation scanners, and verification scripts are fully functional and locked. No new infrastructure features will be written.
