@@ -15,8 +15,8 @@ export class GenealogyService {
    * Initializes or returns the persistent genealogy map from CampaignState.
    */
   public static getGenealogyMap(state: CampaignState): Record<string, GenealogyRecord> {
-    if ((state as any).genealogy && typeof (state as any).genealogy === 'object') {
-      return (state as any).genealogy;
+    if (state.genealogy && typeof state.genealogy === 'object') {
+      return state.genealogy;
     }
 
     const currentRulerId = 'ruler_current';
@@ -52,7 +52,7 @@ export class GenealogyService {
       }
     };
 
-    (state as any).genealogy = baseline;
+    state.genealogy = baseline;
     return baseline;
   }
 

@@ -105,7 +105,7 @@ console.log('=== TEST SUITE: HISTORICAL LIFECYCLE STRESS, GENEALOGY & 10,000-TUR
   console.log('\n[TEST 3] Executando Stress Test de Ciclo de Vida: 1.000 Personagens, 10.000 Transições e Save/Reloads...');
 
   let state = createInitialState('Noble Ruler', 'Central Plains');
-  const roster = CharacterLifecycleService.getHistoricalRoster(state);
+  let roster = CharacterLifecycleService.getHistoricalRoster(state);
 
   // Gera 1.000 personagens históricos
   for (let i = 1; i <= 1000; i++) {
@@ -138,11 +138,15 @@ console.log('=== TEST SUITE: HISTORICAL LIFECYCLE STRESS, GENEALOGY & 10,000-TUR
     // A cada 200 passos, executa ciclo completo de Save/Reload (50 saves/reloads no total)
     if (step % 200 === 0) {
       const serialized = JSON.stringify(state);
+      const previousRoster = roster;
       state = JSON.parse(serialized) as CampaignState;
+      roster = CharacterLifecycleService.getHistoricalRoster(state);
+      assert.notEqual(roster, previousRoster, 'Roster desserializado deve ser uma nova referência');
     }
   }
 
-  // Executa 5.000 mortes
+  // Executa 5.000 chamadas de morte distribuídas
+  const uniqueKilled = new Set<string>();
   for (let d = 1; d <= 5000; d++) {
     const charIndex = (d * 73) % 1000;
     const char = roster[charIndex];
@@ -153,20 +157,26 @@ console.log('=== TEST SUITE: HISTORICAL LIFECYCLE STRESS, GENEALOGY & 10,000-TUR
       cause: 'Combate na Grande Guerra',
       place: 'Campo de Batalha'
     });
+    uniqueKilled.add(char.id);
   }
 
-  // 20.000 consultas ao estado
+  // Save/Reload após todas as mortes para validar integridade do estado persistido
+  const finalSerialized = JSON.stringify(state);
+  state = JSON.parse(finalSerialized) as CampaignState;
+  roster = CharacterLifecycleService.getHistoricalRoster(state);
+
+  // 20.000 consultas ao estado recém-desserializado
   let deadNeverActiveCount = 0;
   for (let q = 1; q <= 20000; q++) {
     const charIndex = (q * 41) % 1000;
     const char = roster[charIndex];
     if (char.lifeState === 'dead') {
-      assert.equal(char.currentRole, null, 'Personagem morto NUNCA pode ter cargo ativo');
+      assert.equal(char.currentRole, null, 'Personagem morto no estado desserializado NUNCA pode ter cargo ativo');
       deadNeverActiveCount++;
     }
   }
 
-  console.log(`  ✅ Stress Test concluído: 10.000 transições, 5.000 mortes e 20.000 verificações (mortos inativos confirmados: ${deadNeverActiveCount}).`);
+  console.log(`  ✅ Stress Test concluído: 10.000 transições, 5.000 chamadas de kill (${uniqueKilled.size} personagens únicos falecidos), 50 saves/reloads e 20.000 verificações no estado desserializado.`);
 }
 
 // ---------------------------------------------------------------------------

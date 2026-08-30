@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { LLMCompatibilityHarness } from '../llm/benchmark/LLMCompatibilityHarness';
 import { ALL_BENCHMARK_SCENARIOS, getScenariosByCategory } from '../../tests/llm/scenarios';
 import { LLMProviderId } from '../llm/contracts/LLMContract';
+import { BillingMode } from '../llm/validators/BillingGuard';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -20,15 +21,33 @@ async function main() {
   const categoryArgIndex = args.indexOf('--category');
   const categoryFilter = categoryArgIndex !== -1 ? args[categoryArgIndex + 1] : undefined;
 
+  let billingMode: BillingMode = 'free-tier';
+  for (const arg of args) {
+    if (arg.startsWith('--billing='')) {
+      const mode = arg.split('=')[1];
+      if (mode === 'strict' || mode === 'free-tier') {
+        billingMode = mode;
+      }
+    }
+  }
+  const billingIndex = args.indexOf('--billing');
+  if (billingIndex !== -1 && args[billingIndex + 1]) {
+    const mode = args[billingIndex + 1];
+    if (mode === 'strict' || mode === 'free-tier') {
+      billingMode = mode;
+    }
+  }
+
   console.log(`======================================================================`);
   console.log(`🛡️ AGE OF SHATTERED OATHS — LLM BENCHMARK & STRESS RUNNER`);
+  console.log(`   Billing Mode: ${billingMode.toUpperCase()}`);
   console.log(`======================================================================\n`);
 
   const harness = new LLMCompatibilityHarness();
 
   if (isQualificationOnly) {
     console.log(`[Modo: Qualificação Rápida de Provedores]`);
-    const qualResults = await harness.runQualification();
+    const qualResults = await harness.runQualification(undefined, billingMode);
     console.log(`\nResultados da Qualificação:`);
     for (const r of qualResults) {
       console.log(`  • [${r.provider.toUpperCase()}] Model: ${r.model} -> Qualificado: ${r.qualified ? 'SIM (100% Free)' : 'NÃO / PENDENTE'} | Sucessos: ${r.successful}/${r.requests} | Latência Média: ${Math.round(r.avgLatencyMs)}ms`);
@@ -61,8 +80,8 @@ async function main() {
     scenarios,
     repetitions,
     providers,
-    useMockOnly: isMockOnly,
-    delayBetweenRequestsMs: 350
+    billingMode,
+    useMockOnly: isMockOnly
   });
 
   console.log(result.asciiReport);
@@ -72,6 +91,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('\n❌ Erro fatal durante a execução do benchmark:', err);
+  console.error(`\n❌ Erro durante a execução do benchmark:`, err);
   process.exit(1);
 });

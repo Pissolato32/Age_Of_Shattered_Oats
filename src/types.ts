@@ -1,4 +1,6 @@
 import type { SceneState } from './domain/events/models';
+import type { HistoricalCharacter } from './domain/character/CharacterLifecycle';
+import type { GenealogyRecord } from './domain/character/Genealogy';
 
 export interface Character {
   name: string;
@@ -444,12 +446,8 @@ export interface CampaignState {
   tribalRelations?: any;
   meta?: any;
   executiveBrief?: any;
-  characters?: any;
-  diplomacy?: any;
-  livroNegroDetail?: any;
-  mercenaries?: any;
-  fortalezasOrm?: any;
-  genealogy?: any;
+  historicalCharacters?: HistoricalCharacter[];
+  genealogy?: Record<string, GenealogyRecord>;
   distances?: any;
   hiddenHeir?: any;
   discoveredArtifacts?: Array<{

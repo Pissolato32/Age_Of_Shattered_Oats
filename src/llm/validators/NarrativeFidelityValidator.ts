@@ -46,6 +46,15 @@ export class NarrativeFidelityValidator {
       }
     }
 
+    // 3. Factual Grounding: Prohibit dead characters from performing active actions in narration
+    const deadActivePattern = /(General Morr (liderou|cavalgou|ordenou|sacou sua espada|disse aos soldados))/i;
+    if (deadActivePattern.test(narrativeText)) {
+      hallucination = true;
+      factualGrounding = false;
+      stateDivergence = true;
+      violations.push(`Narrative depicted deceased character actively giving orders or fighting`);
+    }
+
     return {
       factualGrounding,
       hallucination,

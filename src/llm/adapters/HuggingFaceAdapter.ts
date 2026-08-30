@@ -30,6 +30,16 @@ export class HuggingFaceAdapter extends BaseLLMAdapter {
     const startTime = Date.now();
 
     for (const model of modelsToTry) {
+      // Pre-call billing assertion on every fallback candidate
+      BillingGuard.assertFreeModel({
+        id: `hf_${model}`,
+        provider: 'huggingface',
+        model,
+        freePolicy: this.modelConfig.freePolicy,
+        maxCost: 0,
+        enabled: true
+      });
+
       const url = `${this.baseURL}/chat/completions`;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -88,7 +98,7 @@ export class HuggingFaceAdapter extends BaseLLMAdapter {
           completionTokens: data.usage?.completion_tokens,
           totalTokens: data.usage?.total_tokens,
           cost: 0,
-          isExplicitFree: true
+          isExplicitFree: false // Track as free-tier unverified cost on serverless
         });
 
         BillingGuard.assertZeroCost(usage, this.modelConfig);
@@ -107,9 +117,10 @@ export class HuggingFaceAdapter extends BaseLLMAdapter {
       } catch (err: any) {
         clearTimeout(timer);
         lastError = err;
+        continue;
       }
     }
 
-    throw lastError || new Error(`[HuggingFaceAdapter] Failed across all candidate models`);
+    throw lastError || new Error(`[HuggingFaceAdapter] All model attempts failed.`);
   }
 }

@@ -42,9 +42,9 @@ export class BillingGuard {
 
   /**
    * Post-execution assertion: inspects reported usage/cost from API responses.
-   * Throws immediately if any cost > 0 was generated.
+   * Throws immediately if any cost > 0 was generated, or if mode is 'strict' and costStatus is unverified.
    */
-  public static assertZeroCost(usage: LLMUsage, model: ModelConfig): void {
+  public static assertZeroCost(usage: LLMUsage, model: ModelConfig, mode: BillingMode = 'free-tier'): void {
     if (usage.cost !== undefined && usage.cost > 0) {
       throw new BillingGuardError(
         `NON-FREE REQUEST DETECTED: cost=${usage.cost} for model ${model.model}`,
@@ -56,6 +56,14 @@ export class BillingGuard {
     if (usage.costStatus === 'NON_ZERO_BLOCKED') {
       throw new BillingGuardError(
         `Blocked non-zero cost execution for ${model.model}`,
+        model.provider,
+        model.model
+      );
+    }
+
+    if (mode === 'strict' && usage.costStatus !== 'VERIFIED_ZERO') {
+      throw new BillingGuardError(
+        `Strict mode blocked unverified cost: costStatus is '${usage.costStatus}' for model ${model.model}. Only verified zero cost allowed.`,
         model.provider,
         model.model
       );

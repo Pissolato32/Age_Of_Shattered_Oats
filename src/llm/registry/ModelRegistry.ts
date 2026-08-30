@@ -5,7 +5,7 @@ import { ModelConfig, ModelRegistryConfig, LLMProviderId } from '../contracts/LL
 import { BillingGuard } from '../validators/BillingGuard';
 
 export const DEFAULT_MODEL_REGISTRY_CONFIG: ModelRegistryConfig = {
-  version: '1.0.0',
+  version: '1.1.0',
   description: 'Default Free Model Registry for Age of Shattered Oaths LLM Benchmark',
   models: [
     {
@@ -15,45 +15,48 @@ export const DEFAULT_MODEL_REGISTRY_CONFIG: ModelRegistryConfig = {
       freePolicy: 'free-tier',
       maxCost: 0,
       enabled: true,
-      fallbackModels: ['gemini-3.5-flash', 'gemini-3.6-flash']
+      fallbackModels: ['gemini-1.5-flash-latest', 'gemini-2.5-flash']
     },
     {
-      id: 'openrouter-llama-3.3-70b',
+      id: 'openrouter-free-default',
       provider: 'openrouter',
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
+      model: 'deepseek/deepseek-r1:free',
       freePolicy: 'explicit-free',
       maxCost: 0,
       enabled: true,
       fallbackModels: [
-        'google/gemini-2.0-flash-exp:free',
-        'mistralai/mistral-small-24b-instruct-2501:free',
-        'qwen/qwen-2.5-72b-instruct:free'
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'meta-llama/llama-3.2-3b-instruct:free',
+        'mistralai/mistral-7b-instruct:free',
+        'google/gemini-2.0-flash-exp:free'
       ]
     },
     {
-      id: 'huggingface-llama-3.3-70b',
+      id: 'huggingface-free-default',
       provider: 'huggingface',
-      model: 'meta-llama/Llama-3.3-70B-Instruct',
+      model: 'Qwen/Qwen2.5-72B-Instruct',
       freePolicy: 'free-tier',
       maxCost: 0,
       enabled: true,
       fallbackModels: [
-        'Qwen/Qwen2.5-72B-Instruct',
+        'Qwen/Qwen2.5-Coder-32B-Instruct',
+        'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B',
         'mistralai/Mistral-7B-Instruct-v0.3',
-        'google/gemma-2-27b-it'
+        'meta-llama/Llama-3.2-3B-Instruct'
       ]
     },
     {
-      id: 'opencode-zen-deepseek',
+      id: 'opencode-zen-default',
       provider: 'opencode',
-      model: 'deepseek-v4-flash-free',
+      model: 'mimo-v2.5-free',
       freePolicy: 'free-tier',
       maxCost: 0,
       enabled: true,
       fallbackModels: [
         'nemotron-3.5-lightning-free',
         'nemotron-3-ultra-free',
-        'mimo-v2.5-free'
+        'hy3-free',
+        'ling-3.0-flash-fin-free'
       ]
     }
   ]
@@ -84,9 +87,21 @@ export class ModelRegistry {
       }
     }
 
-    // Validate all registered models on initialization
+    // Validate all registered models AND fallback models on initialization
     for (const model of this.config.models) {
       BillingGuard.assertFreeModel(model);
+      if (model.fallbackModels && Array.isArray(model.fallbackModels)) {
+        for (const fb of model.fallbackModels) {
+          BillingGuard.assertFreeModel({
+            id: `${model.id}_fallback_${fb}`,
+            provider: model.provider,
+            model: fb,
+            freePolicy: model.freePolicy,
+            maxCost: 0,
+            enabled: true
+          });
+        }
+      }
     }
   }
 

@@ -30,6 +30,16 @@ export class OpenCodeAdapter extends BaseLLMAdapter {
     const startTime = Date.now();
 
     for (const model of modelsToTry) {
+      // Pre-call billing assertion on every candidate fallback model
+      BillingGuard.assertFreeModel({
+        id: `opencode_${model}`,
+        provider: 'opencode',
+        model,
+        freePolicy: this.modelConfig.freePolicy,
+        maxCost: 0,
+        enabled: true
+      });
+
       const url = `${this.baseURL}/chat/completions`;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -86,12 +96,15 @@ export class OpenCodeAdapter extends BaseLLMAdapter {
           throw new Error(`Empty response received from OpenCode model ${model}`);
         }
 
+        // OpenCode models ending with -free are verified zero cost
+        const isExplicitFree = model.endsWith('-free');
+
         const usage = BillingGuard.buildUsage({
           promptTokens: data.usage?.prompt_tokens,
           completionTokens: data.usage?.completion_tokens,
           totalTokens: data.usage?.total_tokens,
           cost: 0,
-          isExplicitFree: true
+          isExplicitFree
         });
 
         BillingGuard.assertZeroCost(usage, this.modelConfig);
@@ -102,17 +115,17 @@ export class OpenCodeAdapter extends BaseLLMAdapter {
           text: text.trim(),
           usage,
           latencyMs,
-          modelId: data.model || model,
+          modelId: model,
           providerId: 'opencode',
-          inferenceProvider: 'opencode-zen',
           rawResponse: data
         };
       } catch (err: any) {
         clearTimeout(timer);
         lastError = err;
+        continue;
       }
     }
 
-    throw lastError || new Error(`[OpenCodeAdapter] Failed across all candidate models`);
+    throw lastError || new Error(`[OpenCodeAdapter] All model attempts failed.`);
   }
 }

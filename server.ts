@@ -13,6 +13,7 @@ import { OpenRouterNarrativeLLM } from "./src/lib/openRouterNarrativeLLM";
 import { HuggingFaceNarrativeLLM } from "./src/lib/huggingFaceNarrativeLLM";
 import { CascadingNarrativeLLM } from "./src/lib/cascadingNarrativeLLM";
 import { MockNarrativeLLM } from "./src/lib/mockNarrativeLLM";
+import { UnifiedNarrativeLLM } from "./src/llm/adapters/UnifiedNarrativeLLM";
 import { NarrativeObserver } from "./src/lib/narrativeContracts";
 import { CampaignState } from "./src/types";
 import { sanitizeState } from "./src/engine";
@@ -115,18 +116,18 @@ async function startServer() {
     const geminiKey = options.clientApiKey || (options.headers?.["x-gemini-api-key"] as string) || process.env.GEMINI_API_KEY;
     const hfKey = options.clientHuggingFaceKey || (options.headers?.["x-huggingface-api-key"] as string) || (options.headers?.["x-hf-token"] as string) || process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN || process.env.HF_API_KEY;
 
-    // Direct single provider selection if explicitly forced
-    if (provider === "opencode" && openCodeKey) {
-      return new OpenCodeNarrativeLLM({ apiKey: openCodeKey.trim(), modelId: options.modelId });
+    // Direct single provider selection using canonical UnifiedNarrativeLLM with BillingGuard
+    if (provider === "gemini" && geminiKey) {
+      return new UnifiedNarrativeLLM({ provider: 'gemini', apiKey: geminiKey.trim() });
     }
     if (provider === "openrouter" && openRouterKey) {
-      return new OpenRouterNarrativeLLM({ apiKey: openRouterKey.trim(), modelId: options.modelId });
-    }
-    if (provider === "gemini" && geminiKey) {
-      return new GeminiNarrativeLLM({ apiKey: geminiKey.trim() });
+      return new UnifiedNarrativeLLM({ provider: 'openrouter', apiKey: openRouterKey.trim() });
     }
     if (provider === "huggingface" && hfKey) {
-      return new HuggingFaceNarrativeLLM({ apiKey: hfKey.trim(), modelId: options.modelId });
+      return new UnifiedNarrativeLLM({ provider: 'huggingface', apiKey: hfKey.trim() });
+    }
+    if (provider === "opencode" && openCodeKey) {
+      return new UnifiedNarrativeLLM({ provider: 'opencode', apiKey: openCodeKey.trim() });
     }
 
     // Default: Cascading multi-provider fallback using strictly 100% Free Tiers

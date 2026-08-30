@@ -24,7 +24,7 @@ export interface GameplayPipelineResult {
  * 2. Se requerer esclarecimento -> Retorna mensagem de clarificação sem alterar estado.
  * 3. Se for Mecânico -> Codex/Rule Resolver -> Mutação Atômica se ALLOWED.
  * 4. Se for Flavor -> Cache de Web Flavor + Sanitização -> Zero mutação mecânica.
- * 5. Validação Defensiva de Integridade por Hash do Estado.
+ * 5. Validação Defensiva de Integridade por Hash do Estado (hashBefore vs hashAfter).
  */
 export function executeGameplayPipeline(
   userProse: string, 
@@ -37,13 +37,14 @@ export function executeGameplayPipeline(
 
   // 2. Tratar Parâmetros Ausentes / Ambiguidade
   if (intent.requiresClarification) {
+    const hashAfter = hashMechanicalState(currentState);
     return {
       intent,
       updatedState: currentState,
       stateMutated: false,
       requiresPlayerClarification: true,
       clarificationMessage: intent.clarificationPrompt,
-      integrityVerified: verifyStateIntegrity(currentState, currentState)
+      integrityVerified: hashInitial === hashAfter
     };
   }
 
@@ -51,10 +52,16 @@ export function executeGameplayPipeline(
   if (intent.category === 'MECHANICAL') {
     const resolution = resolveAction(userProse, currentState);
     const { updatedState, mutated } = applyResolutionToState(currentState, resolution);
+    const hashAfter = hashMechanicalState(updatedState);
 
-    const integrityOk = mutated 
-      ? true 
-      : verifyStateIntegrity(currentState, updatedState);
+    let integrityOk = false;
+    if (mutated) {
+      // Quando houve mutação autorizada, o hash deve ter mudado e a integridade de regras ser válida
+      integrityOk = hashInitial !== hashAfter;
+    } else {
+      // Quando não houve mutação (rejeição ou consulta), o hash deve ser rigorosamente idêntico
+      integrityOk = hashInitial === hashAfter;
+    }
 
     return {
       intent,
@@ -70,8 +77,7 @@ export function executeGameplayPipeline(
   if (intent.category === 'FLAVOR') {
     const { result: webFlavor, isCacheHit } = getCachedWebFlavor(userProse);
     const resolution = resolveAction(userProse, currentState);
-
-    const integrityOk = verifyStateIntegrity(currentState, currentState);
+    const hashAfter = hashMechanicalState(currentState);
 
     return {
       intent,
@@ -81,18 +87,19 @@ export function executeGameplayPipeline(
       updatedState: currentState,
       stateMutated: false,
       requiresPlayerClarification: false,
-      integrityVerified: integrityOk
+      integrityVerified: hashInitial === hashAfter
     };
   }
 
   // Fallback para consultas genéricas ou informativas
   const resolution = resolveAction(userProse, currentState);
+  const hashAfter = hashMechanicalState(currentState);
   return {
     intent,
     resolution,
     updatedState: currentState,
     stateMutated: false,
     requiresPlayerClarification: false,
-    integrityVerified: verifyStateIntegrity(currentState, currentState)
+    integrityVerified: hashInitial === hashAfter
   };
 }

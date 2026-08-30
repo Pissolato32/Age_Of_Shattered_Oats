@@ -43,8 +43,8 @@ export class CharacterLifecycleService {
    * Returns and ensures the persistent historical roster exists in CampaignState.
    */
   public static getHistoricalRoster(state: CampaignState): HistoricalCharacter[] {
-    if ((state as any).historicalCharacters && Array.isArray((state as any).historicalCharacters)) {
-      return (state as any).historicalCharacters;
+    if (state.historicalCharacters && Array.isArray(state.historicalCharacters)) {
+      return state.historicalCharacters;
     }
 
     const baseline: HistoricalCharacter[] = [
@@ -110,7 +110,7 @@ export class CharacterLifecycleService {
       }
     ];
 
-    (state as any).historicalCharacters = baseline;
+    state.historicalCharacters = baseline;
     return baseline;
   }
 

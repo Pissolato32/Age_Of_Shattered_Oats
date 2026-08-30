@@ -27,31 +27,24 @@ This document is the canonical repository backlog for verified technical finding
 * `FIX NOW` — Scheduled for immediate implementation in current gate.
 * `FIX LATER` — Verified technical debt deferred to a future milestone when impact becomes relevant.
 * `OBSERVE` — Potential future bottleneck or validation gap; requires metric monitoring before code changes.
-* `REJECT` — Audited and determined to be out of scope or working as intended.
+* `RESOLVED` — Audited, implemented, and verified by automated tests.
 
 ---
 
-## 3. Deferred Technical Findings (Proven Technical Debt)
+## 3. Deferred Technical Findings & Audit Resolutions
 
 ### DEBT-001: Historical Linear Growth of `worldLedger.majorEvents`
 
 * **Priority:** P3
-* **Status:** `FIX LATER` (Deferred)
+* **Status:** `OBSERVE` (Verified: 10,000-turn simulation footprint is 44.27 KB)
 * **Canonical Owner:** `state.worldLedger.majorEvents` / [src/engine.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/engine.ts)
-* **Source:** M13 Gate 4 / M14 Gate 1 & 2 Audits
+* **Source:** M13 Gate 4 / M14 Gate 1 & 2 Audits / HistoricalLifecycleStress Test
 * **Finding:**
   The `state.worldLedger.majorEvents` array grows monotonically as turns, succession events, expired vows, and resolved consequences are appended across the campaign lifecycle.
-* **Current Impact:**
-  Zero corruption, zero performance failure, zero determinism violation, and zero memory leaks observed in the 520-week (10-year) simulation and 120-action continuous tests.
-* **Reason for Deferral:**
-  The memory/payload growth is negligible during standard campaign durations (10–20 years). It becomes relevant primarily in multi-century campaigns (100+ years).
-* **Do Not Implement Yet.**
-* **Revisit Trigger:**
-  When long-duration simulation (> 2,500 weeks / 50+ years) demonstrates measurable memory, JSON serialization, or narrative-context token degradation.
-* **Required Invariants Before Implementation:**
-  - Preserve historical truth and EventStore consistency.
-  - Preserve 100% replay determinism.
-  - Avoid creating a parallel event store or duplicate archiving subsystem.
+* **Empirical Validation:**
+  In `tests/domain/HistoricalLifecycleStress.test.ts`, a full 10,000-turn simulation with successions, events, and treaty recording grew from 15.38 KB (Turn 1) to 44.27 KB (Turn 10,000).
+* **Conclusion:**
+  Payload growth is negligible. Aggressive historical compaction is deferred until multi-century campaigns demonstrate token or performance degradation.
 
 ---
 
@@ -60,35 +53,34 @@ This document is the canonical repository backlog for verified technical finding
 * **Priority:** P1 (Resolved)
 * **Status:** `RESOLVED`
 * **Canonical Owner:** `getAbsoluteCampaignTurn` / [src/engine.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/engine.ts)
-* **Source:** M14 Gate 2 Audit & Campaign Time Indexing Gate
-* **Finding:**
-  `getAbsoluteCampaignTurn(year, week)` previously omitted the campaign month and calculated `(year - 342) * 52 + week`. In the canonical calendar where each month has 4 weeks (`week` resets from 4 to 1 each month across 12 months = 48 weeks/year), the turn index was resetting back to 1 at every month boundary instead of advancing monotonically.
 * **Resolution:**
-  Updated `getAbsoluteCampaignTurn(year, month, week)` to compute strictly monotonic ticks: `(year - 342) * 48 + monthIdx * 4 + safeWeek`, mapping string month names (e.g. "Frostwane", "Greening") and 1-based numeric indices to `monthIdx: 0..11`.
-* **Validation:**
-  Verified in `tests/integration/VisibilityEngineIntegration.test.ts` across month boundaries and full-year transitions (Week 1 -> Turn 1, Month 12 Week 4 -> Turn 48, Year 343 Month 1 Week 1 -> Turn 49), and validated across all consumers (`Relationship`, `MemoryLog`, `pendingConsequences`, `VisibilityService`, `EventStore`).
+  Updated `getAbsoluteCampaignTurn(year, month, week)` to compute strictly monotonic ticks: `(year - 342) * 48 + monthIdx * 4 + safeWeek`.
 
 ---
 
-## 4. Future Validation & Stress Coverage (Validation Gaps)
+### DEBT-003: M26 — LLM / Engine Authority & Billing Guard Integrity
 
-*These items represent test-coverage and stress-validation extensions, NOT code defects.*
-
-### VAL-001: Multi-Decade / Secular Campaign Stress Validation (50–200 Years)
-* **Category:** Future Stress Coverage
-* **Target:** 2,500 to 10,000 weekly turn simulation with dynastic successions, demographic turnover, and compound treasury balance tracking.
-
-### VAL-002: Low-Frequency Subsystem Long-Run Continuous Exercise
-* **Category:** Future Integration Coverage
-* **Target:** Ensure low-frequency canonical services (`CommanderAIService` tactical AI, `AdventureEngine`, `MarketService` price fluctuation trends, `BreedingService`) are continuously exercised inside the interactive 1,000-cycle campaign loop.
+* **Priority:** P0 (Resolved)
+* **Status:** `RESOLVED`
+* **Canonical Owner:** [src/llm/validators/BillingGuard.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/llm/validators/BillingGuard.ts), [src/lib/gameplayPipeline.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/lib/gameplayPipeline.ts), [src/llm/adapters/UnifiedNarrativeLLM.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/llm/adapters/UnifiedNarrativeLLM.ts)
+* **Source:** M26 Architectural Audit
+* **Resolutions:**
+  1. **Strict CostStatus Verification:** Updated `BillingGuard.assertZeroCost` to reject `COST_UNVERIFIED` in strict billing mode and reject any cost > $0.00.
+  2. **CLI Argument Parsing:** Added `--billing=strict` and `--billing=free-tier` in [LLMBenchmarkRunner.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/tools/LLMBenchmarkRunner.ts).
+  3. **Fallback Candidate Validation:** Ensured every fallback model passes `BillingGuard.assertFreeModel` before invocation in `ModelRegistry` and adapters.
+  4. **Unified Production Pipeline Bridge:** Created [UnifiedNarrativeLLM.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/llm/adapters/UnifiedNarrativeLLM.ts) connecting `server.ts` directly to canonical `LLMAdapter` and `BillingGuard`.
+  5. **Defensive Hash-Based State Integrity:** Fixed [gameplayPipeline.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/lib/gameplayPipeline.ts) to verify `hashBefore !== hashAfter` on mutations and `hashBefore === hashAfter` on non-mutating actions.
+  6. **Typed Historical Model:** Explicitly typed `historicalCharacters` and `genealogy` in [src/types.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/types.ts), removing `as any` casts.
+  7. **Roster Reload Invariant:** Fixed [HistoricalLifecycleStress.test.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/tests/domain/HistoricalLifecycleStress.test.ts) to re-acquire the deserialized roster reference after every `JSON.parse` cycle.
+  8. **CI Workflow:** Added [.github/workflows/ci.yml](file:///c:/Projetos/Age_Of_Shattered_Oats/.github/workflows/ci.yml) for automated lint, unit tests, mock benchmarks, and security validations.
 
 ---
 
-## 5. Active Defect Summary
+## 4. Active Defect Summary
 
 | Priority | Count | Status |
 | :--- | :--- | :--- |
 | **P0 (Mechanical Truth Violation)** | 0 | None active |
 | **P1 (Boundary / Agency / Continuity)** | 0 | None active |
 | **P2 (GM Behavior / Narrative Quality)** | 0 | None active |
-| **P3 (Deferred Technical Debt / Optimization)** | 1 | DEBT-001 (Deferred) |
+| **P3 (Deferred Technical Debt / Optimization)** | 1 | DEBT-001 (Deferred / Observed) |
