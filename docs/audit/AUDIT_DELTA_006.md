@@ -1,13 +1,14 @@
-# AUDIT REPORT: DELTA M25.1 — MATERIAL MUTATION INVARIANT CROSS-CHECK & REMEDIATION SPEC
+# AUDIT REPORT: DELTA M25.1 — MATERIAL MUTATION INVARIANT CROSS-CHECK & RESOLUTION
 
 **Data**: 2026-08-30  
 **Status da Auditoria**: `AUDIT_RECORD`  
-**Classificação da Divergência**: `CONTRACT_VIOLATION`  
+**Classificação da Divergência**: `CONTRACT_VIOLATION` $\rightarrow$ **RESOLVED**  
 **Severidade**: Média / Alta (Integridade de Pipeline Defensivo)  
 **Módulos Envolvidos**:
 - `docs/playtest/CAUSAL_INVARIANTS.md` (Contrato Formal de Invariante)
 - `src/lib/ruleResolver.ts` (`applyResolutionToState`)
-- `src/lib/gameplayPipeline.ts` (`executePlayerTurn`)
+- `src/lib/gameplayPipeline.ts` (`executePlayerTurn` / `executeGameplayPipeline`)
+- `tests/domain/MaterialMutationInvariant.test.ts` (Suíte Canônica de Regressão)
 
 ---
 
@@ -18,47 +19,32 @@
 > $$\text{mutated} = \text{true} \iff \sum |\Delta \text{recursos}| > 0$$
 > *Um estado só pode ser marcado como `mutated: true` se houver alteração material real em saldos, inventários, tropas, obras ou controle territorial.*
 
-### Comportamento da Implementação ([src/lib/ruleResolver.ts:L764-809](file:///c:/Projetos/Age_Of_Shattered_Oats/src/lib/ruleResolver.ts#L764-L809))
-```ts
-export function applyResolutionToState(
-  state: CampaignState, 
-  resolution: RuleResolutionResult
-): { updatedState: CampaignState; mutated: boolean } {
-  if (resolution.decision !== 'ALLOWED' || !resolution.mechanicalAllowed || resolution.effects.length === 0) {
-    return { updatedState: state, mutated: false };
-  }
-  // ... loop aplicando deltas ...
-  return { updatedState: newState, mutated: true }; // ← Retorno incondicional
-}
-```
-
-### Caminho de Quebra e Interação com o Pipeline
-1. **Cenário de Efeito Nulo (`delta: 0`)**: Se uma resolução produzir `effects = [{ resource: 'weeklyLedger.silverdew', delta: 0 }]`, `effects.length > 0`, mas nenhuma alteração material ocorre. A função retorna incondicionalmente `mutated: true`.
-2. **Cenário de Delta Não-Numérico**: Se todos os efeitos tiverem deltas inválidos (`typeof effect.delta !== 'number'`), o loop pula todos os efeitos, `newState` é idêntico a `state`, mas a função retorna `mutated: true`.
-3. **Interação Crítica com [src/lib/gameplayPipeline.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/src/lib/gameplayPipeline.ts)**:
-   ```ts
-   const integrityOk = mutated ? true : verifyStateIntegrity(currentState, updatedState);
-   ```
-   Quando `mutated` é marcado falsamente como `true`, o pipeline **bypassa a verificação defensiva de integridade (`verifyStateIntegrity`)** exatamente na condição em que o sistema supunha mutação mas nenhuma alteração ocorreu.
+### Causa Raiz Anterior ([src/lib/ruleResolver.ts:L764-809](file:///c:/Projetos/Age_Of_Shattered_Oats/src/lib/ruleResolver.ts#L764-L809))
+A versão anterior de `applyResolutionToState` retornava incondicionalmente `mutated: true` caso `effects.length > 0`, gerando falso-positivo de mutação para `delta: 0` ou deltas não numéricos. Isso fazia com que o `gameplayPipeline.ts` ignorasse a verificação defensiva de integridade (`verifyStateIntegrity`).
 
 ---
 
-## 2. Follow-Up Técnico Dedicado
+## 2. Resolução Canônica Implementada
 
-> [!IMPORTANT]
-> **Isolamento de Escopo**: Nenhuma alteração de código ou teste foi realizada no PR de baseline documental. A correção será executada exclusivamente no PR dedicado:
-> `fix: enforce material mutation invariant`
+1. **Garantia da Invariante Causal**:
+   Em `src/lib/ruleResolver.ts`:
+   ```ts
+   const mutated = hashMechanicalState(state) !== hashMechanicalState(newState);
+   return { updatedState: mutated ? newState : state, mutated };
+   ```
+2. **Preservação Referencial em No-Ops**:
+   Quando `mutated === false` (inclusive para deltas nulos ou efeitos vazios), a função retorna a mesma referência de memória do estado anterior (`updatedState: state`), eliminando clones desnecessários e mantendo a integridade estrita.
+3. **Preservação de Determinismo e RNG**:
+   Nenhuma chamada a `globalRNG` é consumida em operações com `quantity <= 0` ou `delta === 0`.
 
-### Especificação dos 4 Cenários de Teste de Regressão Obrigatórios
+---
 
-1. **Cenário 1 (`delta: 0` explícito)**:
-   - Entrada: Resolução com `decision: 'ALLOWED'`, `effects: [{ resource: 'weeklyLedger.silverdew', delta: 0 }]`.
-   - Resultado Esperado: `mutated === false`, `updatedState` idêntico a `state`.
-2. **Cenário 2 (Efeitos sem delta numérico válido)**:
-   - Entrada: Resolução com `effects: [{ resource: 'weeklyLedger.silverdew', delta: NaN }]` ou propriedades não numéricas.
-   - Resultado Esperado: `mutated === false`, `updatedState` preservado.
-3. **Cenário 3 (Mutação Material Real $\sum |\Delta| > 0$)**:
-   - Entrada: Resolução com deltas reais em tesouro, tropas ou mantimentos.
-   - Resultado Esperado: `mutated === true`, `hashMechanicalState(state) !== hashMechanicalState(updatedState)`.
-4. **Cenário 4 (Integridade do Pipeline Defensivo)**:
-   - Validação end-to-end em `gameplayPipeline.ts` garantindo que ações neutras/consultivas ou com deltas nulos passam pela verificação defensiva de integridade sem falsos positivos.
+## 3. Validação por Testes de Regressão
+
+A suíte canônica [`tests/domain/MaterialMutationInvariant.test.ts`](file:///c:/Projetos/Age_Of_Shattered_Oats/tests/domain/MaterialMutationInvariant.test.ts) foi implementada e aprovou 100% dos cenários:
+- **Cenário 1 (`effects: []`)**: `mutated === false`, `updatedState === state`.
+- **Cenário 2 (`delta: 0`)**: `mutated === false`, `updatedState === state`, `hashMechanicalState` idêntico.
+- **Cenário 3 (Delta não numérico)**: `mutated === false`, `updatedState === state`.
+- **Cenário 4 (Mutação Material Real $\sum |\Delta| > 0$)**: `mutated === true`, `updatedState !== state`, hash mecânico alterado.
+- **Cenário 5 (Múltiplos Recursos)**: `silverdew`, `food`, `laborPool`, `materials` validados.
+- **Cenário 6 (Integração com GameplayPipeline)**: `integrityVerified === true` validado tanto para ações no-op quanto para mutações ativas.

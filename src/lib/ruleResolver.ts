@@ -760,7 +760,7 @@ export function applyResolutionToState(
   state: CampaignState, 
   resolution: RuleResolutionResult
 ): { updatedState: CampaignState; mutated: boolean } {
-  // Garantia Atômica: Se não for ALLOWED ou se não for permitido mecanicamente, zero mutações.
+  // Garantia Atômica: Se não for ALLOWED ou se não for permitido mecanicamente ou lista de efeitos vazia, zero mutações.
   if (resolution.decision !== 'ALLOWED' || !resolution.mechanicalAllowed || resolution.effects.length === 0) {
     return { updatedState: state, mutated: false };
   }
@@ -769,7 +769,7 @@ export function applyResolutionToState(
   const newState: CampaignState = JSON.parse(JSON.stringify(state));
 
   for (const effect of resolution.effects) {
-    if (typeof effect.delta !== 'number') continue;
+    if (typeof effect.delta !== 'number' || isNaN(effect.delta) || effect.delta === 0) continue;
 
     if (effect.resource === 'weeklyLedger.silverdew') {
       newState.weeklyLedger.silverdew += effect.delta;
@@ -785,28 +785,36 @@ export function applyResolutionToState(
       newState.weeklyLedger.materials.stone += effect.delta;
     } else if (effect.resource === 'army.units.levies') {
       const quantity = effect.delta;
-      const existingUnit = newState.army.units.find(u => u.type === 'Levy');
-      if (existingUnit) {
-        existingUnit.size += quantity;
-        existingUnit.maxSize += quantity;
-      } else {
-        newState.army.units.push({
-          id: `u_recruited_${globalRNG.nextInt(0, 1000000)}`,
-          name: "Landed Levy Retinue",
-          size: quantity,
-          maxSize: quantity,
-          tier: 1,
-          ac: 3,
-          weapon: "Spears",
-          mount: "None",
-          morale: 4,
-          type: "Levy"
-        });
+      if (quantity > 0) {
+        const existingUnit = newState.army.units.find(u => u.type === 'Levy');
+        if (existingUnit) {
+          existingUnit.size += quantity;
+          existingUnit.maxSize += quantity;
+        } else {
+          newState.army.units.push({
+            id: `u_recruited_${globalRNG.nextInt(0, 1000000)}`,
+            name: "Landed Levy Retinue",
+            size: quantity,
+            maxSize: quantity,
+            tier: 1,
+            ac: 3,
+            weapon: "Spears",
+            mount: "None",
+            morale: 4,
+            type: "Levy"
+          });
+        }
+      } else if (quantity < 0) {
+        const existingUnit = newState.army.units.find(u => u.type === 'Levy');
+        if (existingUnit) {
+          existingUnit.size = Math.max(0, existingUnit.size + quantity);
+        }
       }
     }
   }
 
-  return { updatedState: newState, mutated: true };
+  const mutated = hashMechanicalState(state) !== hashMechanicalState(newState);
+  return { updatedState: mutated ? newState : state, mutated };
 }
 
 /**
