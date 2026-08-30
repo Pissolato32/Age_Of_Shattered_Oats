@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { CampaignState, ArmyUnit } from "../types";
+import { CampaignState, ArmyUnit, NobleHouse } from "../types";
 import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction, getVisibleWorldSecrets, calculateMaterialPrice, resolveDynasticSuccession } from "../engine";
 import { Shield, Sparkles, BookOpen, Clock, Compass, Coins, Users, Hammer, Flame, Copy, Save, FileText, ChevronRight } from "lucide-react";
 import { LedgerViewer } from "./LedgerViewer";
@@ -79,7 +79,6 @@ Vosso conselho e marechais aguardam vossas primeiras instruções. O que deseja 
 
 export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps) {
   const [state, setState] = useState<CampaignState>(initialState);
-  const [narrativeHistory, setNarrativeHistory] = useState<string[]>(initialState.narrativeHistory || []);
   const [currentNarrative, setCurrentNarrative] = useState<string>("");
   const [isNarrating, setIsNarrating] = useState(false);
   const [customCommand, setCustomCommand] = useState("");
@@ -173,31 +172,15 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
     }
 
     if (initialState.narrativeHistory && initialState.narrativeHistory.length > 0) {
-      setNarrativeHistory(initialState.narrativeHistory);
+      setState(s => s ? { ...s, narrativeHistory: initialState.narrativeHistory } : s);
       setCurrentNarrative(initialState.narrativeHistory[initialState.narrativeHistory.length - 1]);
       return;
     }
 
     const prologue = buildCanonicalPrologue(initialState, isTutorial);
-    setNarrativeHistory([prologue]);
+    setState(s => s ? { ...s, narrativeHistory: [prologue] } : s);
     setCurrentNarrative(prologue);
   }, []);
-
-  // Sync narrativeHistory state to CampaignState narrativeHistory
-  useEffect(() => {
-    if (narrativeHistory.length > 0) {
-      setState(prev => {
-        if (!prev) return prev;
-        if (JSON.stringify(prev.narrativeHistory) !== JSON.stringify(narrativeHistory)) {
-          return {
-            ...prev,
-            narrativeHistory
-          };
-        }
-        return prev;
-      });
-    }
-  }, [narrativeHistory]);
 
   // Auto-save state to localStorage on state change
   useEffect(() => {
@@ -231,7 +214,9 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
     setIsNarrating(true);
 
     const playerMsg = `[JOGADOR] "${commandText}"`;
-    setNarrativeHistory(prev => [...prev, playerMsg]);
+    const currentHistory = state.narrativeHistory || [];
+    const historyWithPlayer = [...currentHistory, playerMsg];
+    setState(s => s ? { ...s, narrativeHistory: historyWithPlayer } : s);
 
     try {
       const clientApiKey = localStorage.getItem("aos_gemini_api_key") || "";
@@ -243,7 +228,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
         },
         body: JSON.stringify({
           playerInput: commandText,
-          state,
+          state: { ...state, narrativeHistory: historyWithPlayer },
           clientApiKey
         })
       });
@@ -254,14 +239,14 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
 
       const data = await response.json();
       if (data.success && data.resultState) {
-        setState(data.resultState);
         const masterNarrative = data.narrative.startsWith("[MESTRE]")
           ? data.narrative
           : `[MESTRE] ${data.narrative}`;
         setCurrentNarrative(masterNarrative);
-        setNarrativeHistory(prev => {
-          const updated = [...prev, masterNarrative];
-          return updated;
+        const updatedHistory = [...(data.resultState.narrativeHistory || historyWithPlayer), masterNarrative];
+        setState({
+          ...data.resultState,
+          narrativeHistory: updatedHistory
         });
       } else {
         throw new Error(data.error || "Resposta inválida do servidor narrativo");
@@ -270,7 +255,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
       console.error("Erro na comunicação com /api/narrative-cycle:", err);
       const fallbackMsg = `[MESTRE] Os conselheiros de ${state.character.location.landmark} registraram a ordem sob os livros de ferro. A simulação permanece segura e o estado preservado.`;
       setCurrentNarrative(fallbackMsg);
-      setNarrativeHistory(prev => [...prev, fallbackMsg]);
+      setState(s => s ? { ...s, narrativeHistory: [...(s.narrativeHistory || historyWithPlayer), fallbackMsg] } : s);
     } finally {
       setIsNarrating(false);
     }
@@ -329,7 +314,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
               {state.character.name} de {state.character.house}
             </h2>
             <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-[#f2a900] mt-1">
-              {state.character.title} // {state.character.archetype === "Noble Ruler" ? "Governante Nobre" : state.character.archetype === "Landed Knight" ? "Cavaleiro" : state.character.archetype === "Landless" ? "Sem Terras" : state.character.archetype === "Artificer" ? "Artífice" : "Necromante"}
+              {state.character.title} // {state.character.archetype === "Noble Ruler" ? "Governante Nobre" : state.character.archetype === "Landed Knight" ? "Cavaleiro" : state.character.archetype === "Landless" ? "Sem Terras" : state.character.archetype === "Artífice" ? "Artífice" : "Necromante"}
             </div>
           </div>
           
@@ -444,7 +429,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
               [INITIALIZING TURN_BLOCK: WEEK_{state.weeklyLedger.week}]
             </div>
             
-            {narrativeHistory.slice(-8).map((para, idx) => {
+            {(state.narrativeHistory || []).slice(-8).map((para, idx) => {
               const isPlayer = para.startsWith("[JOGADOR]");
               return (
                 <div 
