@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { CampaignState, ArmyUnit, NobleHouse } from "../types";
 import { resolveWeeklyTurn, exportStateToText, simulateCombatRound, adjustHouseOpinion, setHouseOpinion, resolveNpcCombatAction, getVisibleWorldSecrets, calculateMaterialPrice, resolveDynasticSuccession } from "../engine";
 import { Shield, Sparkles, BookOpen, Clock, Compass, Coins, Users, Hammer, Flame, Copy, Save, FileText, ChevronRight } from "lucide-react";
@@ -109,6 +109,13 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
     checkAiStatus();
   }, []);
   
+  // Auto-scroll ref for narrative feed
+  const feedEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    feedEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [state.narrativeHistory, isNarrating]);
+
   // Ledger viewer toggle
   const [showLedgers, setShowLedgers] = useState(false);
   const [showCodexModal, setShowCodexModal] = useState(false);
@@ -220,16 +227,28 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
 
     try {
       const clientApiKey = localStorage.getItem("aos_gemini_api_key") || "";
+      const clientOpenCodeKey = localStorage.getItem("aos_opencode_api_key") || localStorage.getItem("aos_ox_alpha_api_key") || "";
+      const clientOpenRouterKey = localStorage.getItem("aos_openrouter_api_key") || "";
+      const clientHuggingFaceKey = localStorage.getItem("aos_huggingface_api_key") || "";
+      const clientProvider = localStorage.getItem("aos_llm_provider") || (clientOpenCodeKey ? "opencode" : "cascading");
       const response = await fetch("/api/narrative-cycle", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-gemini-api-key": clientApiKey
+          "x-gemini-api-key": clientApiKey,
+          "x-opencode-api-key": clientOpenCodeKey,
+          "x-openrouter-api-key": clientOpenRouterKey,
+          "x-huggingface-api-key": clientHuggingFaceKey,
+          "x-provider": clientProvider
         },
         body: JSON.stringify({
           playerInput: commandText,
           state: { ...state, narrativeHistory: historyWithPlayer },
-          clientApiKey
+          clientApiKey,
+          clientOpenCodeKey,
+          clientOpenRouterKey,
+          clientHuggingFaceKey,
+          provider: clientProvider
         })
       });
 
@@ -451,6 +470,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
                 &gt; SISTEMA PROCESSANDO EVENTOS DETERMINÍSTICOS...
               </div>
             )}
+            <div ref={feedEndRef} />
           </div>
 
           {/* Input Area */}

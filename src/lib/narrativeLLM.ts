@@ -1,4 +1,8 @@
 import { NarrativeCommand, NarrativeContext, ObserverProjection } from './narrativeContracts';
+import {
+  IncidentNarrativeRequest,
+  IncidentNarrativeResponse
+} from '../domain/events/narrative/IncidentNarrativeContracts';
 
 export interface InterpretInput {
   readonly playerInput: string;
@@ -10,4 +14,5 @@ export interface NarrativeLLM {
   readonly modelId: string;
   interpret(input: InterpretInput): Promise<NarrativeCommand>;
   narrate(context: NarrativeContext): Promise<string>;
+  narrateIncident?(request: IncidentNarrativeRequest): Promise<IncidentNarrativeResponse>;
 }

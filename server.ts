@@ -8,6 +8,10 @@ import { resolveAction } from "./src/lib/ruleResolver";
 import { fetchWebFlavorContext } from "./src/lib/webFlavorService";
 import { runNarrativeCycle } from "./src/lib/narrativeCycle";
 import { GeminiNarrativeLLM } from "./src/lib/geminiNarrativeLLM";
+import { OpenCodeNarrativeLLM } from "./src/lib/openCodeNarrativeLLM";
+import { OpenRouterNarrativeLLM } from "./src/lib/openRouterNarrativeLLM";
+import { HuggingFaceNarrativeLLM } from "./src/lib/huggingFaceNarrativeLLM";
+import { CascadingNarrativeLLM } from "./src/lib/cascadingNarrativeLLM";
 import { MockNarrativeLLM } from "./src/lib/mockNarrativeLLM";
 import { NarrativeObserver } from "./src/lib/narrativeContracts";
 import { CampaignState } from "./src/types";
@@ -30,7 +34,7 @@ async function startServer() {
           styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
           fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'", "ws:", "wss:", "https://generativelanguage.googleapis.com", "https://api.github.com"],
+          connectSrc: ["'self'", "ws:", "wss:", "https://generativelanguage.googleapis.com", "https://api.opencode.ai", "https://opencode.ai", "https://openrouter.ai", "https://router.huggingface.co", "https://api-inference.huggingface.co", "https://api.github.com"],
           objectSrc: ["'none'"],
           upgradeInsecureRequests: null
         }
@@ -96,22 +100,83 @@ async function startServer() {
     }
   });
 
+  function resolveNarrativeLLM(options: {
+    provider?: string;
+    clientApiKey?: string;
+    clientOpenCodeKey?: string;
+    clientOpenRouterKey?: string;
+    clientHuggingFaceKey?: string;
+    modelId?: string;
+    headers?: Record<string, unknown>;
+  }) {
+    const provider = (options.provider || (options.headers?.["x-provider"] as string) || process.env.DEFAULT_LLM_PROVIDER || "").toLowerCase();
+    const openCodeKey = options.clientOpenCodeKey || (options.headers?.["x-opencode-api-key"] as string) || (options.headers?.["x-ox-alpha-api-key"] as string) || process.env.OPENCODE_API_KEY || process.env.OX_ALPHA_API_KEY;
+    const openRouterKey = options.clientOpenRouterKey || (options.headers?.["x-openrouter-api-key"] as string) || process.env.OPENROUTER_API_KEY;
+    const geminiKey = options.clientApiKey || (options.headers?.["x-gemini-api-key"] as string) || process.env.GEMINI_API_KEY;
+    const hfKey = options.clientHuggingFaceKey || (options.headers?.["x-huggingface-api-key"] as string) || (options.headers?.["x-hf-token"] as string) || process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN || process.env.HF_API_KEY;
+
+    // Direct single provider selection if explicitly forced
+    if (provider === "opencode" && openCodeKey) {
+      return new OpenCodeNarrativeLLM({ apiKey: openCodeKey.trim(), modelId: options.modelId });
+    }
+    if (provider === "openrouter" && openRouterKey) {
+      return new OpenRouterNarrativeLLM({ apiKey: openRouterKey.trim(), modelId: options.modelId });
+    }
+    if (provider === "gemini" && geminiKey) {
+      return new GeminiNarrativeLLM({ apiKey: geminiKey.trim() });
+    }
+    if (provider === "huggingface" && hfKey) {
+      return new HuggingFaceNarrativeLLM({ apiKey: hfKey.trim(), modelId: options.modelId });
+    }
+
+    // Default: Cascading multi-provider fallback using strictly 100% Free Tiers
+    return new CascadingNarrativeLLM({
+      openCodeApiKey: openCodeKey,
+      openRouterApiKey: openRouterKey,
+      geminiApiKey: geminiKey,
+      huggingFaceApiKey: hfKey
+    });
+  }
+
   // 5. Status da IA Narradora no Rodapé
   app.get("/api/config/status", (req, res) => {
-    const clientKey = (req.headers["x-gemini-api-key"] as string) || (req.query.key as string);
-    const apiKey = clientKey || process.env.GEMINI_API_KEY;
-    const isAIActive = Boolean(apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey !== "SUA_CHAVE_AQUI" && apiKey.trim().length >= 15);
+    const openCodeKey = (req.headers["x-opencode-api-key"] as string) || process.env.OPENCODE_API_KEY || process.env.OX_ALPHA_API_KEY;
+    const openRouterKey = (req.headers["x-openrouter-api-key"] as string) || process.env.OPENROUTER_API_KEY;
+    const geminiKey = (req.headers["x-gemini-api-key"] as string) || process.env.GEMINI_API_KEY;
+    const hfKey = (req.headers["x-huggingface-api-key"] as string) || process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN || process.env.HF_API_KEY;
+
+    const hasOpenCode = Boolean(openCodeKey && openCodeKey !== "SUA_CHAVE_AQUI" && openCodeKey.trim().length >= 10);
+    const hasOpenRouter = Boolean(openRouterKey && openRouterKey !== "SUA_CHAVE_AQUI" && openRouterKey.trim().length >= 15);
+    const hasGemini = Boolean(geminiKey && geminiKey !== "MY_GEMINI_API_KEY" && geminiKey !== "SUA_CHAVE_AQUI" && geminiKey.trim().length >= 15);
+    const hasHF = Boolean(hfKey && hfKey !== "SUA_CHAVE_AQUI" && hfKey.trim().length >= 10);
+
+    const activeProviders: string[] = [];
+    if (hasOpenCode) activeProviders.push("OPENCODE ZEN");
+    if (hasOpenRouter) activeProviders.push("OPENROUTER");
+    if (hasGemini) activeProviders.push("GEMINI FLASH");
+    if (hasHF) activeProviders.push("HUGGING FACE");
+
+    if (activeProviders.length > 0) {
+      return res.json({
+        aiActive: true,
+        provider: "CASCADING_FREE",
+        statusText: `AI NARRATOR: ONLINE (${activeProviders.join(" + ")} FREE)`,
+        model: "FREE CASCADE (DEEPSEEK / LLAMA-3.3 / GEMINI / MISTRAL)"
+      });
+    }
+
     return res.json({
-      aiActive: isAIActive,
-      statusText: isAIActive ? "AI NARRATOR: ONLINE (GEMINI 2.5)" : "AI NARRATOR: PROCEDURAL (OFFLINE)",
-      model: isAIActive ? "GEMINI 2.5 FLASH" : "PROCEDURAL ENGINE"
+      aiActive: false,
+      provider: "MOCK",
+      statusText: "AI NARRATOR: PROCEDURAL (OFFLINE)",
+      model: "PROCEDURAL ENGINE"
     });
   });
 
   // 4. Canonical Narrative Cycle Endpoint (Full Pipeline: Natural Language -> NarrativeCommand -> Engine -> Projection -> Narration -> Validation)
   app.post("/api/narrative-cycle", async (req, res) => {
     try {
-      const { playerInput, state, clientApiKey } = req.body;
+      const { playerInput, state, clientApiKey, clientOpenCodeKey, clientOpenRouterKey, clientHuggingFaceKey, provider, modelId } = req.body;
       if (!playerInput || typeof playerInput !== "string") {
         return res.status(400).json({ error: "Parâmetro 'playerInput' é obrigatório." });
       }
@@ -119,15 +184,17 @@ async function startServer() {
         return res.status(400).json({ error: "Objeto 'state' (CampaignState) é obrigatório." });
       }
 
-      const headerKey = req.headers["x-gemini-api-key"] as string;
-      const apiKey = clientApiKey || headerKey || process.env.GEMINI_API_KEY;
-      const hasValidKey = Boolean(apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey !== "SUA_CHAVE_AQUI" && apiKey.trim().length >= 15);
+      const llm = resolveNarrativeLLM({
+        provider,
+        clientApiKey,
+        clientOpenCodeKey,
+        clientOpenRouterKey,
+        clientHuggingFaceKey,
+        modelId,
+        headers: req.headers
+      });
 
-      console.log(`[API /narrative-cycle] Entrada: "${playerInput}" | API Key: ${hasValidKey ? 'VÁLIDA (' + apiKey.trim().slice(0, 8) + '...)' : 'NENHUMA (Usando Mock)'}`);
-
-      const llm = hasValidKey
-        ? new GeminiNarrativeLLM({ apiKey: apiKey.trim() })
-        : new MockNarrativeLLM();
+      console.log(`[API /narrative-cycle] Entrada: "${playerInput}" | LLM Provider: ${llm.providerId} (${llm.modelId})`);
 
       const observer: NarrativeObserver = {
         kind: "PLAYER",
@@ -149,7 +216,9 @@ async function startServer() {
         report: result.report,
         narrative: result.narrative,
         validation: result.validation,
-        resultState: result.resultState
+        resultState: result.resultState,
+        provider: llm.providerId,
+        model: llm.modelId
       });
     } catch (err: any) {
       console.error("Erro na execução do ciclo narrativo canônico:", err);
@@ -162,11 +231,9 @@ async function startServer() {
   });
 
   // 6. Scene Resolution Endpoint (M18.9-E): player resolves an open interactive scene
-  // Flow: SceneResolver.resolveSceneChoice() → EventProcessor → CampaignState → IncidentNarrativeTranslator
-  // The mechanical resolution occurs first; the translator is a pure sensory projection.
   app.post("/api/resolve-scene", async (req, res) => {
     try {
-      const { scene, choiceId, event, state, clientApiKey } = req.body;
+      const { scene, choiceId, event, state, clientApiKey, clientOpenCodeKey, clientOpenRouterKey, clientHuggingFaceKey, provider, modelId } = req.body;
       if (!scene || !choiceId || !event || !state) {
         return res.status(400).json({ error: "Parâmetros obrigatórios: scene, choiceId, event, state." });
       }
@@ -174,11 +241,9 @@ async function startServer() {
         return res.status(400).json({ error: `Cena ${scene.sceneId} não está OPEN (status: ${scene.status}).` });
       }
 
-      // 1. Authoritative mechanical resolution — SceneResolver → EventProcessor
       const resolutionResult = SceneResolver.resolveSceneChoice(scene, choiceId, event, state as CampaignState);
       const resolvedState = resolutionResult.eventProcessingResult.nextState;
 
-      // 2. Close activeScene in sessionLog
       const finalState: CampaignState = {
         ...resolvedState,
         sessionLog: resolvedState.sessionLog ? {
@@ -187,11 +252,15 @@ async function startServer() {
         } : resolvedState.sessionLog
       };
 
-      // 3. Narrative projection — strictly post-EventProcessor, never modifies state
-      const headerKey = req.headers["x-gemini-api-key"] as string;
-      const apiKey = clientApiKey || headerKey || process.env.GEMINI_API_KEY;
-      const hasValidKey = Boolean(apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey !== "SUA_CHAVE_AQUI" && apiKey.trim().length >= 15);
-      const llm = hasValidKey ? new GeminiNarrativeLLM({ apiKey: apiKey.trim() }) : new MockNarrativeLLM();
+      const llm = resolveNarrativeLLM({
+        provider,
+        clientApiKey,
+        clientOpenCodeKey,
+        clientOpenRouterKey,
+        clientHuggingFaceKey,
+        modelId,
+        headers: req.headers
+      });
 
       const incidentNarrative = await IncidentNarrativeTranslator.translateIncidentResolved(
         resolutionResult,
@@ -207,7 +276,9 @@ async function startServer() {
         mutationsApplied: resolutionResult.eventProcessingResult.mutationsApplied,
         resultState: finalState,
         narrative: incidentNarrative.narration,
-        narrativeSource: incidentNarrative.source
+        narrativeSource: incidentNarrative.source,
+        provider: llm.providerId,
+        model: llm.modelId
       });
     } catch (err: any) {
       console.error("Erro na resolução da cena:", err);
@@ -338,7 +409,7 @@ O vento sopra forte na borda dos bosques. Como deseja proceder?
 
       const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-      const modelsToTry = ["gemini-3.6-flash", "gemini-flash-latest", "gemini-2.5-flash"];
+      const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
       let responseText = "";
       let success = false;
 

@@ -13,16 +13,27 @@ import { buildProceduralIncidentNarrative } from '../domain/events/narrative/Inc
 import { CANONICAL_DOMAINS } from './actionClassifier';
 import { interpretIntentHeuristically } from './intentHeuristics';
 
-export interface GeminiConfig {
+export interface OpenCodeConfig {
   readonly apiKey?: string;
+  readonly baseURL?: string;
   readonly modelId?: string;
   readonly timeoutMs?: number;
   readonly fetchFn?: typeof fetch;
 }
 
-export const GEMINI_DEFAULT_MODEL = 'gemini-flash-lite-latest';
-export const GEMINI_CANDIDATE_MODELS: readonly string[] = ['gemini-flash-lite-latest', 'gemini-3.6-flash', 'gemini-3.5-flash'];
-const DEFAULT_TIMEOUT_MS = 15000;
+export const OPENCODE_ZEN_BASE_URL = 'https://opencode.ai/zen/v1';
+export const OPENCODE_ZEN_DEFAULT_MODEL = 'deepseek-v4-flash-free';
+export const OPENCODE_ZEN_FREE_CANDIDATES: readonly string[] = [
+  'deepseek-v4-flash-free',
+  'nemotron-3.5-lightning-free',
+  'nemotron-3-ultra-free',
+  'mimo-v2.5-free',
+  'ling-3.0-flash-fin-free',
+  'muse-spark-1.2-contributor-free',
+  'laguna-s-2.1-free'
+];
+
+const DEFAULT_TIMEOUT_MS = 25000;
 
 const SYSTEM_PROMPT = `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (Crônica de Ferro).
 Sua função é transformar os resultados mecânicos autorizados pela Engine e as consultas do soberano em crônicas narrativas imersivas, viscerais, realistas, sombrias e CONCISAS.
@@ -75,7 +86,7 @@ REGRAS:
 - Deslocamento de tropas/viagens -> "TRAVEL".
 - Comércio/compra de mantimentos -> "TRADE".
 - Batedores, patrulhas, vigilância ou reconhecimento de fronteira -> "ESPIONAGE" ou "MILITARY", locationId: "fronteira/região".
-- Silêncio deliberado em contexto diplomático/corte (ex: '...', 'fico em silêncio', 'não respondo') -> action "DIPLOMACY" ou "SOCIAL", stance "CAUTIOUS", desiredOutcome "Silêncio político deliberado".
+- Silêncio deliberado em contexto diplomático/corte -> action "DIPLOMACY" ou "SOCIAL", stance "CAUTIOUS", desiredOutcome "Silêncio político deliberado".
 - Apenas entradas totalmente ininteligíveis devem ser "UNKNOWN".`;
 
 function createDeterministicCommandId(actorId: string, action: string, inputString: string): string {
@@ -86,18 +97,44 @@ function createDeterministicCommandId(actorId: string, action: string, inputStri
   return `cmd_${actorId}_${action.toLowerCase()}_${hash.toString(16)}`;
 }
 
-export class GeminiNarrativeLLM implements NarrativeLLM {
-  readonly providerId = 'gemini';
+export class OpenCodeNarrativeLLM implements NarrativeLLM {
+  readonly providerId = 'opencode-ox-alpha';
   readonly modelId: string;
   private readonly apiKey: string | undefined;
+  private readonly baseURL: string;
   private readonly timeoutMs: number;
   private readonly fetchFn: typeof fetch;
 
-  constructor(config: GeminiConfig = {}) {
-    this.apiKey = config.apiKey || (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
-    this.modelId = config.modelId || GEMINI_DEFAULT_MODEL;
+  constructor(config: OpenCodeConfig = {}) {
+    this.apiKey =
+      config.apiKey ||
+      (typeof process !== 'undefined'
+        ? process.env?.OPENCODE_API_KEY || process.env?.OX_ALPHA_API_KEY
+        : undefined);
+    this.baseURL = (
+      config.baseURL ||
+      (typeof process !== 'undefined' ? process.env?.OPENCODE_BASE_URL : undefined) ||
+      OPENCODE_ZEN_BASE_URL
+    ).replace(/\/+$/, '');
+    this.modelId = config.modelId || OPENCODE_ZEN_DEFAULT_MODEL;
     this.timeoutMs = config.timeoutMs || DEFAULT_TIMEOUT_MS;
     this.fetchFn = config.fetchFn || (typeof fetch !== 'undefined' ? fetch : (undefined as never));
+  }
+
+  static async fetchLiveFreeModels(baseURL = OPENCODE_ZEN_BASE_URL): Promise<string[]> {
+    try {
+      const res = await fetch(`${baseURL}/models`);
+      if (res.ok) {
+        const data = await res.json() as { data?: Array<{ id: string }> };
+        const freeModels = (data.data || [])
+          .map(m => m.id)
+          .filter(id => id.includes('free') || id.includes('flash'));
+        if (freeModels.length > 0) return freeModels;
+      }
+    } catch {
+      // Use static fallback list
+    }
+    return [...OPENCODE_ZEN_FREE_CANDIDATES];
   }
 
   async interpret(input: InterpretInput): Promise<NarrativeCommand> {
@@ -106,15 +143,10 @@ export class GeminiNarrativeLLM implements NarrativeLLM {
     }
 
     try {
-      const userPrompt = `Analise a entrada do jogador abaixo e retorne o JSON de intenção correspondente:
+      const userPrompt = `Analise a entrada do jogador abaixo e retorne o JSON de intenção correspondente:\n\n<PLAYER_INPUT>\n${input.playerInput}\n</PLAYER_INPUT>`;
 
-<PLAYER_INPUT>
-${input.playerInput}
-</PLAYER_INPUT>`;
+      const responseText = await this.callOpenCode(userPrompt, INTERPRET_SYSTEM_INSTRUCTION, 0.0);
 
-      const responseText = await this.callGemini(userPrompt, INTERPRET_SYSTEM_INSTRUCTION, { temperature: 0.0 });
-      
-      // Robust JSON block extraction
       let jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
       const firstBrace = jsonString.indexOf('{');
       const lastBrace = jsonString.lastIndexOf('}');
@@ -144,14 +176,14 @@ ${input.playerInput}
         requiresClarification: Boolean(parsed.requiresClarification)
       };
     } catch (err: any) {
-      console.error('[GeminiNarrativeLLM.interpret] Falha na interpretação com Gemini:', err?.message || err);
+      console.error('[OpenCodeNarrativeLLM.interpret] Falha na interpretação com OpenCode 0x-alpha:', err?.message || err);
       return this.fallbackInterpret(input.playerInput);
     }
   }
 
   async narrate(context: NarrativeContext): Promise<string> {
     if (!this.apiKey || !this.fetchFn) {
-      console.log('[GeminiNarrativeLLM.narrate] Sem API key configurada, usando fallback procedural.');
+      console.log('[OpenCodeNarrativeLLM.narrate] Sem API key configurada, usando fallback procedural.');
       return this.fallbackNarrate(context);
     }
 
@@ -202,12 +234,12 @@ Consequências Físicas: ${JSON.stringify(context.executionResult.consequences)}
 
 Escreva a resposta concisa e direta para o soberano em tom de Crônica de Ferro (1 a 2 parágrafos curtos):`;
 
-      console.log(`[GeminiNarrativeLLM.narrate] Solicitando crônica narrativa ao Gemini com systemInstruction...`);
-      const res = await this.callGemini(userContextPrompt, SYSTEM_PROMPT);
-      console.log(`[GeminiNarrativeLLM.narrate] Crônica gerada com sucesso (${res.length} chars).`);
+      console.log(`[OpenCodeNarrativeLLM.narrate] Solicitando crônica narrativa ao OpenCode (${this.modelId})...`);
+      const res = await this.callOpenCode(userContextPrompt, SYSTEM_PROMPT, 0.7);
+      console.log(`[OpenCodeNarrativeLLM.narrate] Crônica gerada com sucesso (${res.length} chars).`);
       return res;
     } catch (err: any) {
-      console.error('[GeminiNarrativeLLM.narrate] Falha na geração narrativa com Gemini:', err?.message || err);
+      console.error('[OpenCodeNarrativeLLM.narrate] Falha na geração narrativa com OpenCode:', err?.message || err);
       return this.fallbackNarrate(context);
     }
   }
@@ -229,15 +261,14 @@ Fatos Mecânicos Concretos: ${request.mechanicalFacts.mutationsSummary.join('; '
 
       if (request.kind === 'INCIDENT_OPENED') {
         const choices = (request.availableChoices || []).map((c, i) => `${i + 1}. ${c.label} (${c.descriptiveHint})`).join('\n');
-        prompt += `\nOpções Disponíveis para a Comitiva:\n${choices}\n\nDescreva a situação que se apresenta à comitiva no tom visceral da Crônica de Ferro, sem inventar mortes ou baixas não listadas nos fatos mecânicos:`;
+        prompt += `\nOpções Disponíveis para a Comitiva:\n${choices}\n\nDescreva a situação que se apresenta à comitiva no tom visceral da Crônica de Ferro:`;
       } else if (request.kind === 'INCIDENT_RESOLVED') {
         prompt += `\nDecisão Executada: ${request.mechanicalFacts.choiceMade?.label || 'Diretriz do soberano'}\nDesfecho Concreto: ${request.mechanicalFacts.choiceMade?.outcomeSummary || 'Ordens cumpridas'}\n\nDescreva o desfecho da deliberação da comitiva no tom visceral da Crônica de Ferro:`;
       } else {
         prompt += `\nDescreva a ocorrência atmosférica observada pelas sentinelas no tom visceral da Crônica de Ferro:`;
       }
 
-      console.log(`[GeminiNarrativeLLM.narrateIncident] Solicitando crônica de incidente ao Gemini...`);
-      const text = await this.callGemini(prompt, SYSTEM_PROMPT);
+      const text = await this.callOpenCode(prompt, SYSTEM_PROMPT, 0.7);
 
       const choicesFormatted = request.availableChoices?.map((c, idx) => ({
         choiceId: c.choiceId,
@@ -247,86 +278,79 @@ Fatos Mecânicos Concretos: ${request.mechanicalFacts.mutationsSummary.join('; '
       return {
         narration: text,
         promptChoicesFormatted: choicesFormatted,
-        source: 'GEMINI'
+        source: 'OPENCODE'
       };
     } catch (err: any) {
-      console.warn('[GeminiNarrativeLLM.narrateIncident] Falha na chamada ao Gemini, recorrendo a fallback procedural:', err?.message || err);
+      console.warn('[OpenCodeNarrativeLLM.narrateIncident] Falha na chamada ao OpenCode, usando fallback:', err?.message || err);
       return buildProceduralIncidentNarrative(request);
     }
   }
 
-  private async callGemini(
-    userPrompt: string, 
-    systemInstructionText?: string,
-    generationConfig?: { temperature?: number }
+  private async callOpenCode(
+    userPrompt: string,
+    systemPrompt?: string,
+    temperature = 0.7
   ): Promise<string> {
-    const modelsToTry = [this.modelId, ...GEMINI_CANDIDATE_MODELS.filter(m => m !== this.modelId)];
-    
+    const modelsToTry = [this.modelId, ...OPENCODE_ZEN_FREE_CANDIDATES.filter(m => m !== this.modelId)];
+
     let lastError: Error | null = null;
     for (const model of modelsToTry) {
-      const keyParam = this.apiKey ? `?key=${encodeURIComponent(this.apiKey)}` : '';
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent${keyParam}`;
+      const url = `${this.baseURL}/chat/completions`;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
       try {
-        console.log(`[GeminiNarrativeLLM.callGemini] POST ${model} (timeout: ${this.timeoutMs}ms)...`);
-        
-        const payload: Record<string, unknown> = {
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: userPrompt }]
-            }
-          ]
+        console.log(`[OpenCodeNarrativeLLM.callOpenCode] POST ${url} model: ${model}...`);
+
+        const messages: Array<{ role: string; content: string }> = [];
+        if (systemPrompt) {
+          messages.push({ role: 'system', content: systemPrompt });
+        }
+        messages.push({ role: 'user', content: userPrompt });
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json'
         };
-
-        if (systemInstructionText) {
-          payload.systemInstruction = {
-            parts: [{ text: systemInstructionText }]
-          };
-        }
-
-        if (generationConfig) {
-          payload.generationConfig = generationConfig;
-        }
-
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (this.apiKey) {
-          headers['x-goog-api-key'] = this.apiKey;
+          headers['Authorization'] = `Bearer ${this.apiKey}`;
         }
 
         const res = await this.fetchFn(url, {
           method: 'POST',
           headers,
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature,
+            max_tokens: 1200
+          }),
           signal: controller.signal
         });
 
+        clearTimeout(timer);
+
         if (!res.ok) {
           const errText = await res.text();
-          throw new Error(`Gemini API Error with model ${model}: HTTP ${res.status} - ${errText.slice(0, 150)}`);
+          throw new Error(`OpenCode Error (${model}): HTTP ${res.status} - ${errText.slice(0, 200)}`);
         }
 
         const data = await res.json() as {
-          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+          choices?: Array<{ message?: { content?: string } }>;
         };
 
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const text = data.choices?.[0]?.message?.content;
         if (text && text.trim().length > 0) {
           return text.trim();
         }
-        throw new Error(`Gemini candidate empty response on model ${model}`);
+        throw new Error(`Resposta vazia recebida do modelo OpenCode ${model}`);
       } catch (err: any) {
-        console.warn(`[GeminiNarrativeLLM.callGemini] Erro no modelo ${model}:`, err?.message || err);
-        lastError = err;
-        continue;
-      } finally {
         clearTimeout(timer);
+        lastError = err;
+        console.warn(`[OpenCodeNarrativeLLM.callOpenCode] Tentativa falhou com modelo ${model}:`, err?.message || err);
       }
     }
 
-    throw lastError || new Error('All Gemini model endpoints failed');
+    throw lastError || new Error('Falha em todos os modelos OpenCode candidatos');
   }
 
   private fallbackInterpret(playerInput: string): NarrativeCommand {
@@ -334,43 +358,8 @@ Fatos Mecânicos Concretos: ${request.mechanicalFacts.mutationsSummary.join('; '
   }
 
   private fallbackNarrate(context: NarrativeContext): string {
-    const report = context.executionResult;
-    const loc = context.scene.locationId || 'a fortaleza';
-    const reg = context.scene.regionName || 'as terras feudais';
-    const weather = context.scene.weather ? context.scene.weather.toLowerCase() : 'frio';
-
-    if (report.status === 'REJECTED') {
-      if (report.reasonCode.includes('esclarecimento')) {
-        return `Vossos conselheiros em ${loc} solicitam maiores detalhes antes de mobilizar os homens: qual ordem exata deseja expedir?`;
-      }
-      return `A ordem não pôde ser executada pelos intendentes em ${loc}: ${report.reasonCode}. Os recursos foram preservados.`;
-    }
-
-    // Rich procedural narrative based on action executed
-    if (report.actionExecuted === 'INFORMATION' || report.actionExecuted === 'UNKNOWN') {
-      const actorNames = context.actors && context.actors.length > 1
-        ? context.actors.filter(a => a.actorId !== 'player').map(a => `${a.name} (${a.role})`).join(', ')
-        : 'Mara (Conselheira de Chancelaria) e o Marechal Ren (Comandante de Armas)';
-
-      return `Vossos oficiais e homens de confiança perfilam-se ao vosso lado em ${loc}. Vossos conselheiros diretos são: ${actorNames}. Sob o sopro ${weather} de ${reg}, os vigias mantêm os olhos atentos nas trilhas e os homens de armas aguardam vossa próxima diretriz soberana.`;
-    }
-
-    if (report.actionExecuted === 'RECRUIT') {
-      return `Novos homens atendem ao chamado senhorial em ${loc}. Revestidos com armaduras de couro batido e lanças afiadas, os recrutas prestam juramento no pátio sob o olhar severo dos veteranos. A guarda pessoal ganha novas fileiras prontas para defender as fronteiras.`;
-    }
-
-    if (report.actionExecuted === 'BUILD') {
-      return `O som compassado de machados e martelos corta o ar gélido em ${loc}. Os carpinteiros e pedreiros concluem o reforço das estruturas defensivas. As novas paliçadas erguem-se firmes, elevando a segurança do feudo contra invasões e emboscadas.`;
-    }
-
-    if (report.actionExecuted === 'TRAVEL') {
-      return `A comitiva de armas põe-se em marcha pelas estradas de pedra e lama. As bandeiras ondulam sob o vento e os vigias das aldeias locais saúdam a passagem de vossa escolta. A marcha conclui seu percurso com segurança.`;
-    }
-
-    if (report.actionExecuted === 'TRADE') {
-      return `As carretas mercantis negociam as cargas no entreposto regional. O comércio é selado com aperto de mãos calejadas e os livros de contas da tesouraria registram as transações sob o selo de vossa Casa.`;
-    }
-
-    return `Vossas ordens foram executadas com rigor pelos servos e capitães em ${loc}. A disciplina reina sobre as propriedades e os conselheiros aguardam vosso próximo movimento.`;
+    const loc = context.scene.locationId || 'Grey Keep';
+    const actorsStr = (context.actors || []).map(a => `${a.name} (${a.role})`).join(', ');
+    return `Vossos oficiais e homens de confiança perfilam-se ao vosso lado em ${loc}. Vossos conselheiros diretos são: ${actorsStr || 'Mara e o Marechal Ren'}. Sob o sopro ${context.scene.weather?.toLowerCase() || 'frio'} de ${context.scene.regionName}, os vigias mantêm os olhos atentos nas trilhas e os homens de armas aguardam vossa próxima diretriz soberana.`;
   }
 }

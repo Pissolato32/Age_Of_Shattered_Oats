@@ -292,6 +292,37 @@ export function createObserverProjection(
     });
   }
 
+  // Major historical events projected into authorized facts
+  if (state.worldLedger?.majorEvents && Array.isArray(state.worldLedger.majorEvents)) {
+    for (let i = 0; i < state.worldLedger.majorEvents.length; i++) {
+      const evt = state.worldLedger.majorEvents[i];
+      rawFacts.push({
+        factId: `fact_major_event_${i + 1}`,
+        statement: `[Registro Histórico / Batalha]: ${evt.event} (${evt.date || 'Data não registrada'}) em ${evt.region || 'Região central'}. Forças envolvidas: ${evt.involved || 'Forças locais'}. Desfecho: ${evt.resolved || 'Concluído'}.`,
+        tier: 'CHARACTER_KNOWLEDGE',
+        certainty: 'CONFIRMED',
+        source: 'ENGINE',
+        subjectId: evt.event
+      });
+    }
+  }
+
+  // Active conflicts and known external threats projected into authorized facts
+  if (state.worldLedger?.activeConflicts && Array.isArray(state.worldLedger.activeConflicts)) {
+    for (let i = 0; i < state.worldLedger.activeConflicts.length; i++) {
+      const c = state.worldLedger.activeConflicts[i];
+      rawFacts.push({
+        factId: `fact_conflict_${i + 1}`,
+        statement: `[Conflito Ativo / Ameaça]: ${c.conflict} (${c.sides}) com início em ${c.startDate || 'anos passados'}. Status: ${c.status}.`,
+        tier: 'CHARACTER_KNOWLEDGE',
+        certainty: 'CONFIRMED',
+        source: 'ENGINE',
+        subjectId: c.conflict
+      });
+    }
+  }
+
+  // Noble Houses diplomatic status, opinion, and strategic posture
   if (state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
     for (const house of state.worldLedger.nobleHouses) {
       relationships.push({
@@ -301,16 +332,16 @@ export function createObserverProjection(
         knownOpinion: house.opinion
       });
 
-      if (house.rumor) {
-        rawFacts.push({
-          factId: `rumor_${house.name.toLowerCase().replace(/\s+/g, '_')}`,
-          statement: house.rumor,
-          tier: 'RUMOR',
-          certainty: 'UNCONFIRMED',
-          source: 'RUMOR',
-          subjectId: house.name
-        });
-      }
+      const relDesc = house.relationshipDetail ? ` Postura política: ${house.relationshipDetail}.` : '';
+      const rumorDesc = house.rumor ? ` Rumor da corte: "${house.rumor}".` : '';
+      rawFacts.push({
+        factId: `fact_house_${house.name.toLowerCase().replace(/\s+/g, '_')}`,
+        statement: `[Diplomacia / Casa Nobre]: Casa ${house.name} (${house.status || 'Casa Regional'}, Assento: ${house.seat || 'Forte'}). Lorde Governante: ${house.currentLord || 'Desconhecido'}. Opinião em relação a nós: ${house.opinion >= 0 ? '+' : ''}${house.opinion}.${relDesc}${rumorDesc}`,
+        tier: 'CHARACTER_KNOWLEDGE',
+        certainty: 'CONFIRMED',
+        source: 'ENGINE',
+        subjectId: house.name
+      });
     }
   }
 

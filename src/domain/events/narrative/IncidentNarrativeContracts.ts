@@ -59,5 +59,5 @@ export interface IncidentNarrativeResponse {
     readonly choiceId: string;
     readonly formattedText: string;
   }[];
-  readonly source: 'GEMINI' | 'PROCEDURAL_FALLBACK';
+  readonly source: 'GEMINI' | 'OPENCODE' | 'PROCEDURAL_FALLBACK';
 }

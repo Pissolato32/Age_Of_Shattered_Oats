@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "description": "Canonical Free Model Registry for Age of Shattered Oaths LLM Benchmark",
+  "models": [
+    {
+      "id": "gemini-flash-lite",
+      "provider": "gemini",
+      "model": "gemini-flash-lite-latest",
+      "freePolicy": "free-tier",
+      "maxCost": 0,
+      "enabled": true,
+      "fallbackModels": ["gemini-3.5-flash", "gemini-3.6-flash"]
+    },
+    {
+      "id": "openrouter-free-default",
+      "provider": "openrouter",
+      "model": "deepseek/deepseek-r1:free",
+      "freePolicy": "explicit-free",
+      "maxCost": 0,
+      "enabled": true,
+      "fallbackModels": [
+        "deepseek/deepseek-chat:free",
+        "meta-llama/llama-3.2-3b-instruct:free",
+        "meta-llama/llama-3.1-8b-instruct:free",
+        "mistralai/mistral-7b-instruct:free",
+        "google/gemini-2.0-flash-exp:free",
+        "qwen/qwen-2.5-coder-32b-instruct:free"
+      ]
+    },
+    {
+      "id": "huggingface-free-default",
+      "provider": "huggingface",
+      "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+      "freePolicy": "free-tier",
+      "maxCost": 0,
+      "enabled": true,
+      "fallbackModels": [
+        "Qwen/Qwen2.5-72B-Instruct",
+        "Qwen/Qwen2.5-Coder-32B-Instruct",
+        "mistralai/Mistral-7B-Instruct-v0.3",
+        "meta-llama/Llama-3.2-3B-Instruct",
+        "meta-llama/Llama-3.1-8B-Instruct"
+      ]
+    },
+    {
+      "id": "opencode-zen-deepseek",
+      "provider": "opencode",
+      "model": "deepseek-v4-flash-free",
+      "freePolicy": "free-tier",
+      "maxCost": 0,
+      "enabled": true,
+      "fallbackModels": [
+        "nemotron-3.5-lightning-free",
+        "nemotron-3-ultra-free",
+        "mimo-v2.5-free"
+      ]
+    }
+  ]
+}

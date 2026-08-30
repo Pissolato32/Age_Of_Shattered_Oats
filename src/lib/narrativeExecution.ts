@@ -19,6 +19,7 @@ import { applyResolutionToState, resolveAction, RuleResolutionResult } from './r
 import { resolveMagnitude } from './magnitudeResolution';
 import { classifyNarrativeCommand, CANONICALLY_RESOLVED_DOMAINS } from './actionClassifier';
 import { resolveGenericPlausibleAction } from './genericResolution';
+import { CharacterLifecycleService } from '../domain/character/CharacterLifecycle';
 
 /**
  * Authoritative NarrativeCommand -> Engine resolution boundary.
@@ -394,6 +395,18 @@ export function resolveNarrativeCommand(
   state: CampaignState,
   rng: RandomService = globalRNG
 ): NarrativeResolutionResult {
+  // Authoritative Invariant: Dead characters cannot participate in active non-informational commands
+  if (command.targetId && command.action !== 'INFORMATION') {
+    const targetChar = CharacterLifecycleService.findCharacter(command.targetId, state);
+    if (targetChar && !CharacterLifecycleService.isAlive(targetChar)) {
+      return rejectionReport(
+        command,
+        state,
+        `O personagem '${targetChar.name}' está morto e não pode receber ordens ou participar de ações no campo.`
+      );
+    }
+  }
+
   const classification = classifyNarrativeCommand(command, state);
 
   if (classification.type === 'AMBIGUOUS') {

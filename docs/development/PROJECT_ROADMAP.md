@@ -12,11 +12,16 @@ The project is complete and ready for public/playable campaign release when:
 
 > **The player can start a campaign, send natural-language inputs through the real game interface, receive coherent, visceral narrative responses from the AI, have valid actions executed and invalid/impossible actions rejected, advance weekly turns, alter the world state, interact with people and factions that remember past interactions, encounter and resolve delayed consequences, and persist/reload the campaign seamlessly — while every mechanical fact and numerical outcome is strictly determined by the deterministic Engine and recorded in the canonical ledgers, event stores, and state representations.**
 
+### Core DoD Invariants:
+1. **Authoritative Engine Execution:** All outcomes derive strictly from deterministic calculations.
+2. **No Unverified State Mutation:** Every persistent state mutation must be attributable to an authoritative engine/domain operation and represented in the canonical state/event/ledger model.
+3. **Absolute Mechanical Silence:** Narrative projection never leaks raw statistics, dice rolls, or code terminology into player-facing prose.
+
 ---
 
-## 2. Canonical Pipeline & Frozen Architecture
+## 2. Canonical Pipeline & Frozen Architecture Boundaries
 
-The pipeline of Age of Shattered Oaths is closed and frozen:
+The canonical architectural boundaries of Age of Shattered Oaths are frozen. Internal implementations remain mutable when required to correct verified defects or preserve established invariants:
 
 ```text
 PLAYER (UI)
@@ -45,7 +50,7 @@ PLAYER (UI)
 
 ## 3. Development Phases & Current Status
 
-The remaining development is structured into **5 definitive phases**. No additional milestones or intermediate architectural gates may be introduced outside this roadmap without an objective P0/P1 defect or an explicit scope change.
+The development is structured into **5 definitive phases**. No additional milestones or intermediate architectural gates may be introduced outside this roadmap without an objective P0/P1 defect or an explicit scope change.
 
 ```mermaid
 graph TD
@@ -67,7 +72,7 @@ graph TD
   - Codex & RuleResolver authority.
   - Generic Resolution system (MRS & Contextual Generic Actions).
   - Temporal dynamics: `Relationship`, `Vows`, `MemoryLog`, `VisibilityService`, `EventStore`.
-  - Long-term simulation (520 weeks / 10 years) and 100% bit-for-bit replay determinism.
+  - Long-term simulation (520 weeks / 10 years) and 100% bit-for-bit replay determinism ($\text{same initial state} + \text{same canonical input sequence} + \text{same RNG seed/state} \implies \text{identical resulting CampaignState} + \text{identical authoritative event history}$).
 * **Status:** **PASS / CONCLUÍDA**
 * **Governance:** Closed. No new mechanical systems or refactors unless an objective P0 defect is discovered.
 
@@ -118,7 +123,7 @@ graph TD
   - Offline fallback (`MockNarrativeLLM`) activates gracefully if API key is missing or network fails.
   - API timeouts or network errors never corrupt the in-memory or persisted `CampaignState`.
   - Save/Load mechanism reliably serializes and restores complete campaign state from disk/browser.
-* **Exit Criteria:** A non-technical user can open the browser, play an uninterrupted multi-week campaign, close the browser, return later, and resume seamlessly.
+* **Exit Criteria:** A user can save, close the application/browser, reopen, load, obtain an identical authoritative `CampaignState`, and resume gameplay seamlessly from the next valid action.
 * **Status:** **PASS / CONCLUÍDA**
 * **Validation:** Verified via [tests/runtime/RuntimePlayabilityIntegration.test.ts](file:///c:/Projetos/Age_Of_Shattered_Oats/tests/runtime/RuntimePlayabilityIntegration.test.ts) covering endpoint integration, Gemini/Mock fallback switching, timeout resilience, continuous play session, and save/reload state continuity.
 
@@ -131,14 +136,14 @@ graph TD
   1. **Quality Gate:**
      - `npm run lint` passes with 0 errors.
      - `npx tsc --noEmit` passes with 0 errors.
-     - `npm test` passes 100% of all test suites (43+ suites).
+     - `npm test` passes 100% of the currently registered test suites.
      - `npm run build` generates production bundle cleanly.
   2. **Security:** Aikido scan logged as external pending (MCP unavailable in current local environment).
   3. **Replay Validation:** Bit-for-bit replay validator passes.
   4. **Smoke Test:** Complete manual/automated end-to-end gameplay session passes without glitches.
   5. **Technical Debt Triage:**
      - Zero P0, P1, or P2 defects open.
-     - `DEBT-001` (P3) remains deferred to future post-release secular simulation updates.
+     - `DEBT-001` (P3) remains deferred to future post-release multi-century simulation updates.
 * **Status:** **PASS / v1.0 RELEASE CANDIDATE**
 * **Validation:** Verified via the comprehensive Release Candidate Audit covering starting state, authoritative gameplay loop, mechanical truth, continuity, Iron Chronicle narrative, Gemini/Mock fallback switching, persistence, and deterministic replay.
 
@@ -150,7 +155,8 @@ graph TD
 | :--- | :--- | :--- |
 | **Mechanics** | Deterministic Engine execution for all actions | `PASS` |
 | **Mechanics** | Single canonical campaign calendar ($48\text{ weeks/year}$) | `PASS` |
-| **Mechanics** | Replay reproducibility bit-for-bit | `PASS` |
+| **Mechanics** | Replay reproducibility bit-for-bit ($\text{initial state} + \text{inputs} + \text{RNG seed} \implies \text{identical state} + \text{events}$) | `PASS` |
+| **Mechanics** | No unverified state mutation (attributable to authoritative operations) | `PASS` |
 | **Narrative** | Natural language intent classification | `PASS` |
 | **Narrative** | Absolute mechanical silence (no raw numbers in prose) | `PASS` |
 | **Narrative** | Zero hallucinated casualties, resources, or mechanics | `PASS` |
@@ -161,14 +167,17 @@ graph TD
 | **Campaign** | End-to-end gameplay flow across seasons | `PASS` |
 | **Runtime** | Web UI $\leftrightarrow$ Server $\leftrightarrow$ LLM $\leftrightarrow$ Engine integration | `PASS` |
 | **Runtime** | Real Gemini API + graceful offline fallback | `PASS` |
-| **Runtime** | Save / Load state persistence | `PASS` |
-| **Quality** | Full test suite (43/43), TypeScript, lint, and build passing | `PASS` |
+| **Runtime** | Save / Load state persistence (save $\to$ reload $\to$ identical state) | `PASS` |
+| **Quality** | Full registered test suite, TypeScript, lint, and build passing | `PASS` |
 
-## 5. Post-Release Governance & Post-v1.0 Evolution
+---
+
+## 5. Post-v1.0 Hardening, Calibration & Evolution
 
 ### 5.1 Baseline v1.0 Architecture Freeze
-With the approval of the **v1.0 Release Candidate**, the foundational architecture of Age of Shattered Oaths is officially **FROZEN**.
-* The core 5-Phase architectural roadmap is concluded and canonical.
+With the approval of the **v1.0 Release Candidate**, the foundational architecture of Age of Shattered Oaths is officially **FROZEN** in its canonical boundaries.
+* The core 5-Phase architectural roadmap established the canonical v1.0 baseline.
+* Milestones M18 through M25 represent post-baseline hardening, observability, and deep calibration rather than prerequisite gates for the existence of v1.0.
 * **No Parallel Subsystems:** No secondary state stores, parallel AI brains, or alternative event persistence engines may be introduced.
 
 ### 5.2 Post-v1.0 Evolution Track (M18–M25 Hardening & Calibration)
@@ -183,9 +192,13 @@ The Milestones M18 through M25 represent the **Hardening, Observability, and Dee
 * **M25 — State Persistence Audit**: Deterministic serialization, reload integrity, and snapshot replay guarantees.
 
 ### 5.3 Maintenance & Product Operations Rules
-Ongoing engineering beyond v1.0 is restricted strictly to:
-1. Bug fixes for verified P0/P1 defects.
-2. Numerical balance calibrations and Codex rule alignments.
-3. Content additions (new noble houses, historical events, regional lore nodes).
-4. UI/UX styling, accessibility, and visual asset enrichment.
-5. Simulation optimizations (e.g. `DEBT-001` event pruning for multi-century campaigns).
+Ongoing engineering beyond v1.0 may include:
+1. Verified defect fixes (P0–P2).
+2. Security and reliability fixes.
+3. Numerical balance calibrations and Codex rule alignments.
+4. Content additions (new noble houses, historical events, regional lore nodes).
+5. UI/UX styling, accessibility, and visual asset enrichment.
+6. Performance optimizations (e.g. `DEBT-001` event pruning for multi-century campaigns).
+7. Architectural changes strictly when required by a verified defect, security requirement, scalability requirement, or explicit scope change.
+
+* **No Parallel Subsystems:** All modifications must respect the single canonical state, deterministic engine authority, and established domain boundaries.
