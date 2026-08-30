@@ -1,5 +1,17 @@
 import { ModelConfig, LLMUsage, LLMProviderId } from '../contracts/LLMContract';
 
+/**
+ * BillingMode determines the pre- and post-execution guard strictness:
+ *
+ * - 'strict' (Strict Zero-Cost Guarantee):
+ *   Allows ONLY models with 'explicit-free' policy (e.g. OpenRouter models ending with ':free'
+ *   having contractually verified $0.00 pricing, or deterministic Mock).
+ *   Rejects 'free-tier' provider quotas and blocks any execution where usage costStatus is not 'VERIFIED_ZERO'.
+ *
+ * - 'free-tier' (Standard Free Tier Mode):
+ *   Allows provider free-tier models (Gemini Flash, HuggingFace Inference API, OpenCode Zen, etc.)
+ *   with maxCost = 0. Asserts post-execution that no monetary balance or billing was debited (cost === 0).
+ */
 export type BillingMode = 'strict' | 'free-tier';
 
 export class BillingGuardError extends Error {

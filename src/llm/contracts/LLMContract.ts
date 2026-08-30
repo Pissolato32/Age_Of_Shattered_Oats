@@ -2,6 +2,15 @@ export type LLMProviderId = 'gemini' | 'openrouter' | 'huggingface' | 'opencode'
 
 export type FreePolicy = 'explicit-free' | 'free-tier';
 
+export interface FallbackModelConfig {
+  readonly id: string;
+  readonly provider: LLMProviderId;
+  readonly model: string;
+  readonly freePolicy: FreePolicy;
+  readonly maxCost: number;
+  readonly enabled: boolean;
+}
+
 export interface ModelConfig {
   readonly id: string;
   readonly provider: LLMProviderId;
@@ -9,6 +18,7 @@ export interface ModelConfig {
   readonly freePolicy: FreePolicy;
   readonly maxCost: number;
   readonly enabled: boolean;
+  readonly fallbackConfigs?: readonly FallbackModelConfig[];
   readonly fallbackModels?: readonly string[];
   readonly customBaseURL?: string;
 }

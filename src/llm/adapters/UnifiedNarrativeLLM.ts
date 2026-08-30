@@ -8,7 +8,7 @@ import { OpenCodeAdapter } from './OpenCodeAdapter';
 import { MockAdapter } from './MockAdapter';
 import { ModelRegistry } from '../registry/ModelRegistry';
 import { ModelConfig, LLMProviderId } from '../contracts/LLMContract';
-import { BillingGuard, BillingMode } from '../validators/BillingGuard';
+import { BillingGuard, BillingGuardError, BillingMode } from '../validators/BillingGuard';
 import { SemanticValidator } from '../validators/SemanticValidator';
 import { NarrativeJudge } from '../validators/NarrativeJudge';
 import { NarrativeReportSanitizer } from '../contracts/NarrativeExecutionReport';
@@ -31,14 +31,15 @@ export class UnifiedNarrativeLLM implements NarrativeLLM {
     this.billingMode = options.billingMode || 'free-tier';
 
     const registry = new ModelRegistry();
-    const config = options.modelConfig || registry.getModelByProvider(options.provider) || {
-      id: `${options.provider}-default`,
-      provider: options.provider,
-      model: 'default',
-      freePolicy: 'free-tier',
-      maxCost: 0,
-      enabled: true
-    };
+    const config = options.modelConfig || registry.getModelByProvider(options.provider);
+
+    if (!config) {
+      throw new BillingGuardError(
+        `Provider or model '${options.provider}' not registered in ModelRegistry and no valid modelConfig was supplied`,
+        options.provider,
+        'unregistered'
+      );
+    }
 
     this.modelId = config.model;
 
@@ -85,7 +86,7 @@ export class UnifiedNarrativeLLM implements NarrativeLLM {
     return {
       contractVersion: 1,
       commandId: `cmd_${Date.now()}`,
-      actorId: input.projection.observer.characterId || 'player',
+      actorId: (input.projection.observer as any).characterId || input.projection.observer.observerId || 'player',
       action: rawCmd.action || 'UNKNOWN',
       targetId: rawCmd.targetId || undefined,
       objectId: rawCmd.objectId || undefined,
@@ -100,7 +101,15 @@ export class UnifiedNarrativeLLM implements NarrativeLLM {
   }
 
   async narrate(context: NarrativeContext): Promise<string> {
-    const sanitizedReport = NarrativeReportSanitizer.sanitize(context.executionResult);
+    const rawExecution = {
+      commandId: (context.executionResult as any)?.command?.commandId || (context.executionResult as any)?.reportId || `cmd_${Date.now()}`,
+      actionExecuted: context.executionResult?.actionExecuted || 'UNKNOWN',
+      status: context.executionResult?.status || 'ACCEPTED',
+      reasonCode: (context.executionResult as any)?.reasonCode,
+      stateChanges: (context.executionResult as any)?.stateChanges || [],
+      consequences: (context.executionResult as any)?.consequences || []
+    };
+    const sanitizedReport = NarrativeReportSanitizer.sanitize(rawExecution);
 
     const prompt = `CONTEXTO AUTORIZADO DO MOTOR:
 Local: ${context.scene.locationId} (${context.scene.regionName})
@@ -129,5 +138,32 @@ Silêncio Mecânico Absoluto: NUNCA cite moedas abreviadas, "SD", "FSU", "AC", "
     }
 
     return response.text;
+  }
+
+  async narrateIncident(request: any): Promise<any> {
+    const facts = request.mechanicalFacts?.mutationsSummary?.join('; ') || 'Sem mutações extraordinárias.';
+    const prompt = `RELATÓRIO DETERMINÍSTICO DE INCIDENTE:
+Tipo: ${request.kind}
+Evento: ${request.mechanicalFacts?.eventType || 'Evento'} (${request.mechanicalFacts?.domain || 'Geral'})
+Fatos Mecânicos: ${facts}
+Região: ${request.environmentContext?.regionName || 'Região'}, Clima: ${request.environmentContext?.weatherDescription || 'Severo'}
+
+Escreva a crônica do incidente em tom de Crônica de Ferro (1 a 2 parágrafos curtos, conciso, sóbrio):`;
+
+    const response = await this.adapter.generate({
+      systemPrompt: `Você é o Narrador do Sistema em 'Age of Shattered Oaths' (Crônica de Ferro).
+Transforme os fatos mecânicos do incidente em narrativa visceral, realista e sombria.
+Silêncio Mecânico Absoluto: NUNCA mencione termos de regras, dados, deltas numéricos explícitos com sinal matemático ou código.`,
+      userPrompt: prompt,
+      temperature: 0.7,
+      timeoutMs: 25000
+    });
+
+    BillingGuard.assertZeroCost(response.usage, this.adapter.modelConfig, this.billingMode);
+
+    return {
+      narration: response.text,
+      source: 'LLM'
+    };
   }
 }

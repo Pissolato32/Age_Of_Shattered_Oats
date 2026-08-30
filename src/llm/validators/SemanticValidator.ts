@@ -44,7 +44,7 @@ export class SemanticValidator {
       action?: NarrativeAction;
       targetId?: string;
       requiresClarification?: boolean;
-      expectedDeadCharacter?: boolean;
+      expectedDeadCharacter?: boolean | string;
     },
     worldState?: CampaignState
   ): SemanticValidationResult {

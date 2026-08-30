@@ -39,6 +39,7 @@ export interface BenchmarkScenario {
     magnitudeMode?: 'FIXED' | 'ENGINE_DETERMINED' | 'RANGE';
     magnitudeValue?: number;
     requiresClarification?: boolean;
+    expectedDeadCharacter?: boolean | string;
   };
   readonly constraints: readonly string[];
   readonly goldenMustNot?: readonly string[];

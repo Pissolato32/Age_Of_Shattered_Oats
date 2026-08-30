@@ -21,9 +21,10 @@ export class OpenCodeAdapter extends BaseLLMAdapter {
     }
 
     const timeoutMs = request.timeoutMs || 30000;
+    const fallbackList = this.modelConfig.fallbackConfigs?.map(f => f.model) || this.modelConfig.fallbackModels || [];
     const modelsToTry = [
       this.modelConfig.model,
-      ...(this.modelConfig.fallbackModels || []).filter(m => m !== this.modelConfig.model)
+      ...fallbackList.filter(m => m !== this.modelConfig.model)
     ];
 
     let lastError: Error | null = null;

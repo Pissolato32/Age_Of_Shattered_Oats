@@ -23,7 +23,13 @@ jobs:
         run: npm ci
 
       - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
         run: npm run lint
+
+      - name: Security Audit
+        run: npm audit --audit-level=high
 
       - name: Offline Mock LLM Benchmark
         run: npm run llm:mock

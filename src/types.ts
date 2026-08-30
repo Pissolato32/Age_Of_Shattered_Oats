@@ -450,6 +450,11 @@ export interface CampaignState {
   genealogy?: Record<string, GenealogyRecord>;
   distances?: any;
   hiddenHeir?: any;
+  livroNegroDetail?: any;
+  mercenaries?: any;
+  fortalezasOrm?: any;
+  diplomacy?: any;
+  characters?: any;
   discoveredArtifacts?: Array<{
     name: string;
     description: string;

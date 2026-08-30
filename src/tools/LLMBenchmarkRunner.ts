@@ -23,7 +23,7 @@ async function main() {
 
   let billingMode: BillingMode = 'free-tier';
   for (const arg of args) {
-    if (arg.startsWith('--billing='')) {
+    if (arg.startsWith('--billing=')) {
       const mode = arg.split('=')[1];
       if (mode === 'strict' || mode === 'free-tier') {
         billingMode = mode;

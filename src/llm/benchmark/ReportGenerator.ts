@@ -34,18 +34,27 @@ export class ReportGenerator {
     report += '╠══════════════════════════════════════════════════════════════════╣\n';
 
     for (const s of params.summaries) {
+      const accessPolicy = s.provider === 'openrouter' || s.provider === 'mock' ? 'EXPLICIT_FREE' : 'FREE_TIER';
+      const billingGuarantee = accessPolicy === 'EXPLICIT_FREE' ? 'CONTRACTUALLY_ZERO' : 'PROVIDER_FREE_QUOTA';
+
       report += `║ [${s.provider.toUpperCase()}] ${pad(s.model, 58 - s.provider.length)}║\n`;
-      report += `║   JSON Valid ............... ${padNum(s.jsonValidRate * 100, 5)}% (${s.jsonValidRate >= 0.95 ? 'OK' : 'WARN'})                            ║\n`;
-      report += `║   Schema Valid ............. ${padNum(s.schemaValidRate * 100, 5)}% (${s.schemaValidRate >= 0.95 ? 'OK' : 'WARN'})                            ║\n`;
-      report += `║   Semantic Valid ........... ${padNum(s.semanticValidRate * 100, 5)}% (${s.semanticValidRate >= 0.90 ? 'OK' : 'WARN'})                            ║\n`;
-      report += `║   Engine Safe .............. ${padNum(s.engineSafeRate * 100, 5)}% (${s.engineSafeRate >= 0.99 ? 'OK' : 'WARN'})                            ║\n`;
-      report += `║   Hallucination ............ ${padNum(s.hallucinationRate * 100, 5)}% (${s.hallucinationRate <= 0.05 ? 'OK' : 'WARN'})                            ║\n`;
-      report += `║   Mechanical Silence ....... ${padNum(s.mechanicalSilenceRate * 100, 5)}% (${s.mechanicalSilenceRate >= 0.98 ? 'OK' : 'WARN'})                            ║\n`;
-      report += `║   First Pass Acceptance .... ${padNum(s.firstPassAcceptanceRate * 100, 5)}% (${s.firstPassAcceptanceRate >= 0.90 ? 'OK' : 'WARN'})                            ║\n`;
-      report += `║   Narrative Score .......... ${padNum(s.averageNarrativeScore, 4)} / 10.0                                ║\n`;
-      report += `║   Latency (avg) ............ ${pad(Math.round(s.averageLatencyMs) + 'ms', 8)}                                ║\n`;
-      report += `║   Cost ..................... $0.00 (Verified Free)              ║\n`;
-      report += `║   Status ................... ${pad(s.status, 43)}║\n`;
+      report += `║   [OPERATIONAL & BILLING]                                        ║\n`;
+      report += `║     • Access Policy ......... ${pad(accessPolicy, 34)}║\n`;
+      report += `║     • Billing Guarantee ..... ${pad(billingGuarantee, 34)}║\n`;
+      report += `║     • Runtime Cost .......... $0.00 (Verified)                         ║\n`;
+      report += `║     • Latency (avg) ......... ${pad(Math.round(s.averageLatencyMs) + 'ms', 34)}║\n`;
+      report += `║   [INTERPRETER EVALUATION]                                       ║\n`;
+      report += `║     • Intent JSON Valid ..... ${padNum(s.jsonValidRate * 100, 5)}% (${s.jsonValidRate >= 0.95 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║     • Schema Conformity ..... ${padNum(s.schemaValidRate * 100, 5)}% (${s.schemaValidRate >= 0.95 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║     • Semantic Grounding .... ${padNum(s.semanticValidRate * 100, 5)}% (${s.semanticValidRate >= 0.90 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║     • First Pass Accepted ... ${padNum(s.firstPassAcceptanceRate * 100, 5)}% (${s.firstPassAcceptanceRate >= 0.90 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║     • Engine Safe Guard ..... ${padNum(s.engineSafeRate * 100, 5)}% (${s.engineSafeRate >= 0.99 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║   [NARRATOR EVALUATION]                                          ║\n`;
+      report += `║     • Mechanical Silence .... ${padNum(s.mechanicalSilenceRate * 100, 5)}% (${s.mechanicalSilenceRate >= 0.98 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║     • Factual Grounding ..... ${padNum((1 - s.hallucinationRate) * 100, 5)}% (${s.hallucinationRate <= 0.05 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║     • Hallucination Rate .... ${padNum(s.hallucinationRate * 100, 5)}% (${s.hallucinationRate <= 0.05 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║     • Narrative Score ....... ${padNum(s.averageNarrativeScore, 4)} / 10.0                              ║\n`;
+      report += `║   Overall Status ........... ${pad(s.status, 43)}║\n`;
 
       if (params.telemetry && params.telemetry.length > 0) {
         const modelTelemetry = params.telemetry.filter(t => t.provider === s.provider && t.model === s.model);

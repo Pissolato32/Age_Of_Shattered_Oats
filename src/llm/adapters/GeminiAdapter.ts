@@ -15,9 +15,10 @@ export class GeminiAdapter extends BaseLLMAdapter {
     }
 
     const timeoutMs = request.timeoutMs || 25000;
+    const fallbackList = this.modelConfig.fallbackConfigs?.map(f => f.model) || this.modelConfig.fallbackModels || [];
     const modelsToTry = [
       this.modelConfig.model,
-      ...(this.modelConfig.fallbackModels || []).filter(m => m !== this.modelConfig.model)
+      ...fallbackList.filter(m => m !== this.modelConfig.model)
     ];
 
     let lastError: Error | null = null;

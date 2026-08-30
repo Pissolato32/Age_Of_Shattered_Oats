@@ -310,13 +310,24 @@ export class LLMCompatibilityHarness {
             // PIPELINE STAGE 3: Authoritative Engine Resolution
             let rawExecutionReport: ExecutionReport = {
               contractVersion: 1,
-              commandId: `cmd_${scenario.id}`,
+              reportId: `rep_${scenario.id}`,
+              command: {
+                commandId: `cmd_${scenario.id}`,
+                actorId: 'player',
+                action: scenario.expected.action,
+                targetId: scenario.expected.targetId,
+                locationId: scenario.worldContext?.locationId
+              },
               actionExecuted: scenario.expected.action,
-              status: scenario.mockEngineReport?.status || 'ACCEPTED',
+              status: (scenario.mockEngineReport?.status as any) || 'ACCEPTED',
               reasonCode: scenario.mockEngineReport?.reasonCode || 'AUTHORIZED',
-              stateChanges: scenario.mockEngineReport?.stateChanges || [],
-              consequences: scenario.mockEngineReport?.consequences || [],
-              answerStatus: scenario.expected.action === 'INFORMATION' ? 'INFORMATION_RETURNED' : undefined
+              affectedEntities: [],
+              stateChanges: (scenario.mockEngineReport?.stateChanges as any) || [],
+              consequences: (scenario.mockEngineReport?.consequences as any) || [],
+              discoveredInformation: [],
+              hiddenInformationIds: [],
+              events: [],
+              answerStatus: scenario.expected.action === 'INFORMATION' ? 'AUTHORIZED_FACTS_PRESENT' : undefined
             };
 
             if (semVal.parsedCommand && schemaValid) {
@@ -346,20 +357,46 @@ export class LLMCompatibilityHarness {
             }
 
             // PIPELINE STAGE 4: Narrative Execution Report Sanitization (Mechanical Silence at Source)
-            const sanitizedNarrativeReport = NarrativeReportSanitizer.sanitize(rawExecutionReport, state.weeklyLedger.week);
+            const rawToSanitize = {
+              commandId: rawExecutionReport.command?.commandId || rawExecutionReport.reportId || `cmd_${scenario.id}`,
+              actionExecuted: rawExecutionReport.actionExecuted,
+              status: rawExecutionReport.status,
+              reasonCode: rawExecutionReport.reasonCode,
+              stateChanges: rawExecutionReport.stateChanges as any,
+              consequences: rawExecutionReport.consequences as any
+            };
+            const sanitizedNarrativeReport = NarrativeReportSanitizer.sanitize(rawToSanitize, state.weeklyLedger.week);
 
             const narrativeContext: NarrativeContext = {
               contractVersion: 1,
               scene: {
                 locationId: scenario.worldContext?.locationId || 'Grey Keep',
                 regionName: scenario.worldContext?.regionName || 'Central Plains',
+                environment: 'Pátio da Fortaleza',
                 weather: 'Frio Cortante',
                 season: 'Inverno'
               },
-              actors: [{ name: 'Mara', role: 'Chanceler' }, { name: 'Ren', role: 'Marechal' }],
-              knownFacts: [{ factId: 'f1', statement: 'As muralhas estão sob vigília.' }],
+              actors: [
+                { actorId: 'mara', name: 'Mara', role: 'Chanceler' },
+                { actorId: 'ren', name: 'Ren', role: 'Marechal' }
+              ],
+              knownFacts: [
+                {
+                  factId: 'f1',
+                  statement: 'As muralhas estão sob vigília.',
+                  tier: 'PLAYER_KNOWLEDGE',
+                  certainty: 'CONFIRMED',
+                  source: 'ENGINE'
+                }
+              ],
               recentEvents: [],
-              executionResult: rawExecutionReport
+              executionResult: rawExecutionReport,
+              observer: {
+                kind: 'PLAYER',
+                observerId: 'player'
+              },
+              relationships: [],
+              narrativeConstraints: []
             };
 
             const narrativePrompt = `CONTEXTO AUTORIZADO DO MOTOR:

@@ -9,7 +9,7 @@ export interface GoldenExpectation {
     readonly targetId?: string;
     readonly requiresClarification?: boolean;
     readonly stance?: string;
-    readonly expectedDeadCharacter?: boolean;
+    readonly expectedDeadCharacter?: boolean | string;
   };
   readonly mustNot: readonly string[];
 }

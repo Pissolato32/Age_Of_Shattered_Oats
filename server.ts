@@ -132,10 +132,9 @@ async function startServer() {
 
     // Default: Cascading multi-provider fallback using strictly 100% Free Tiers
     return new CascadingNarrativeLLM({
-      openCodeApiKey: openCodeKey,
-      openRouterApiKey: openRouterKey,
       geminiApiKey: geminiKey,
-      huggingFaceApiKey: hfKey
+      openCodeApiKey: openCodeKey,
+      openRouterApiKey: openRouterKey
     });
   }
 

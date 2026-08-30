@@ -4,30 +4,24 @@ import {
   IncidentNarrativeRequest,
   IncidentNarrativeResponse
 } from '../domain/events/narrative/IncidentNarrativeContracts';
-import { OpenCodeNarrativeLLM } from './openCodeNarrativeLLM';
-import { OpenRouterNarrativeLLM } from './openRouterNarrativeLLM';
-import { GeminiNarrativeLLM } from './geminiNarrativeLLM';
-import { HuggingFaceNarrativeLLM } from './huggingFaceNarrativeLLM';
+import { UnifiedNarrativeLLM } from '../llm/adapters/UnifiedNarrativeLLM';
 import { MockNarrativeLLM } from './mockNarrativeLLM';
 
 export interface CascadingProvidersConfig {
+  readonly geminiApiKey?: string;
   readonly openCodeApiKey?: string;
   readonly openRouterApiKey?: string;
-  readonly geminiApiKey?: string;
-  readonly huggingFaceApiKey?: string;
   readonly openCodeBaseURL?: string;
   readonly openRouterBaseURL?: string;
-  readonly huggingFaceBaseURL?: string;
 }
 
 /**
  * Cascading Multi-Provider Narrative LLM
- * Chains strictly 100% FREE / Free-Tier providers in order:
- * 1. OpenCode Zen Free (deepseek-v4-flash-free, nemotron, etc.)
- * 2. OpenRouter Free (:free models: Llama-3.3-70b:free, Gemini-2.0-flash:free, DeepSeek-R1:free)
- * 3. Gemini Flash Free Tier (gemini-flash-lite-latest, gemini-3.6-flash, gemini-3.5-flash)
- * 4. Hugging Face Inference Free Tier (Llama-3.3-70B-Instruct, Qwen2.5-72B, etc.)
- * 5. Procedural Fallback (Deterministic Local Engine)
+ * Chains strictly 100% FREE / Free-Tier providers in canonical order using UnifiedNarrativeLLM:
+ * 1. Gemini Flash Free Tier (Primary Online)
+ * 2. OpenCode Zen Free (Secondary Online)
+ * 3. OpenRouter Free (:free models) (Final Online Fallback)
+ * 4. Procedural Fallback (Deterministic Local Engine / Mock)
  */
 export class CascadingNarrativeLLM implements NarrativeLLM {
   readonly providerId = 'cascading-free-tier';
@@ -35,40 +29,48 @@ export class CascadingNarrativeLLM implements NarrativeLLM {
   private readonly providers: NarrativeLLM[] = [];
 
   constructor(config: CascadingProvidersConfig = {}) {
+    const geminiKey = config.geminiApiKey || (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
     const openCodeKey = config.openCodeApiKey || (typeof process !== 'undefined' ? process.env?.OPENCODE_API_KEY || process.env?.OX_ALPHA_API_KEY : undefined);
     const openRouterKey = config.openRouterApiKey || (typeof process !== 'undefined' ? process.env?.OPENROUTER_API_KEY : undefined);
-    const geminiKey = config.geminiApiKey || (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
-    const hfKey = config.huggingFaceApiKey || (typeof process !== 'undefined' ? process.env?.HUGGINGFACE_API_KEY || process.env?.HF_TOKEN || process.env?.HF_API_KEY : undefined);
 
-    if (openCodeKey && openCodeKey !== 'SUA_CHAVE_AQUI' && openCodeKey.trim().length >= 10) {
-      this.providers.push(new OpenCodeNarrativeLLM({
-        apiKey: openCodeKey.trim(),
-        baseURL: config.openCodeBaseURL
-      }));
-    }
-
-    if (openRouterKey && openRouterKey !== 'SUA_CHAVE_AQUI' && openRouterKey.trim().length >= 15) {
-      this.providers.push(new OpenRouterNarrativeLLM({
-        apiKey: openRouterKey.trim(),
-        baseURL: config.openRouterBaseURL
-      }));
-    }
-
+    // 1. Primary: Gemini Free Tier
     if (geminiKey && geminiKey !== 'MY_GEMINI_API_KEY' && geminiKey !== 'SUA_CHAVE_AQUI' && geminiKey.trim().length >= 15) {
-      this.providers.push(new GeminiNarrativeLLM({
-        apiKey: geminiKey.trim()
-      }));
+      try {
+        this.providers.push(new UnifiedNarrativeLLM({
+          provider: 'gemini',
+          apiKey: geminiKey.trim()
+        }));
+      } catch (err) {
+        console.warn('[CascadingNarrativeLLM] Falha ao registrar Gemini:', err);
+      }
     }
 
-    if (hfKey && hfKey !== 'SUA_CHAVE_AQUI' && hfKey.trim().length >= 10) {
-      this.providers.push(new HuggingFaceNarrativeLLM({
-        apiKey: hfKey.trim(),
-        baseURL: config.huggingFaceBaseURL
-      }));
+    // 2. Secondary: OpenCode Zen Free
+    if (openCodeKey && openCodeKey !== 'SUA_CHAVE_AQUI' && openCodeKey.trim().length >= 10) {
+      try {
+        this.providers.push(new UnifiedNarrativeLLM({
+          provider: 'opencode',
+          apiKey: openCodeKey.trim()
+        }));
+      } catch (err) {
+        console.warn('[CascadingNarrativeLLM] Falha ao registrar OpenCode:', err);
+      }
     }
 
-    // Always append deterministic local fallback
-    this.providers.push(new MockNarrativeLLM());
+    // 3. Final Online Fallback: OpenRouter :free
+    if (openRouterKey && openRouterKey !== 'SUA_CHAVE_AQUI' && openRouterKey.trim().length >= 15) {
+      try {
+        this.providers.push(new UnifiedNarrativeLLM({
+          provider: 'openrouter',
+          apiKey: openRouterKey.trim()
+        }));
+      } catch (err) {
+        console.warn('[CascadingNarrativeLLM] Falha ao registrar OpenRouter:', err);
+      }
+    }
+
+    // 4. Always append deterministic local fallback
+    this.providers.push(new UnifiedNarrativeLLM({ provider: 'mock' }));
   }
 
   async interpret(input: InterpretInput): Promise<NarrativeCommand> {

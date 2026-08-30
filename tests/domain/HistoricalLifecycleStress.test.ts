@@ -145,7 +145,7 @@ console.log('=== TEST SUITE: HISTORICAL LIFECYCLE STRESS, GENEALOGY & 10,000-TUR
     }
   }
 
-  // Executa 5.000 chamadas de morte distribuídas
+  // Executa 5.000 chamadas de morte distribuídas entre os 1.000 personagens
   const uniqueKilled = new Set<string>();
   for (let d = 1; d <= 5000; d++) {
     const charIndex = (d * 73) % 1000;
@@ -159,6 +159,9 @@ console.log('=== TEST SUITE: HISTORICAL LIFECYCLE STRESS, GENEALOGY & 10,000-TUR
     });
     uniqueKilled.add(char.id);
   }
+
+  // Validação estrita: 5.000 operações distribuídas com gcd(73, 1000)=1 devem matar exatamente todos os 1.000 personagens
+  assert.equal(uniqueKilled.size, 1000, 'As 5.000 operações de morte cobriram com precisão a totalidade dos 1.000 personagens únicos');
 
   // Save/Reload após todas as mortes para validar integridade do estado persistido
   const finalSerialized = JSON.stringify(state);
@@ -176,14 +179,14 @@ console.log('=== TEST SUITE: HISTORICAL LIFECYCLE STRESS, GENEALOGY & 10,000-TUR
     }
   }
 
-  console.log(`  ✅ Stress Test concluído: 10.000 transições, 5.000 chamadas de kill (${uniqueKilled.size} personagens únicos falecidos), 50 saves/reloads e 20.000 verificações no estado desserializado.`);
+  console.log(`  ✅ Stress Test concluído: 10.000 transições de cargos, 5.000 operações de morte distribuídas cobrindo todos os ${uniqueKilled.size} personagens únicos, 50 saves/reloads e 20.000 verificações no estado desserializado.`);
 }
 
 // ---------------------------------------------------------------------------
-// 4. AUDITORIA DE CRESCIMENTO E PEGADA DE MEMÓRIA (10.000 TURNOS DE HISTÓRIA)
+// 4. AUDITORIA DE CRESCIMENTO E PEGADA DE MEMÓRIA (10.000 ITERAÇÕES SINTÉTICAS DE HISTÓRICO)
 // ---------------------------------------------------------------------------
 {
-  console.log('\n[TEST 4] Auditando Pegada de Memória em Simulação de Longo Prazo (10.000 Turnos)...');
+  console.log('\n[TEST 4] Auditando Pegada de Memória em Simulação Sintética de Longo Prazo (10.000 Semanas de Histórico)...');
 
   let state = createInitialState('Noble Ruler', 'Central Plains');
   const sizes: { turn: number; sizeBytes: number; sizeFormatted: string }[] = [];
@@ -194,7 +197,7 @@ console.log('=== TEST SUITE: HISTORICAL LIFECYCLE STRESS, GENEALOGY & 10,000-TUR
     state.weeklyLedger.week = (turn % 4) + 1;
     state.weeklyLedger.year = 342 + Math.floor(turn / 48);
 
-    // Eventos históricos e dinastia
+    // Eventos históricos e dinastia acumulados sinteticamente
     if (turn % 50 === 0) {
       state.worldLedger.majorEvents.push({
         date: `Y${state.weeklyLedger.year}, W${state.weeklyLedger.week}`,
@@ -215,16 +218,16 @@ console.log('=== TEST SUITE: HISTORICAL LIFECYCLE STRESS, GENEALOGY & 10,000-TUR
     }
   }
 
-  console.log('  📊 Relatório de Crescimento de Memória:');
+  console.log('  📊 Relatório de Crescimento de Memória sob Carga Sintética:');
   for (const s of sizes) {
-    console.log(`     • Turno ${String(s.turn).padStart(5, ' ')} : ${s.sizeFormatted}`);
+    console.log(`     • Iteração ${String(s.turn).padStart(5, ' ')} : ${s.sizeFormatted}`);
   }
 
-  // Verificação de contenção: 10.000 turnos não devem exceder 5 MB
+  // Verificação de contenção: 10.000 iterações não devem exceder o orçamento de 5 MB
   const finalSize = sizes[sizes.length - 1].sizeBytes;
   assert.ok(finalSize < 5 * 1024 * 1024, `Tamanho final (${finalSize} bytes) excede orçamento de 5 MB`);
 
-  console.log('  ✅ Auditoria de pegada de memória aprovada: sem vazamento ou explosão descontrolada de estado.');
+  console.log('  ✅ Auditoria de pegada de memória do CampaignState aprovada sob fixture sintético de 10.000 iterações.');
 }
 
 console.log('\n🎉 HistoricalLifecycleStress.test.ts: TODOS OS 4 TESTES DE STRESS E MEMÓRIA PASSARAM COM 100% DE SUCESSO!\n');

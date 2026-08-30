@@ -311,4 +311,134 @@ const state = createInitialState('Noble Ruler', 'Central Plains');
   console.log('  ✅ Execução completa do Harness e geração de relatórios verificadas com sucesso.');
 }
 
-console.log('\n🎉 LLMCompatibilityHarness.test.ts: TODOS OS 7 TESTES PASSARAM COM 100% DE SUCESSO!\n');
+// ---------------------------------------------------------------------------
+// 8. NEGATIVE TEST SUITE: BILLING, FALLBACKS, REGISTRY & NARRATIVE REJECTIONS
+// ---------------------------------------------------------------------------
+{
+  console.log('\n[TEST 8] Executando Bateria Exaustiva de Testes Negativos (M26-FINAL)...');
+
+  const { UnifiedNarrativeLLM } = await import('../../src/llm/adapters/UnifiedNarrativeLLM');
+
+  // 8a. Provedor desconhecido sem modelConfig -> BLOCK
+  assert.throws(
+    () => new UnifiedNarrativeLLM({ provider: 'unregistered_provider' as any }),
+    BillingGuardError,
+    'Provedor não registrado sem modelConfig deve ser bloqueado com BillingGuardError'
+  );
+
+  // 8b. Modelo pago fornecido explicitamente via modelConfig -> BLOCK
+  const explicitPaidConfig: ModelConfig = {
+    id: 'custom-paid',
+    provider: 'gemini',
+    model: 'gemini-1.5-pro-paid',
+    freePolicy: 'free-tier',
+    maxCost: 0.05,
+    enabled: true
+  };
+  assert.throws(
+    () => new UnifiedNarrativeLLM({ provider: 'gemini', modelConfig: explicitPaidConfig }),
+    BillingGuardError,
+    'Configuração explicitamente fornecida com maxCost > 0 deve ser bloqueada'
+  );
+
+  // 8c. free-tier + strict -> BLOCK
+  const freeTierConfig: ModelConfig = {
+    id: 'hf-free-tier',
+    provider: 'huggingface',
+    model: 'Qwen/Qwen2.5-72B-Instruct',
+    freePolicy: 'free-tier',
+    maxCost: 0,
+    enabled: true
+  };
+  assert.throws(
+    () => BillingGuard.assertFreeModel(freeTierConfig, 'strict'),
+    BillingGuardError,
+    'free-tier em modo strict deve ser bloqueado'
+  );
+
+  // 8d. explicit-free + strict -> ALLOW
+  const explicitFreeConfig: ModelConfig = {
+    id: 'openrouter-free',
+    provider: 'openrouter',
+    model: 'deepseek/deepseek-r1:free',
+    freePolicy: 'explicit-free',
+    maxCost: 0,
+    enabled: true
+  };
+  assert.doesNotThrow(
+    () => BillingGuard.assertFreeModel(explicitFreeConfig, 'strict'),
+    'explicit-free em modo strict deve ser permitido'
+  );
+
+  // 8e. Fallback pago -> BLOCK
+  const paidFallbackConfig: ModelConfig = {
+    id: 'fallback-paid-test',
+    provider: 'openrouter',
+    model: 'deepseek/deepseek-r1:paid',
+    freePolicy: 'explicit-free',
+    maxCost: 1.0,
+    enabled: true
+  };
+  assert.throws(
+    () => BillingGuard.assertFreeModel(paidFallbackConfig, 'free-tier'),
+    BillingGuardError,
+    'Fallback com maxCost > 0 deve ser bloqueado'
+  );
+
+  // 8f. Fallback unverified em strict -> BLOCK
+  const unverifiedFallbackConfig: ModelConfig = {
+    id: 'fallback-unverified-test',
+    provider: 'gemini',
+    model: 'gemini-flash-fb',
+    freePolicy: 'free-tier',
+    maxCost: 0,
+    enabled: true
+  };
+  assert.throws(
+    () => BillingGuard.assertFreeModel(unverifiedFallbackConfig, 'strict'),
+    BillingGuardError,
+    'Fallback free-tier em modo strict deve ser bloqueado'
+  );
+
+  // 8g. Cost > 0 em runtime -> BLOCK
+  const runtimePaidUsage = BillingGuard.buildUsage({ cost: 0.01 });
+  assert.throws(
+    () => BillingGuard.assertZeroCost(runtimePaidUsage, explicitFreeConfig, 'free-tier'),
+    BillingGuardError,
+    'Cost > 0 em runtime deve ser bloqueado imediatamente'
+  );
+
+  // 8h. COST_UNVERIFIED em strict -> BLOCK
+  const unverifiedUsage = BillingGuard.buildUsage({ isExplicitFree: false });
+  assert.equal(unverifiedUsage.costStatus, 'COST_UNVERIFIED');
+  assert.throws(
+    () => BillingGuard.assertZeroCost(unverifiedUsage, freeTierConfig, 'strict'),
+    BillingGuardError,
+    'COST_UNVERIFIED em modo strict deve ser bloqueado'
+  );
+
+  // 8i. Narrativa inventa vitória em relatório rejeitado -> REJECT
+  const hallucinatedVictory = NarrativeFidelityValidator.validate(
+    'Alcançamos uma retumbante vitória militar e derrotamos todos os inimigos.',
+    { status: 'REJECTED' } as any
+  );
+  assert.equal(hallucinatedVictory.hallucination, true, 'Vitória reivindicada sobre relatório REJECTED deve ser marcada como alucinação');
+  assert.equal(hallucinatedVictory.factualGrounding, false);
+
+  // 8j. Narrativa cita personagem falecido atuando -> REJECT
+  const deceasedAction = NarrativeFidelityValidator.validate(
+    'O General Morr liderou a investida contra a vanguarda inimiga.',
+    { status: 'APPLIED' } as any,
+    {
+      scene: { locationId: 'field' },
+      actors: [{ name: 'General Morr', status: 'dead', role: 'general' }],
+      executionResult: { answerStatus: 'AUTHORIZED' }
+    } as any
+  );
+  assert.equal(deceasedAction.hallucination, true, 'Personagem morto realizando ação no mundo deve ser rejeitado');
+  assert.equal(deceasedAction.factualGrounding, false);
+
+  console.log('  ✅ Todos os 10 cenários negativos de Billing, Fallback e Narrativa foram validados com 100% de precisão.');
+}
+
+console.log('\n🎉 LLMCompatibilityHarness.test.ts: TODOS OS 8 TESTES (INCLUINDO BATERIA NEGATIVA) PASSARAM COM 100% DE SUCESSO!\n');
