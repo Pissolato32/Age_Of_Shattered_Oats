@@ -16,7 +16,7 @@ interface ActivePlayProps {
 
 export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps) {
   const [state, setState] = useState<CampaignState>(initialState);
-    const [currentNarrative, setCurrentNarrative] = useState<string>("");
+  const [currentNarrative, setCurrentNarrative] = useState<string>("");
   const [isNarrating, setIsNarrating] = useState(false);
   const [customCommand, setCustomCommand] = useState("");
   const [showKeyModal, setShowKeyModal] = useState(false);
@@ -139,7 +139,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
     
     setState(s => s ? { ...s, narrativeHistory: [introPrompt] } : s);
     setCurrentNarrative(introPrompt);
-    generateNarrativeWithAI(introPrompt, "Apresente o início de uma nova campanha, apresentando os segredos e as fronteiras ao redor de Grey Keep.");
+    generateNarrativeWithAI(introPrompt, "Apresente o início de uma nova campanha, apresentando os segredos e as fronteiras ao redor de Grey Keep.", undefined, [introPrompt]);
   }, []);
 
   // Auto-save state to localStorage on state change
@@ -152,7 +152,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
   }, [state]);
 
   // Safe wrapper for server-side Gemini narrative generation
-  const generateNarrativeWithAI = async (actionDesc: string, mechanicalOutcome: string, webFlavorText?: string) => {
+  const generateNarrativeWithAI = async (actionDesc: string, mechanicalOutcome: string, webFlavorText?: string, overrideHistory?: string[]) => {
     setIsNarrating(true);
     try {
       const clientApiKey = localStorage.getItem("aos_gemini_api_key") || "";
@@ -181,7 +181,7 @@ DIRETRIZ DE FLUXO INFINITO DE CENA (EVENT CHAIN LOOP):
 DIRETRIZES DE SILÊNCIO MECÂNICO:
 - Escreva em tom realista, sombrio e visceral (Crônica de Ferro em Português do Brasil).
 - Mantenha a continuidade narrativa usando o contexto anterior.`,
-          userPrompt: `HISTÓRICO RECENTE DA CENA:\n${(state.narrativeHistory || []).slice(-6).join("\n")}\n\nLocalização: ${state.character.location.landmark} (${state.character.location.region}).
+          userPrompt: `HISTÓRICO RECENTE DA CENA:\n${(overrideHistory || state.narrativeHistory || []).slice(-6).join("\n")}\n\nLocalização: ${state.character.location.landmark} (${state.character.location.region}).
 Clima atual: ${state.weeklyLedger.weather}.
 Sua ação atual: ${actionDesc}.
 Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
@@ -523,13 +523,13 @@ Resultado Mecânico da Engine: ${mechanicalOutcome}.`,
       : "Ação processada deterministicamente pela engine.";
 
     const playerMsg = `[JOGADOR] "${commandText}"`;
+    const newHistory = [...(state.narrativeHistory || []), playerMsg];
     setState(s => {
       if (!s) return s;
-      const updated = [...(s.narrativeHistory || []), playerMsg];
-      return { ...s, narrativeHistory: updated };
+      return { ...s, narrativeHistory: newHistory };
     });
 
-    await generateNarrativeWithAI(commandText, mechanicalOutcome, pipelineResult.webFlavor?.flavorText);
+    await generateNarrativeWithAI(commandText, mechanicalOutcome, pipelineResult.webFlavor?.flavorText, newHistory);
   };
 
   // ==========================================
