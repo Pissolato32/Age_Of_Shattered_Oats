@@ -213,14 +213,38 @@ export function resolveAction(
     }));
 
     let discoveredFacts: AuthorizedKnowledgeFact[] | undefined = undefined;
-    if (lowerAction.includes('inspe') || lowerAction.includes('defes') || lowerAction.includes('vulnerab') || lowerAction.includes('palisad') || lowerAction.includes('relat')) {
+    if (lowerAction.includes('acampamento') || lowerAction.includes('situa') || lowerAction.includes('onde estamos') || lowerAction.includes('status') || lowerAction.includes('condi') || lowerAction.includes('tendas') || lowerAction.includes('como est')) {
+      const loc = worldState?.character?.location;
+      const isLandless = worldState?.character?.archetype === 'Landless';
+      const landmark = loc?.landmark || 'Grey Keep';
+      const reg = loc?.region || 'Central Plains';
+      const weather = worldState?.weeklyLedger?.weather || 'tempo firme e frio';
+      const food = worldState?.weeklyLedger?.food ?? 0;
+      const silverdew = worldState?.weeklyLedger?.silverdew ?? 0;
+      const totalMen = (worldState?.army?.units || []).reduce((acc, u) => acc + (u.size || 0), 0);
+
+      const statusStatement = isLandless
+        ? `Situação de Campo: A companhia livre encontra-se acampada em tendas de marcha e fogueiras nos arredores de ${landmark} (${reg}). O clima apresenta-se em ${weather}. A tropa conta com ${totalMen} homens de armas, ${silverdew} moedas no cofre e ${food.toFixed(0)} fardos de comida.`
+        : `Situação do Domínio: O comando soberano encontra-se estabelecido em ${landmark} (${reg}), com vigias sob clima de ${weather}. As forças contam com ${totalMen} homens de armas e os celeiros guardam ${food.toFixed(0)} fardos de comida.`;
+
+      discoveredFacts = [
+        {
+          factId: `fact_camp_situation_${Date.now()}`,
+          statement: statusStatement,
+          tier: 'CHARACTER_KNOWLEDGE',
+          certainty: 'CONFIRMED',
+          source: 'ENGINE',
+          subjectId: 'character.location'
+        }
+      ];
+    } else if (lowerAction.includes('inspe') || lowerAction.includes('defes') || lowerAction.includes('vulnerab') || lowerAction.includes('palisad') || lowerAction.includes('relat')) {
       const fortType = worldState?.holdings?.fortification?.type || 'Wooden Palisade';
       const fortTier = worldState?.holdings?.fortification?.tier || 1;
       const week = worldState?.worldLedger?.currentDate?.week || 1;
       discoveredFacts = [
         {
           factId: `fact_defense_inspection_${week}`,
-          statement: `Inspeção estrutural de Raven's Watch: A paliçada defensiva (${fortType} Tier ${fortTier}) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.`,
+          statement: `Inspeção estrutural: A paliçada defensiva (${fortType} Tier ${fortTier}) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.`,
           tier: 'CHARACTER_KNOWLEDGE',
           certainty: 'CONFIRMED',
           source: 'ENGINE',

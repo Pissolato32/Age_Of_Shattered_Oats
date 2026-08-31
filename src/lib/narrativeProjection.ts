@@ -77,7 +77,9 @@ export function toNarrativeProjection(
     outcome = 'failure';
   }
 
-  const subject = report.command.actorId || 'O Soberano';
+  const subject = report.command.actorId && report.command.actorId !== 'player'
+    ? report.command.actorId
+    : 'O Comandante';
   const location = report.command.locationId || (scene ? scene.regionName : undefined);
 
   // 1. Visible Events (Clean diegetic summaries)
@@ -107,7 +109,8 @@ export function toNarrativeProjection(
         actionDesc = 'As manobras e patrulhas militares foram executadas nas posições designadas.';
         break;
       case 'INFORMATION':
-        actionDesc = 'Os registros e relatórios dos conselheiros foram consultados.';
+      case 'FLAVOR_QUERY':
+        actionDesc = 'A situação atual e os relatórios de campo foram avaliados pelo comando.';
         break;
       case 'DIPLOMACY':
         actionDesc = 'Os emissários apresentaram as mensagens diplomáticas.';
@@ -231,12 +234,17 @@ export function createObserverProjection(
     }
   }
 
+  const isLandless = state.character?.archetype === 'Landless';
+  const charRole = isLandless 
+    ? 'Capitão do Bando Livre' 
+    : (state.character?.title ? `${state.character.title} da Casa ${state.character.house || 'Soberana'}` : 'Senhor do Feudo');
+
   const scene: NarrativeScene = {
-    locationId: isPlayer ? ((state.character as any).currentHolding || (state as any).holdings?.primaryHolding || 'primary_seat') : 'unknown',
-    regionName: isPlayer ? ((state as any).holdings?.region || (state.worldLedger?.activeConflicts?.[0] as any)?.region || 'The Shattered Marches') : 'unknown',
-    environment: isPlayer ? 'Cold fortified keep in the highlands' : '',
-    weather: isPlayer ? (state.weeklyLedger?.weather || 'Drizzling rain and overcast sky') : '',
-    season: isPlayer ? (state.weeklyLedger?.season || 'Autumn') : '',
+    locationId: isPlayer ? (state.character?.location?.landmark || (state as any).holdings?.primaryHolding || 'primary_seat') : 'unknown',
+    regionName: isPlayer ? (state.character?.location?.region || (state as any).holdings?.region || 'Central Plains') : 'unknown',
+    environment: isPlayer ? (isLandless ? 'Acampamento de marcha a céu aberto nos arredores' : 'Fortaleza de pedra e dependências') : '',
+    weather: isPlayer ? (state.weeklyLedger?.weather || 'tempo firme e frio') : '',
+    season: isPlayer ? (state.weeklyLedger?.season || 'Thawtide') : '',
     sceneState,
     immediateCircumstances: immediateCircumstances.length > 0 ? immediateCircumstances : undefined
   };
@@ -246,7 +254,7 @@ export function createObserverProjection(
     {
       actorId: 'player',
       name: state.character.name,
-      role: 'Sovereign / Clan Head',
+      role: charRole,
       house: state.character.house
     }
   ] : [];
@@ -297,6 +305,24 @@ export function createObserverProjection(
   const rawFacts: AuthorizedKnowledgeFact[] = [];
 
   if (isPlayer) {
+    if (state.character) {
+      const loc = state.character.location;
+      const isLandlessChar = state.character.archetype === 'Landless';
+      const landmark = loc?.landmark || 'Grey Keep';
+      const reg = loc?.region || 'Central Plains';
+      const campStatus = isLandlessChar
+        ? `Situação de Campo: A companhia de armas de ${state.character.name} encontra-se acampada em tendas de marcha e fogueiras a céu aberto nos arredores de ${landmark} (${reg}).`
+        : `Situação do Domínio: O assento de ${state.character.name} encontra-se estabelecido em ${landmark} (${reg}).`;
+
+      rawFacts.push({
+        factId: 'fact_camp_situation',
+        statement: campStatus,
+        tier: 'CHARACTER_KNOWLEDGE',
+        certainty: 'CONFIRMED',
+        source: 'ENGINE',
+        subjectId: 'character.location'
+      });
+    }
 
   if (state.character.memories && Array.isArray(state.character.memories)) {
     for (const mem of state.character.memories) {

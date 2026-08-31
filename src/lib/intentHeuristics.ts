@@ -145,7 +145,7 @@ export function parseSemanticInput(playerInput: string): SemanticParsedInput {
   const isImpossible = /\bmato o rei\b|\bmatar o rei\b|\bkill the king\b/i.test(normalized);
   const requiresClarification = /\bquero falar com ele\b|\bfalar com algu[eé]m\b/i.test(normalized);
   const isQuestion = /\?/.test(raw);
-  const hasCostInquiry = /quanto custa|qual o custo|como funciona|how much|qual regra|o que fazer|como estamos|qual a situa[cç][aã]o|como est[aá] a situa[cç][aã]o|o que sabemos/i.test(normalized);
+  const hasCostInquiry = /quanto custa|qual o custo|como funciona|how much|qual regra|o que fazer|como estamos|qual a situa[cç][aã]o|como est[aá] a situa[cç][aã]o|o que sabemos|onde estamos|temos\s+(?:um\s+)?acampamento|a\s+esmo|como\s+est[aã]o\s+as\s+coisas|qual\s+(?:o\s+)?estado|qual\s+a\s+condi[cç][aã]o/i.test(normalized);
   const hasExplicitNegation = /n[aã]o inicie|sem iniciar|apenas informe|sem mover tropas|sem iniciar obras|apenas relate|fa[cç]a a inspe[cç][aã]o|n[aã]o fa[cç]a (?:uma\s+|nenhuma\s+)?(?:nova\s+)?investiga|sem (?:uma\s+|nenhuma\s+)?(?:nova\s+)?investiga|apenas compare|compare apenas|recuperar o conhecimento|recuperar um assunto|qual era a situa[cç][aã]o/i.test(normalized);
 
   return {
