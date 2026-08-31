@@ -58,9 +58,14 @@ export class SemanticValidator {
     let isDeadCharacterRejection = false;
     let parsedCommand: any = null;
 
-    // 1. JSON Parsing
+    // 1. JSON Parsing with thinking/preamble sanitization
     try {
-      let cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+      let cleaned = rawText
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .replace(/^Here's a thinking process:[\s\S]*?(?=\{)/i, '')
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
       const firstBrace = cleaned.indexOf('{');
       const lastBrace = cleaned.lastIndexOf('}');
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {

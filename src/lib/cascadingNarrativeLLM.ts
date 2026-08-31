@@ -6,83 +6,61 @@ import {
 } from '../domain/events/narrative/IncidentNarrativeContracts';
 import { UnifiedNarrativeLLM } from '../llm/adapters/UnifiedNarrativeLLM';
 import { MockNarrativeLLM } from './mockNarrativeLLM';
+import { ModelRegistry, LLMTask } from '../llm/registry/ModelRegistry';
+import { BillingMode } from '../llm/validators/BillingGuard';
 
 export interface CascadingProvidersConfig {
+  readonly billingMode?: BillingMode;
   readonly geminiApiKey?: string;
   readonly openCodeApiKey?: string;
   readonly openRouterApiKey?: string;
-  readonly openCodeBaseURL?: string;
-  readonly openRouterBaseURL?: string;
 }
 
 /**
- * Cascading Multi-Provider Narrative LLM
- * Chains strictly 100% FREE / Free-Tier providers in canonical order using UnifiedNarrativeLLM:
- * 1. Gemini Flash Free Tier (Primary Online)
- * 2. OpenCode Zen Free (Secondary Online)
- * 3. OpenRouter Free (:free models) (Final Online Fallback)
- * 4. Procedural Fallback (Deterministic Local Engine / Mock)
+ * Adaptive Capability-Based Narrative LLM
+ * Dynamically routes tasks (Interpreter vs Narrator) to the highest-performing
+ * verified-free active models using the ModelRegistry, with zero-interruption fallback to Mock.
  */
 export class CascadingNarrativeLLM implements NarrativeLLM {
-  readonly providerId = 'cascading-free-tier';
-  readonly modelId = 'multi-provider-free-cascade';
-  private readonly providers: NarrativeLLM[] = [];
+  readonly providerId = 'adaptive-capability-router';
+  readonly modelId = 'multi-task-free-pool';
+  private readonly registry: ModelRegistry;
+  private readonly billingMode: BillingMode;
 
   constructor(config: CascadingProvidersConfig = {}) {
-    const geminiKey = config.geminiApiKey || (typeof process !== 'undefined' ? process.env?.GEMINI_API_KEY : undefined);
-    const openCodeKey = config.openCodeApiKey || (typeof process !== 'undefined' ? process.env?.OPENCODE_API_KEY || process.env?.OX_ALPHA_API_KEY : undefined);
-    const openRouterKey = config.openRouterApiKey || (typeof process !== 'undefined' ? process.env?.OPENROUTER_API_KEY : undefined);
+    this.registry = new ModelRegistry();
+    this.billingMode = config.billingMode || 'free-tier';
+  }
 
-    // 1. Primary: Gemini Free Tier
-    if (geminiKey && geminiKey !== 'MY_GEMINI_API_KEY' && geminiKey !== 'SUA_CHAVE_AQUI' && geminiKey.trim().length >= 15) {
-      try {
-        this.providers.push(new UnifiedNarrativeLLM({
-          provider: 'gemini',
-          apiKey: geminiKey.trim()
-        }));
-      } catch (err) {
-        console.warn('[CascadingNarrativeLLM] Falha ao registrar Gemini:', err);
-      }
-    }
+  private createInstanceForTask(task: LLMTask): UnifiedNarrativeLLM {
+    const modelConfig = this.registry.resolveModelForTask(task, this.billingMode);
+    const apiKey = ModelRegistry.resolveApiKey(modelConfig.provider);
 
-    // 2. Secondary: OpenCode Zen Free
-    if (openCodeKey && openCodeKey !== 'SUA_CHAVE_AQUI' && openCodeKey.trim().length >= 10) {
-      try {
-        this.providers.push(new UnifiedNarrativeLLM({
-          provider: 'opencode',
-          apiKey: openCodeKey.trim()
-        }));
-      } catch (err) {
-        console.warn('[CascadingNarrativeLLM] Falha ao registrar OpenCode:', err);
-      }
-    }
-
-    // 3. Final Online Fallback: OpenRouter :free
-    if (openRouterKey && openRouterKey !== 'SUA_CHAVE_AQUI' && openRouterKey.trim().length >= 15) {
-      try {
-        this.providers.push(new UnifiedNarrativeLLM({
-          provider: 'openrouter',
-          apiKey: openRouterKey.trim()
-        }));
-      } catch (err) {
-        console.warn('[CascadingNarrativeLLM] Falha ao registrar OpenRouter:', err);
-      }
-    }
-
-    // 4. Always append deterministic local fallback
-    this.providers.push(new UnifiedNarrativeLLM({ provider: 'mock' }));
+    return new UnifiedNarrativeLLM({
+      provider: modelConfig.provider,
+      apiKey,
+      modelConfig,
+      billingMode: this.billingMode
+    });
   }
 
   async interpret(input: InterpretInput): Promise<NarrativeCommand> {
-    for (const provider of this.providers) {
+    const maxAttempts = 3;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const instance = this.createInstanceForTask('INTERPRET_INTENT');
       try {
-        console.log(`[CascadingNarrativeLLM.interpret] Tentando com provedor gratuito: ${provider.providerId} (${provider.modelId})...`);
-        const cmd = await provider.interpret(input);
+        const cmd = await instance.interpret(input);
         if (cmd && cmd.action !== 'UNKNOWN') {
           return cmd;
         }
       } catch (err: any) {
-        console.warn(`[CascadingNarrativeLLM.interpret] Provedor ${provider.providerId} falhou, passando para o próximo:`, err?.message || err);
+        const msg = String(err?.message || err).toLowerCase();
+        if (msg.includes('429') || msg.includes('rate limit')) {
+          this.registry.markRateLimited(instance.modelId || 'unknown-model');
+        } else if (msg.includes('404') || msg.includes('not found') || msg.includes('retired')) {
+          this.registry.markUnavailable(instance.modelId || 'unknown-model');
+        }
+        console.warn(`[CascadingNarrativeLLM.interpret] Falha em ${instance.providerId}/${instance.modelId}, tentando próximo:`, err?.message || err);
       }
     }
 
@@ -91,15 +69,22 @@ export class CascadingNarrativeLLM implements NarrativeLLM {
   }
 
   async narrate(context: NarrativeContext): Promise<string> {
-    for (const provider of this.providers) {
+    const maxAttempts = 3;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const instance = this.createInstanceForTask('NARRATE_EXECUTION');
       try {
-        console.log(`[CascadingNarrativeLLM.narrate] Solicitando narrativa ao provedor gratuito: ${provider.providerId} (${provider.modelId})...`);
-        const result = await provider.narrate(context);
+        const result = await instance.narrate(context);
         if (result && result.trim().length > 0) {
           return result;
         }
       } catch (err: any) {
-        console.warn(`[CascadingNarrativeLLM.narrate] Provedor ${provider.providerId} falhou, passando para o próximo:`, err?.message || err);
+        const msg = String(err?.message || err).toLowerCase();
+        if (msg.includes('429') || msg.includes('rate limit')) {
+          this.registry.markRateLimited(instance.modelId || 'unknown-model');
+        } else if (msg.includes('404') || msg.includes('not found') || msg.includes('retired')) {
+          this.registry.markUnavailable(instance.modelId || 'unknown-model');
+        }
+        console.warn(`[CascadingNarrativeLLM.narrate] Falha em ${instance.providerId}/${instance.modelId}, tentando próximo:`, err?.message || err);
       }
     }
 
@@ -108,19 +93,6 @@ export class CascadingNarrativeLLM implements NarrativeLLM {
   }
 
   async narrateIncident(request: IncidentNarrativeRequest): Promise<IncidentNarrativeResponse> {
-    for (const provider of this.providers) {
-      try {
-        if (provider.narrateIncident) {
-          const result = await provider.narrateIncident(request);
-          if (result && result.narration) {
-            return result;
-          }
-        }
-      } catch (err: any) {
-        console.warn(`[CascadingNarrativeLLM.narrateIncident] Provedor ${provider.providerId} falhou:`, err?.message || err);
-      }
-    }
-
     const mock = new MockNarrativeLLM();
     return mock.narrateIncident(request);
   }

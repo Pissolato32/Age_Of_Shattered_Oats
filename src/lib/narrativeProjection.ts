@@ -4,220 +4,284 @@ import {
   NarrativeObserver,
   ObserverProjection,
   NarrativeScene,
-  SceneState,
   NarrativeActor,
   NarrativeRelationship,
   AuthorizedKnowledgeFact,
   RelevantEvent,
   NarrativeConstraint,
-  ResourceStandingTier,
   KnowledgeSnapshot,
-  NarrativeQueryContext
+  NarrativeQueryContext,
+  ExecutionReport
 } from './narrativeContracts';
+export function classifyTreasuryStanding(silverdew: number): { tier: string; description: string } {
+  if (silverdew >= 1000) return { tier: 'ABUNDANTE', description: 'Os cofres da fortaleza estão cheios.' };
+  if (silverdew >= 300) return { tier: 'ESTÁVEL', description: 'O tesouro possui fundos suficientes para manutenção.' };
+  if (silverdew >= 100) return { tier: 'APERTADO', description: 'As reservas de prata estão reduzidas.' };
+  return { tier: 'CRÍTICO', description: 'O tesouro está quase esgotado.' };
+}
+
+export function classifyFoodStanding(food: number, famineTicks: number): { tier: string; description: string } {
+  if (famineTicks > 0) return { tier: 'FOME', description: 'A escassez de alimentos aflige os silos.' };
+  if (food >= 500) return { tier: 'ABUNDANTE', description: 'Os celeiros estão bem abastecidos.' };
+  if (food >= 150) return { tier: 'ESTÁVEL', description: 'Os mantimentos garantem a subsistência da fortaleza.' };
+  return { tier: 'CRÍTICO', description: 'As provisões de grãos estão no limite.' };
+}
+
+export interface NarrativeEvent {
+  readonly eventId: string;
+  readonly description: string;
+  readonly actorName?: string;
+  readonly locationName?: string;
+}
+
+export interface SensoryContext {
+  readonly region?: string;
+  readonly season?: string;
+  readonly environment?: string;
+}
+
+export type NarrativeOutcome = 'success' | 'failure' | 'in_progress' | 'query_answered' | 'rejected';
+
+/**
+ * NarrativeProjection: An epistemological presentation contract between Engine and Narrator.
+ * 
+ * INVARIANTS:
+ * 1. Contains strictly authoritative, observable facts derived from the ExecutionReport and World State.
+ * 2. Never invents weather, moods, or facts not present in the authoritative state.
+ * 3. Never contains internal numeric metrics (SD, FSU, XP, rolls, DCs, coins) or machine status strings (ACCEPTED, REJECTED).
+ * 4. `allowedInferences` authorizes literary framing only—never contradictory or invented world facts.
+ */
+export interface NarrativeProjection {
+  readonly contractVersion: typeof NARRATIVE_CONTRACT_VERSION;
+  readonly outcome: NarrativeOutcome;
+  readonly subject: string;
+  readonly location?: string;
+  readonly visibleEvents: readonly NarrativeEvent[];
+  readonly authoritativeFacts: readonly string[];
+  readonly sensoryContext?: SensoryContext;
+  readonly allowedInferences: readonly string[];
+}
+
+export function toNarrativeProjection(
+  report: ExecutionReport,
+  scene?: NarrativeScene
+): NarrativeProjection {
+  let outcome: NarrativeOutcome = 'rejected';
+  if (report.status === 'ACCEPTED') {
+    outcome = report.actionExecuted === 'INFORMATION' || report.actionExecuted === 'FLAVOR_QUERY'
+      ? 'query_answered'
+      : (report.checkpoint ? 'in_progress' : 'success');
+  } else if (report.status === 'REJECTED') {
+    outcome = 'rejected';
+  } else {
+    outcome = 'failure';
+  }
+
+  const subject = report.command.actorId || 'O Soberano';
+  const location = report.command.locationId || (scene ? scene.regionName : undefined);
+
+  // 1. Visible Events (Clean diegetic summaries)
+  const visibleEvents: NarrativeEvent[] = [];
+  if (report.events && report.events.length > 0) {
+    for (const ev of report.events) {
+      visibleEvents.push({
+        eventId: ev.eventId,
+        description: ev.summary
+      });
+    }
+  }
+
+  if (visibleEvents.length === 0) {
+    let actionDesc = '';
+    switch (report.actionExecuted) {
+      case 'RECRUIT':
+        actionDesc = 'Novos homens foram alistados sob o estandarte.';
+        break;
+      case 'BUILD':
+        actionDesc = 'Obras defensivas e estruturas foram erguidas no local.';
+        break;
+      case 'TRAVEL':
+        actionDesc = 'As tropas completaram o deslocamento para o destino ordenado.';
+        break;
+      case 'MILITARY':
+        actionDesc = 'As manobras e patrulhas militares foram executadas nas posições designadas.';
+        break;
+      case 'INFORMATION':
+        actionDesc = 'Os registros e relatórios dos conselheiros foram consultados.';
+        break;
+      case 'DIPLOMACY':
+        actionDesc = 'Os emissários apresentaram as mensagens diplomáticas.';
+        break;
+      case 'TRADE':
+        actionDesc = 'As trocas de caravana e acordos de mercado foram firmados.';
+        break;
+      default:
+        actionDesc = report.status === 'ACCEPTED'
+          ? 'As ordens foram cumpridas pelos oficiais responsáveis.'
+          : 'A ordem não pôde ser executada pelas forças locais.';
+    }
+
+    visibleEvents.push({
+      eventId: `EV-${report.reportId}`,
+      description: actionDesc,
+      actorName: subject,
+      locationName: location
+    });
+  }
+
+  // 2. Authoritative Facts
+  const authoritativeFacts: string[] = [];
+  if (report.discoveredInformation && report.discoveredInformation.length > 0) {
+    for (const info of report.discoveredInformation) {
+      authoritativeFacts.push(info.statement);
+    }
+  }
+
+  if (report.consequences && report.consequences.length > 0) {
+    for (const c of report.consequences) {
+      authoritativeFacts.push(c.description);
+    }
+  }
+
+  // 3. Factual Sensory Context
+  let sensoryContext: SensoryContext | undefined = undefined;
+  if (scene) {
+    const hasRegion = Boolean(scene.regionName && scene.regionName.trim());
+    const hasSeason = Boolean(scene.season && scene.season.trim());
+    const hasEnv = Boolean(scene.environment && scene.environment.trim());
+
+    if (hasRegion || hasSeason || hasEnv) {
+      sensoryContext = {
+        region: hasRegion ? scene.regionName : undefined,
+        season: hasSeason ? scene.season : undefined,
+        environment: hasEnv ? scene.environment : undefined
+      };
+    }
+  }
+
+  // 4. Allowed Inferences
+  const allowedInferences: string[] = [
+    'A narrativa pode descrever a atmosfera física condizente com a estação e o terreno.',
+    'A narrativa pode retratar a postura dos oficiais e o peso do comando sem alterar o resultado.',
+    'A narrativa deve permanecer em tom de Crônica de Ferro (frio, diegético, fatalista).'
+  ];
+
+  return {
+    contractVersion: NARRATIVE_CONTRACT_VERSION,
+    outcome,
+    subject,
+    location,
+    visibleEvents,
+    authoritativeFacts,
+    sensoryContext,
+    allowedInferences
+  };
+}
 
 const DEFAULT_CONSTRAINTS: readonly NarrativeConstraint[] = [
   {
     code: 'NO_INVENTED_MECHANICS',
-    instruction: 'Do not invent new mechanics, stat deductions, resources or deaths not in the report.'
+    instruction: 'Do not invent unrecorded mechanical statistics, rolls, or resources.'
   },
   {
     code: 'PRESERVE_OUTCOME',
-    instruction: 'Adhere strictly to mechanical facts and outcome delivered by the Engine.'
+    instruction: 'Preserve the exact outcome, consequence, and state determined by the Engine.'
   },
   {
     code: 'RESPECT_KNOWLEDGE_BOUNDARY',
-    instruction: 'Do not reveal facts or secrets not explicitly provided in the authorized context.'
+    instruction: 'Do not narrate secrets or unrevealed knowledge that the observer cannot perceive.'
   },
   {
     code: 'PRESERVE_RUMOR_UNCERTAINTY',
-    instruction: 'Treat rumors as unconfirmed and maintain uncertainty in narrative presentation.'
+    instruction: 'Treat rumors and unconfirmed facts with explicit diegetic uncertainty.'
   }
 ];
 
-export function classifyTreasuryStanding(silverdew: number): { tier: ResourceStandingTier; description: string } {
-  if (silverdew >= 400) {
-    return {
-      tier: 'ABUNDANT',
-      description: 'As arcas de ferro da tesouraria estão fartas e pesadas de moedas de prata, garantindo os soldos e contratações sem aperto.'
-    };
-  }
-  if (silverdew >= 150) {
-    return {
-      tier: 'ADEQUATE',
-      description: 'Os cofres da tesouraria guardam uma reserva moderada e equilibrada de moedas de prata para o custeio regular da companhia.'
-    };
-  }
-  if (silverdew >= 50) {
-    return {
-      tier: 'TIGHT',
-      description: 'Os cofres da tesouraria estão baixos e operam sob pressão, exigindo rigor no pagamento de soldos.'
-    };
-  }
-  return {
-    tier: 'CRITICAL',
-    description: 'As arcas da tesouraria encontram-se em nível crítico e quase vazias, com risco imediato de insolvência se houver novos gastos.'
-  };
-}
-
-export function classifyFoodStanding(food: number, famineTicks = 0): { tier: ResourceStandingTier; description: string } {
-  if (food >= 8) {
-    return {
-      tier: 'ABUNDANT',
-      description: 'Os celeiros e armazéns estão plenamente abastecidos de grãos e carne salgada, assegurando fartura para muitas semanas.'
-    };
-  }
-  if (food >= 3) {
-    return {
-      tier: 'ADEQUATE',
-      description: 'Os celeiros e fardos de provisões possuem rações regulares e suficientes para a alimentação da tropa.'
-    };
-  }
-  if (food >= 1 && famineTicks === 0) {
-    return {
-      tier: 'TIGHT',
-      description: 'As provisões nos celeiros estão justas e em declínio, exigindo atenção para evitar escassez.'
-    };
-  }
-  return {
-    tier: 'CRITICAL',
-    description: 'Os estoques de comida estão perigosamente escassos ou esgotados, impondo racionamento severo e risco de fome.'
-  };
-}
-
-/**
- * Deny-by-default, allow-listed boundary that converts the raw CampaignState
- * into an authoritative ObserverProjection strictly scoped to the observer's
- * perspective, preventing information leakage (secrets, raw numbers, fog-of-war).
- */
 export function createObserverProjection(
   state: CampaignState,
   observer: NarrativeObserver,
   queryScope?: NarrativeQueryContext['temporalScope']
 ): ObserverProjection {
-  const isPlayerObserver =
-    observer.kind === 'PLAYER' ||
-    (observer.kind === 'CHARACTER' &&
-      state?.character?.name &&
-      observer.observerId.toLowerCase() === state.character.name.toLowerCase());
+  const isPlayer = observer.kind === 'PLAYER';
 
-  // Non-player observer or uninitialized state receives a minimal, scoped projection
-  if (!isPlayerObserver || !state || !state.character) {
-    const unknownScene: NarrativeScene = {
-      locationId: 'unknown',
-      regionName: 'Unknown',
-      environment: 'Unknown',
-      weather: state?.weeklyLedger?.weather || 'Clear',
-      season: state?.weeklyLedger?.season || 'Thawtide'
-    };
-
-    return {
-      contractVersion: NARRATIVE_CONTRACT_VERSION,
-      observer: { ...observer },
-      scene: unknownScene,
-      actors: [],
-      relationships: [],
-      knownFacts: [],
-      recentEvents: [],
-      narrativeConstraints: DEFAULT_CONSTRAINTS
-    };
-  }
-
-  // 1. Scene Construction (scoped to current location)
-  const loc = state.character.location;
   const immediateCircumstances: string[] = [];
-
-  // Observable unresolved pending consequences (tension in motion, never exposing future trigger turn)
-  if (state.sessionLog?.pendingConsequences && Array.isArray(state.sessionLog.pendingConsequences)) {
-    for (const pc of state.sessionLog.pendingConsequences) {
-      if (!pc.resolved) {
-        immediateCircumstances.push(`Um assunto previamente iniciado segue em andamento: ${pc.description}`);
+  const pendingList = (state as any).sessionLog?.pendingConsequences || (state as any).pendingConsequences;
+  if (isPlayer && pendingList && Array.isArray(pendingList)) {
+    for (const pc of pendingList) {
+      if (pc.resolved === false && pc.description) {
+        immediateCircumstances.push(pc.description);
       }
     }
   }
 
-  if (state.weeklyLedger?.famineTicks && state.weeklyLedger.famineTicks > 0) {
-    immediateCircumstances.push('A escassez de mantimentos afeta o ânimo do assentamento.');
-  }
-  if (state.weeklyLedger?.unpaidWagesTicks && state.weeklyLedger.unpaidWagesTicks > 0) {
-    immediateCircumstances.push('O pagamento dos soldados está atrasado, gerando inquietação.');
-  }
+  // 1. Scene Construction
+  let sceneState: 'Continuing' | 'Resolved' | 'Suspended' | 'Interrupted' | undefined = undefined;
+  if (isPlayer) {
+    const hasActiveConflicts = Boolean(state.worldLedger?.activeConflicts && state.worldLedger.activeConflicts.length > 0);
+    const unpaidWages = (state.weeklyLedger as any)?.unpaidWagesTicks ?? 0;
+    const activeCaravans = (state as any).caravanLedger?.activeCaravans;
 
-  // 1.1 Scene State Classification (PART 122.2, 122.5, 122.7)
-  let sceneState: SceneState = 'Resolved';
-  const hasActiveThreat = Boolean(state.worldLedger?.activeConflicts && state.worldLedger.activeConflicts.length > 0);
-  const isCaravanTraveling = Boolean(state.caravanLedger?.activeCaravans && state.caravanLedger.activeCaravans.length > 0);
-
-  if (hasActiveThreat && ((state.weeklyLedger?.unpaidWagesTicks ?? 0) > 1 || (state.weeklyLedger?.famineTicks ?? 0) > 1)) {
-    sceneState = 'Interrupted';
-  } else if (isCaravanTraveling && immediateCircumstances.length === 0) {
-    sceneState = 'Suspended';
-  } else {
-    sceneState = 'Resolved';
+    if (hasActiveConflicts && unpaidWages > 0) {
+      sceneState = 'Interrupted';
+    } else if (activeCaravans && Array.isArray(activeCaravans) && activeCaravans.length > 0) {
+      sceneState = 'Suspended';
+    } else {
+      sceneState = 'Resolved';
+    }
   }
 
   const scene: NarrativeScene = {
-    locationId: loc.landmark || loc.subregion || loc.region || 'Valenfort Citadel',
-    regionName: loc.region || 'Unknown Region',
-    environment: loc.subregion || loc.region || 'Settlement',
-    weather: state.weeklyLedger.weather || 'Clear',
-    season: state.weeklyLedger.season || 'Thawtide',
+    locationId: isPlayer ? ((state.character as any).currentHolding || (state as any).holdings?.primaryHolding || 'primary_seat') : 'unknown',
+    regionName: isPlayer ? ((state as any).holdings?.region || (state.worldLedger?.activeConflicts?.[0] as any)?.region || 'The Shattered Marches') : 'unknown',
+    environment: isPlayer ? 'Cold fortified keep in the highlands' : '',
+    weather: isPlayer ? (state.weeklyLedger?.weather || 'Drizzling rain and overcast sky') : '',
+    season: isPlayer ? (state.weeklyLedger?.season || 'Autumn') : '',
     sceneState,
-    currentActivity: state.character.title,
     immediateCircumstances: immediateCircumstances.length > 0 ? immediateCircumstances : undefined
   };
 
-  // 2. Actors in Scope (Player character, inner circle advisors, and visible local figures)
-  const actors: NarrativeActor[] = [
+  // 2. Visible Actors
+  const actors: NarrativeActor[] = isPlayer ? [
     {
-      actorId: state.character.name,
+      actorId: 'player',
       name: state.character.name,
-      role: state.character.title,
+      role: 'Sovereign / Clan Head',
       house: state.character.house
     }
-  ];
+  ] : [];
 
-  // Include Player's Inner Circle Advisors / Lieutenants
-  if (state.advisors) {
+  if (isPlayer && state.advisors) {
     if (state.advisors.counselorName) {
       actors.push({
         actorId: 'advisor_counselor',
         name: state.advisors.counselorName,
-        role: state.character.archetype === 'Landless' ? 'Sargento e Segundo em Comando' : 'Conselheira de Chancelaria e Diplomacia',
-        goals: ['Aconselhar o líder e zelar pela honra da Casa']
+        role: 'Chanceler e Conselheiro Político',
+        house: state.character.house
       });
     }
     if (state.advisors.stewardName) {
       actors.push({
         actorId: 'advisor_steward',
         name: state.advisors.stewardName,
-        role: state.character.archetype === 'Landless' ? 'Intendente e Pagador da Tropa' : 'Intendente de Fazenda e Provisões',
-        goals: ['Controlar os mantimentos e o tesouro']
+        role: 'Intendente de Provisões e Finanças',
+        house: state.character.house
       });
     }
     if (state.advisors.spyMasterName) {
       actors.push({
         actorId: 'advisor_spymaster',
         name: state.advisors.spyMasterName,
-        role: state.character.archetype === 'Landless' ? 'Batedor e Olhos da Companhia' : 'Mestre dos Sussurros e Informações',
-        goals: ['Vigiar os movimentos dos rivais e reportar segredos']
+        role: 'Mestre dos Sussurros e Informações',
+        house: state.character.house
       });
     }
   }
 
-  if (state.holdings?.residentSmith?.name) {
-    actors.push({
-      actorId: 'resident_smith',
-      name: state.holdings.residentSmith.name,
-      role: 'Mestre Armeiro e Ferreiro',
-      goals: ['Forjar e manter o equipamento de armas']
-    });
-  }
-
-  if (state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
+  if (isPlayer && state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
     for (const house of state.worldLedger.nobleHouses) {
-      if (house.currentLord && (house.region === loc.region || !house.region || loc.region === 'Unknown Region')) {
+      if (house.currentLord) {
         actors.push({
-          actorId: `npc_${house.name.toLowerCase().replace(/\s+/g, '_')}`,
+          actorId: `lord_${house.name.toLowerCase()}`,
           name: house.currentLord,
           role: `Lord of House ${house.name}`,
           house: house.name,
@@ -231,7 +295,8 @@ export function createObserverProjection(
   const relationships: NarrativeRelationship[] = [];
   const rawFacts: AuthorizedKnowledgeFact[] = [];
 
-  // Active non-decayed character memories mapped into rawFacts
+  if (isPlayer) {
+
   if (state.character.memories && Array.isArray(state.character.memories)) {
     for (const mem of state.character.memories) {
       rawFacts.push({
@@ -248,7 +313,6 @@ export function createObserverProjection(
     }
   }
 
-  // Inner circle and trusted advisors fact
   if (state.advisors) {
     const list = [
       state.advisors.counselorName ? `${state.advisors.counselorName} (Chancelaria e Braço Direito)` : null,
@@ -266,7 +330,6 @@ export function createObserverProjection(
     }
   }
 
-  // Material standing facts derived via formal deterministic thresholds
   if (state.weeklyLedger) {
     const silverdew = state.weeklyLedger.silverdew ?? 0;
     const food = state.weeklyLedger.food ?? 0;
@@ -292,7 +355,6 @@ export function createObserverProjection(
     });
   }
 
-  // Major historical events projected into authorized facts
   if (state.worldLedger?.majorEvents && Array.isArray(state.worldLedger.majorEvents)) {
     for (let i = 0; i < state.worldLedger.majorEvents.length; i++) {
       const evt = state.worldLedger.majorEvents[i];
@@ -307,7 +369,6 @@ export function createObserverProjection(
     }
   }
 
-  // Active conflicts and known external threats projected into authorized facts
   if (state.worldLedger?.activeConflicts && Array.isArray(state.worldLedger.activeConflicts)) {
     for (let i = 0; i < state.worldLedger.activeConflicts.length; i++) {
       const c = state.worldLedger.activeConflicts[i];
@@ -322,7 +383,6 @@ export function createObserverProjection(
     }
   }
 
-  // Noble Houses diplomatic status, opinion, and strategic posture
   if (state.worldLedger?.nobleHouses && Array.isArray(state.worldLedger.nobleHouses)) {
     for (const house of state.worldLedger.nobleHouses) {
       relationships.push({
@@ -345,23 +405,22 @@ export function createObserverProjection(
     }
   }
 
-  // 4. Secrets Boundary: ONLY revealed secrets are projected
-  if (state.worldSecrets && Array.isArray(state.worldSecrets)) {
-    for (const sec of state.worldSecrets) {
-      if (sec.revealed === true) {
-        rawFacts.push({
-          factId: sec.id,
-          statement: sec.description,
-          tier: 'SECRET',
-          certainty: 'CONFIRMED',
-          source: 'ENGINE',
-          subjectId: sec.id
-        });
+    if (state.worldSecrets && Array.isArray(state.worldSecrets)) {
+      for (const sec of state.worldSecrets) {
+        if (sec.revealed === true) {
+          rawFacts.push({
+            factId: sec.id,
+            statement: sec.description,
+            tier: 'SECRET',
+            certainty: 'CONFIRMED',
+            source: 'ENGINE',
+            subjectId: sec.id
+          });
+        }
       }
     }
   }
 
-  // Resolver snapshot epistêmico temporal usando o turno dinâmico do CampaignState
   const currentTurn = typeof state.weeklyLedger?.year === 'number'
     ? (state.weeklyLedger.year - 342) * 48 + ((state.weeklyLedger.week || 1) + 8)
     : 1;
@@ -373,7 +432,6 @@ export function createObserverProjection(
   let knownFacts: AuthorizedKnowledgeFact[];
 
   if (mode === 'HISTORICAL_POINT') {
-    // Filtro temporal rigoroso: fatos posteriores a targetTurn são estritamente excluídos
     const factsAtTurn = rawFacts.filter(f => (f.createdTurn ?? 0) <= targetTurn);
     snapshot = {
       asOfTurn: targetTurn,
@@ -389,7 +447,6 @@ export function createObserverProjection(
     };
     knownFacts = rawFacts;
   } else {
-    // CURRENT_STATE: fatos que foram superseded por outros fatos mais recentes são movidos para o histórico
     const supersededIds = new Set(rawFacts.map(f => f.supersedes).filter(Boolean));
     const active = rawFacts.filter(f => !supersededIds.has(f.factId));
     const historical = rawFacts.filter(f => supersededIds.has(f.factId));
@@ -401,7 +458,6 @@ export function createObserverProjection(
     knownFacts = active;
   }
 
-  // 5. Recent Events in Scope
   const recentEvents: RelevantEvent[] = [];
   if (state.worldLedger?.majorEvents && Array.isArray(state.worldLedger.majorEvents)) {
     for (let i = 0; i < state.worldLedger.majorEvents.length; i++) {
@@ -440,3 +496,6 @@ export function resolveEpistemicSnapshot(
     historicalFacts: []
   };
 }
+
+export const buildObserverProjection = createObserverProjection;
+

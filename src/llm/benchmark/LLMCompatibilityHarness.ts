@@ -473,22 +473,25 @@ Escreva a resposta concisa e sóbria para o soberano em tom de Crônica de Ferro
       }
 
       const totalCount = Math.max(1, totalRequests);
+      const networkDelivered = Math.max(0, totalRequests - (rateLimitedCount + timeoutCount + serverErrorCount));
+      const deliveredCount = Math.max(1, networkDelivered);
       const successfulCount = Math.max(1, successfulRequests);
 
-      const jsonValidRate = jsonValidCount / totalCount;
-      const schemaValidRate = schemaValidCount / totalCount;
-      const semanticValidRate = semanticValidCount / totalCount;
-      const engineSafeRate = engineSafeCount / totalCount;
-      const firstPassAcceptanceRate = firstPassAcceptanceCount / totalCount;
-      const actualHallucinationRate = (successfulCount - hallucinationCount) / successfulCount;
-      const mechanicalSilenceRate = mechanicalSilenceCount / successfulCount;
+      const availabilityRate = Math.min(1.0, networkDelivered / totalCount);
+      const jsonValidRate = Math.min(1.0, jsonValidCount / deliveredCount);
+      const schemaValidRate = Math.min(1.0, schemaValidCount / deliveredCount);
+      const semanticValidRate = Math.min(1.0, semanticValidCount / deliveredCount);
+      const engineSafeRate = Math.min(1.0, engineSafeCount / totalCount);
+      const firstPassAcceptanceRate = Math.min(1.0, firstPassAcceptanceCount / deliveredCount);
+      const actualHallucinationRate = Math.min(1.0, (successfulCount - hallucinationCount) / successfulCount);
+      const mechanicalSilenceRate = Math.min(1.0, mechanicalSilenceCount / successfulCount);
       const averageNarrativeScore = totalNarrativeScore / successfulCount;
-      const averageLatencyMs = totalLatencyMs / successfulCount;
+      const averageLatencyMs = totalLatencyMs / Math.max(1, (successfulCount - serverErrorCount));
 
       let status: 'PASS' | 'WARN' | 'FAIL' = 'PASS';
       if (jsonValidRate < 0.90 || schemaValidRate < 0.90 || engineSafeRate < 0.98 || actualHallucinationRate > 0.10) {
         status = 'FAIL';
-      } else if (jsonValidRate < 0.95 || semanticValidRate < 0.85 || firstPassAcceptanceRate < 0.85) {
+      } else if (jsonValidRate < 0.95 || semanticValidRate < 0.85 || firstPassAcceptanceRate < 0.85 || availabilityRate < 0.90) {
         status = 'WARN';
       }
 
@@ -496,6 +499,8 @@ Escreva a resposta concisa e sóbria para o soberano em tom de Crônica de Ferro
         provider,
         model: modelConfig.model,
         totalRequests,
+        deliveredRequests: networkDelivered,
+        availabilityRate,
         successfulRequests,
         jsonValidRate,
         schemaValidRate,

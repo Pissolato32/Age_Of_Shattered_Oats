@@ -100,6 +100,8 @@ export interface ProviderBenchmarkSummary {
   readonly provider: LLMProviderId;
   readonly model: string;
   readonly totalRequests: number;
+  readonly deliveredRequests: number;
+  readonly availabilityRate: number;
   readonly successfulRequests: number;
   readonly jsonValidRate: number;
   readonly schemaValidRate: number;

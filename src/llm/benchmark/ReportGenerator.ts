@@ -37,11 +37,17 @@ export class ReportGenerator {
       const accessPolicy = s.provider === 'openrouter' || s.provider === 'mock' ? 'EXPLICIT_FREE' : 'FREE_TIER';
       const billingGuarantee = accessPolicy === 'EXPLICIT_FREE' ? 'CONTRACTUALLY_ZERO' : 'PROVIDER_FREE_QUOTA';
 
+      const totalReqs = Math.max(1, s.totalRequests);
+      const networkFailures = s.rateLimitedCount + s.timeoutCount + s.serverErrorCount;
+      const availabilityRate = Math.max(0, (totalReqs - networkFailures)) / totalReqs;
+
       report += `║ [${s.provider.toUpperCase()}] ${pad(s.model, 58 - s.provider.length)}║\n`;
-      report += `║   [OPERATIONAL & BILLING]                                        ║\n`;
+      report += `║   [OPERATIONAL & RELIABILITY]                                    ║\n`;
       report += `║     • Access Policy ......... ${pad(accessPolicy, 34)}║\n`;
       report += `║     • Billing Guarantee ..... ${pad(billingGuarantee, 34)}║\n`;
       report += `║     • Runtime Cost .......... $0.00 (Verified)                         ║\n`;
+      report += `║     • Network Availability .. ${padNum(availabilityRate * 100, 5)}% (${availabilityRate >= 0.95 ? 'OK' : 'WARN'})                          ║\n`;
+      report += `║     • 429 / Rate Limit Hits . ${pad(String(s.rateLimitedCount) + ' requests', 34)}║\n`;
       report += `║     • Latency (avg) ......... ${pad(Math.round(s.averageLatencyMs) + 'ms', 34)}║\n`;
       report += `║   [INTERPRETER EVALUATION]                                       ║\n`;
       report += `║     • Intent JSON Valid ..... ${padNum(s.jsonValidRate * 100, 5)}% (${s.jsonValidRate >= 0.95 ? 'OK' : 'WARN'})                          ║\n`;
@@ -60,13 +66,20 @@ export class ReportGenerator {
         const modelTelemetry = params.telemetry.filter(t => t.provider === s.provider && t.model === s.model);
         if (modelTelemetry.length > 0) {
           report += '╟──────────────────────────────────────────────────────────────────╢\n';
-          report += '║   Acurácia por Categoria:                                        ║\n';
+          report += '║   Acurácia por Categoria (First Pass sobre Entregues):           ║\n';
           const categories = Array.from(new Set(modelTelemetry.map(t => t.category)));
           for (const cat of categories) {
             const catItems = modelTelemetry.filter(t => t.category === cat);
+            const operationalFails = catItems.filter(t => t.error && (t.error.includes('429') || t.error.includes('rate limit') || t.error.includes('quota') || t.error.includes('timeout'))).length;
+            const deliveredCount = catItems.length - operationalFails;
             const catFirstPass = catItems.filter(t => t.firstPassAccepted).length;
-            const catRate = (catFirstPass / Math.max(1, catItems.length)) * 100;
-            report += `║     • ${pad(cat, 16)} : ${padNum(catRate, 5)}% (${catFirstPass}/${catItems.length})                              ║\n`;
+
+            if (deliveredCount === 0) {
+              report += `║     • ${pad(cat, 16)} : N/A (Rate Limited - 0/${catItems.length} resp)          ║\n`;
+            } else {
+              const catRate = (catFirstPass / deliveredCount) * 100;
+              report += `║     • ${pad(cat, 16)} : ${padNum(catRate, 5)}% (${catFirstPass}/${deliveredCount} resp)                            ║\n`;
+            }
           }
         }
       }
@@ -128,8 +141,13 @@ export class ReportGenerator {
       const row = params.summaries.map(s => {
         const catTelemetry = params.telemetry.filter(t => t.provider === s.provider && t.model === s.model && t.category === cat);
         if (catTelemetry.length === 0) return '-';
+        const operationalFails = catTelemetry.filter(t => t.error && (t.error.includes('429') || t.error.includes('rate limit') || t.error.includes('quota') || t.error.includes('timeout'))).length;
+        const delivered = catTelemetry.length - operationalFails;
         const passed = catTelemetry.filter(t => t.firstPassAccepted).length;
-        return `**${((passed / catTelemetry.length) * 100).toFixed(1)}%** (${passed}/${catTelemetry.length})`;
+        if (delivered === 0) {
+          return `N/A (Rate Limited - 0/${catTelemetry.length})`;
+        }
+        return `**${((passed / delivered) * 100).toFixed(1)}%** (${passed}/${delivered})`;
       });
       md += `| **${cat}** | ${row.join(' | ')} |\n`;
     }

@@ -1,32 +1,28 @@
 {
   "version": "1.4.0",
-  "description": "Canonical Free Model Registry for Age of Shattered Oaths LLM Benchmark",
+  "description": "Capability-Based Canonical Free Model Registry for Age of Shattered Oaths LLM Layer",
   "models": [
     {
-      "id": "gemini-flash-lite",
+      "id": "gemini-free-default",
       "provider": "gemini",
       "model": "gemini-flash-lite-latest",
       "freePolicy": "free-tier",
       "maxCost": 0,
       "enabled": true,
+      "status": "ACTIVE",
+      "lastQualifiedAt": "2026-08-30T22:56:00.000Z",
+      "capabilities": {
+        "interpreterScore": 9.5,
+        "narratorScore": 8.6,
+        "mechanicalSilenceScore": 8.5,
+        "factualGroundingScore": 9.8,
+        "reliabilityScore": 9.5,
+        "avgLatencyMs": 1200
+      },
       "fallbackConfigs": [
-        { "id": "gemini-2.0-flash-fb", "provider": "gemini", "model": "gemini-2.0-flash", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
         { "id": "gemini-1.5-flash-fb", "provider": "gemini", "model": "gemini-1.5-flash", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
-        { "id": "gemini-1.5-flash-8b-fb", "provider": "gemini", "model": "gemini-1.5-flash-8b", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
-        { "id": "gemini-2.5-flash-fb", "provider": "gemini", "model": "gemini-2.5-flash", "freePolicy": "free-tier", "maxCost": 0, "enabled": true }
-      ]
-    },
-    {
-      "id": "opencode-zen-default",
-      "provider": "opencode",
-      "model": "nemotron-3.5-lightning-free",
-      "freePolicy": "free-tier",
-      "maxCost": 0,
-      "enabled": true,
-      "fallbackConfigs": [
-        { "id": "opencode-nemotron-3-fb", "provider": "opencode", "model": "nemotron-3-ultra-free", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
-        { "id": "opencode-ling-flash-fb", "provider": "opencode", "model": "ling-3.0-flash-fin-free", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
-        { "id": "opencode-laguna-fb", "provider": "opencode", "model": "laguna-s-2.1-free", "freePolicy": "free-tier", "maxCost": 0, "enabled": true }
+        { "id": "gemini-2.0-flash-lite-fb", "provider": "gemini", "model": "gemini-2.0-flash-lite", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
+        { "id": "gemini-1.5-pro-fb", "provider": "gemini", "model": "gemini-1.5-pro", "freePolicy": "free-tier", "maxCost": 0, "enabled": true }
       ]
     },
     {
@@ -36,6 +32,16 @@
       "freePolicy": "explicit-free",
       "maxCost": 0,
       "enabled": true,
+      "status": "ACTIVE",
+      "lastQualifiedAt": "2026-08-30T23:45:00.000Z",
+      "capabilities": {
+        "interpreterScore": 8.9,
+        "narratorScore": 9.3,
+        "mechanicalSilenceScore": 8.7,
+        "factualGroundingScore": 10.0,
+        "reliabilityScore": 8.8,
+        "avgLatencyMs": 3800
+      },
       "fallbackConfigs": [
         { "id": "openrouter-gemma-26b-fb", "provider": "openrouter", "model": "google/gemma-4-26b-a4b-it:free", "freePolicy": "explicit-free", "maxCost": 0, "enabled": true },
         { "id": "openrouter-nemotron-3.5-fb", "provider": "openrouter", "model": "nvidia/nemotron-3.5-lightning:free", "freePolicy": "explicit-free", "maxCost": 0, "enabled": true },
@@ -48,12 +54,44 @@
       ]
     },
     {
+      "id": "opencode-free-default",
+      "provider": "opencode",
+      "model": "nemotron-3.5-lightning-free",
+      "freePolicy": "free-tier",
+      "maxCost": 0,
+      "enabled": true,
+      "status": "ACTIVE",
+      "lastQualifiedAt": "2026-08-30T23:21:00.000Z",
+      "capabilities": {
+        "interpreterScore": 7.2,
+        "narratorScore": 7.5,
+        "mechanicalSilenceScore": 7.0,
+        "factualGroundingScore": 9.6,
+        "reliabilityScore": 8.5,
+        "avgLatencyMs": 14000
+      },
+      "fallbackConfigs": [
+        { "id": "opencode-nemotron-3-fb", "provider": "opencode", "model": "nemotron-3-ultra-free", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
+        { "id": "opencode-ling-flash-fb", "provider": "opencode", "model": "ling-3.0-flash-fin-free", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
+        { "id": "opencode-laguna-fb", "provider": "opencode", "model": "laguna-s-2.1-free", "freePolicy": "free-tier", "maxCost": 0, "enabled": true }
+      ]
+    },
+    {
       "id": "huggingface-free-default",
       "provider": "huggingface",
       "model": "meta-llama/Llama-3.2-3B-Instruct",
       "freePolicy": "free-tier",
       "maxCost": 0,
       "enabled": true,
+      "status": "DEGRADED",
+      "capabilities": {
+        "interpreterScore": 6.5,
+        "narratorScore": 6.8,
+        "mechanicalSilenceScore": 6.5,
+        "factualGroundingScore": 8.0,
+        "reliabilityScore": 6.0,
+        "avgLatencyMs": 5000
+      },
       "fallbackConfigs": [
         { "id": "hf-llama-3.2-1b-fb", "provider": "huggingface", "model": "meta-llama/Llama-3.2-1B-Instruct", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
         { "id": "hf-mistral-7b-fb", "provider": "huggingface", "model": "mistralai/Mistral-7B-Instruct-v0.3", "freePolicy": "free-tier", "maxCost": 0, "enabled": true },
@@ -69,7 +107,16 @@
       "model": "deterministic-local-mock",
       "freePolicy": "explicit-free",
       "maxCost": 0,
-      "enabled": true
+      "enabled": true,
+      "status": "ACTIVE",
+      "capabilities": {
+        "interpreterScore": 9.0,
+        "narratorScore": 9.0,
+        "mechanicalSilenceScore": 10.0,
+        "factualGroundingScore": 10.0,
+        "reliabilityScore": 10.0,
+        "avgLatencyMs": 5
+      }
     }
   ]
 }

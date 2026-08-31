@@ -18,6 +18,14 @@ async function main() {
   const repetitionsArgIndex = args.indexOf('--repetitions');
   const repetitions = repetitionsArgIndex !== -1 ? parseInt(args[repetitionsArgIndex + 1], 10) : 1;
 
+  const delayArgIndex = args.indexOf('--delay');
+  let delayMs = delayArgIndex !== -1 ? parseInt(args[delayArgIndex + 1], 10) : 0;
+  for (const arg of args) {
+    if (arg.startsWith('--delay=')) {
+      delayMs = parseInt(arg.split('=')[1], 10);
+    }
+  }
+
   const categoryArgIndex = args.indexOf('--category');
   const categoryFilter = categoryArgIndex !== -1 ? args[categoryArgIndex + 1] : undefined;
 
@@ -81,7 +89,8 @@ async function main() {
     repetitions,
     providers,
     billingMode,
-    useMockOnly: isMockOnly
+    useMockOnly: isMockOnly,
+    delayBetweenRequestsMs: delayMs
   });
 
   console.log(result.asciiReport);

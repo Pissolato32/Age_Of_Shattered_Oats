@@ -1,5 +1,6 @@
 import { NarrativeLLM, InterpretInput } from '../../lib/narrativeLLM';
 import { NarrativeCommand, NarrativeContext } from '../../lib/narrativeContracts';
+import { toNarrativeProjection } from '../../lib/narrativeProjection';
 import { LLMAdapter } from './LLMAdapter';
 import { GeminiAdapter } from './GeminiAdapter';
 import { OpenRouterAdapter } from './OpenRouterAdapter';
@@ -101,29 +102,41 @@ export class UnifiedNarrativeLLM implements NarrativeLLM {
   }
 
   async narrate(context: NarrativeContext): Promise<string> {
-    const rawExecution = {
-      commandId: (context.executionResult as any)?.command?.commandId || (context.executionResult as any)?.reportId || `cmd_${Date.now()}`,
-      actionExecuted: context.executionResult?.actionExecuted || 'UNKNOWN',
-      status: context.executionResult?.status || 'ACCEPTED',
-      reasonCode: (context.executionResult as any)?.reasonCode,
-      stateChanges: (context.executionResult as any)?.stateChanges || [],
-      consequences: (context.executionResult as any)?.consequences || []
-    };
-    const sanitizedReport = NarrativeReportSanitizer.sanitize(rawExecution);
+    const projection = toNarrativeProjection(context.executionResult, context.scene);
 
-    const prompt = `CONTEXTO AUTORIZADO DO MOTOR:
-Local: ${context.scene.locationId} (${context.scene.regionName})
-Atores Presentes: ${context.actors.map(a => `${a.name} (${a.role})`).join(', ')}
-Status da Resolução: ${sanitizedReport.outcome.status}
-Desfecho da Ordem: ${sanitizedReport.outcome.explanation}
-Consequências Físicas: ${sanitizedReport.facts.stateChanges.map(c => c.qualitativeImpact).join('; ') || 'Nenhum impacto material extraordinário.'}
+    const promptParts: string[] = [
+      `FATOS AUTORIZADOS DA PROJEÇÃO DIEGÉTICA:`,
+      `Desfecho: ${projection.outcome.toUpperCase()}`,
+      `Sujeito/Ator: ${projection.subject}`,
+      `Local: ${projection.location || 'Fortaleza'}`,
+      `Eventos Observáveis:\n${projection.visibleEvents.map(e => `  • ${e.description}`).join('\n') || '  • As ordens foram cumpridas.'}`
+    ];
 
-Escreva a resposta concisa e sóbria para o soberano em tom de Crônica de Ferro (1 a 2 parágrafos curtos):`;
+    if (projection.authoritativeFacts.length > 0) {
+      promptParts.push(`Fatos Conhecidos:\n${projection.authoritativeFacts.map(f => `  • ${f}`).join('\n')}`);
+    }
+
+    if (projection.sensoryContext) {
+      const sens = projection.sensoryContext;
+      const sensDetails = [
+        sens.region ? `Região: ${sens.region}` : null,
+        sens.season ? `Estação: ${sens.season}` : null,
+        sens.environment ? `Terreno: ${sens.environment}` : null
+      ].filter(Boolean);
+      if (sensDetails.length > 0) {
+        promptParts.push(`Contexto Factual do Mundo: ${sensDetails.join(' | ')}`);
+      }
+    }
+
+    promptParts.push(`\nDiretriz: Escreva a narrativa literária concisa para o soberano em tom de Crônica de Ferro (1 a 2 parágrafos).`);
+    const prompt = promptParts.join('\n');
 
     const response = await this.adapter.generate({
       systemPrompt: `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (Crônica de Ferro).
-Transforme os resultados mecânicos autorizados em crônicas narrativas imersivas, viscerais, realistas e CONCISAS.
-Silêncio Mecânico Absoluto: NUNCA cite moedas abreviadas, "SD", "FSU", "AC", "XP", "DC", "dados", "rolagem", "RNG" ou código.`,
+Você recebe estritamente fatos autorizados pela Projeção Narrativa e sua função é transformá-los em crônica imersiva, realista e concisa.
+SILÊNCIO MECÂNICO ABSOLUTO:
+1. NUNCA cite termos de sistema, variáveis numéricas, moedas exatas, "SD", "FSU", "AC", "XP", "DC", "dados", "rolagem" ou status técnicos.
+2. NUNCA invente fatos materiais, acontecimentos ou baixas fora dos fatos autorizados recebidos.`,
       userPrompt: prompt,
       temperature: 0.7,
       timeoutMs: 25000
@@ -132,7 +145,7 @@ Silêncio Mecânico Absoluto: NUNCA cite moedas abreviadas, "SD", "FSU", "AC", "
     BillingGuard.assertZeroCost(response.usage, this.adapter.modelConfig, this.billingMode);
 
     // Run narrative judge validation
-    const judgment = NarrativeJudge.judge(response.text, context, sanitizedReport);
+    const judgment = NarrativeJudge.judge(response.text, context, context.executionResult);
     if (judgment.violations.length > 0) {
       console.warn(`[UnifiedNarrativeLLM] Narrative validation warnings: ${judgment.violations.join('; ')}`);
     }
