@@ -757,9 +757,17 @@ export function LedgerViewer({ state, onClose }: LedgerViewerProps) {
                   });
                 } else {
                   return (
-                    <div className="border border-[#2D2D30] bg-[#0F0F12] p-8 text-center text-slate-500">
-                      <Landmark className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                      <p>Nenhum conselho senhorial ou administrativo foi estabelecido ou está ativo em vosso feudo.</p>
+                    <div className="border border-[#2D2D30] bg-[#121215] p-8 text-center space-y-3">
+                      <Landmark className="w-8 h-8 text-[#F2A900]/60 mx-auto mb-1" />
+                      <div className="inline-block p-2 bg-emerald-950/40 border border-emerald-800 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                        // CONDIÇÃO: SEM ASSENTO EM CONSELHOS SENHORIAIS
+                      </div>
+                      <p className="text-xs text-[#AAA] max-w-lg mx-auto leading-relaxed">
+                        Como companhia livre de armas, vosso bando não preside conselhos administrativos nem possui assento cativo nas cortes senhoriais da região.
+                      </p>
+                      <p className="text-[11px] text-[#666] italic">
+                        Assentos políticos, arbitragens feudais e votos em conclaves poderão ser obtidos mediante prestígio, concessão de terras ou serviços prestados à nobreza.
+                      </p>
                     </div>
                   );
                 }
@@ -773,23 +781,29 @@ export function LedgerViewer({ state, onClose }: LedgerViewerProps) {
               {/* Espionage Network */}
               {(() => {
                 const spyData = state.spyNetwork || state.worldLedger?.espionage;
-                if (!spyData) {
+                if (!spyData || (spyData.totalAgents === 0 && (!spyData.agents || spyData.agents.length === 0))) {
                   return (
-                    <div className="border border-[#2D2D30] bg-[#0F0F12] p-8 text-center text-slate-500">
-                      <p>Nenhuma rede de espionagem estabelecida.</p>
+                    <div className="border border-[#2D2D30] bg-[#121215] p-6 text-center space-y-2">
+                      <h3 className="text-white font-bold text-xs border-b border-[#2D2D30] pb-1.5 uppercase">// Batedores de Estrada & Reconhecimento</h3>
+                      <p className="text-xs text-[#AAA] max-w-lg mx-auto">
+                        Vosso bando não mantém uma rede permanente de espiões infiltrados em cortes distantes (custo de manutenção: 0 SD/semana).
+                      </p>
+                      <p className="text-[11px] text-[#666] italic">
+                        O capitão utiliza batedores da própria tropa para patrulha e sondagens táticas imediatas no terreno.
+                      </p>
                     </div>
                   );
                 }
                 const agentsList = spyData.activeAgents || spyData.agents || [];
-                  let intelList = spyData.activeIntelligence || spyData.intelligenceGathered || [];
-                  return (
-                    <div className="border border-[#2D2D30] bg-[#0F0F12] p-4 space-y-4">
-                      <h3 className="text-white font-bold text-xs border-b border-[#2D2D30] pb-1.5 uppercase flex justify-between items-center">
-                        <span>// Rede de Espionagem & Sussurros (Chefe: {spyData.spymaster || 'Roric'})</span>
-                        <span className="text-cyan-400 text-[10px] font-mono">
-                          Manutenção: -{spyData.costPerWeek || spyData.weeklyUpkeep || spyData.costPerMonth / 4 || 15} SD/semana
-                        </span>
-                      </h3>
+                let intelList = spyData.activeIntelligence || spyData.intelligenceGathered || [];
+                return (
+                  <div className="border border-[#2D2D30] bg-[#0F0F12] p-4 space-y-4">
+                    <h3 className="text-white font-bold text-xs border-b border-[#2D2D30] pb-1.5 uppercase flex justify-between items-center">
+                      <span>// Rede de Espionagem & Sussurros (Chefe: {spyData.spymaster || 'Roric'})</span>
+                      <span className="text-cyan-400 text-[10px] font-mono">
+                        Manutenção: -{spyData.costPerWeek || spyData.weeklyUpkeep || spyData.costPerMonth / 4 || 15} SD/semana
+                      </span>
+                    </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Agents list */}
@@ -899,7 +913,10 @@ export function LedgerViewer({ state, onClose }: LedgerViewerProps) {
                         ));
                       } else {
                         return (
-                          <div className="py-8 text-center text-[#555] italic">Nenhuma caravana comercial ativa ou aguardando envio neste ledger.</div>
+                          <div className="py-6 text-center space-y-1">
+                            <p className="text-[11px] text-slate-400">Nenhuma caravana comercial ativa ou despachada.</p>
+                            <p className="text-[10px] text-[#666] italic">O envio de caravanas comerciais requer a posse de um feudo, forja ou entreposto com excedentes de produção.</p>
+                          </div>
                         );
                       }
                     })()}
