@@ -23,7 +23,7 @@ function buildCanonicalPrologue(st: CampaignState, isTut: boolean): string {
   const colorsText = character.banner?.colors ? `em ${character.banner.colors}` : "";
   const locLandmark = character.location.landmark || "a fortaleza";
   const locRegion = character.location.region || "as terras centrais";
-  const weatherText = weeklyLedger.weather ? `O tempo sopra ${weeklyLedger.weather.toLowerCase()}` : "O vento sopra gélido";
+  const weatherText = weeklyLedger.weather ? `O clima apresenta-se em ${weeklyLedger.weather.toLowerCase()}` : "O vento sopra gélido";
   const backstoryText = character.backstory ? `\n\n"${character.backstory}"` : "";
   const descText = character.flavorDetail ? `\n\nTraços conhecidos: ${character.flavorDetail}` : "";
 
@@ -46,12 +46,14 @@ Erguendo ${symbolText} ${colorsText}, vossos veteranos de armas montam vigília 
 
 Vossos homens aguardam vossas instruções. Qual é a vossa primeira ordem?`;
 
-    case 'Landless':
-      return `[MESTRE] As cinzas da fogueira ainda fumegam na alvorada fria de ${locRegion}. Como Capitão errante da ${houseName}${mottoText}, vosso nome é forjado nas estradas e nas cinzas de batalhas passadas.
+    case 'Landless': {
+      const leaderTitle = character.house ? `${character.title} ${character.name} (${character.house})` : `${character.title} ${character.name}`;
+      return `[MESTRE] As cinzas da fogueira ainda fumegam na alvorada fria de ${locRegion}. Como ${leaderTitle}, vosso nome é forjado nas estradas e nas cinzas de batalhas passadas.
 
-Vossa companhia de armas descansa as mãos sobre os cabos de espada ao redor de ${locLandmark}. ${weatherText}. Sem muralhas para se esconder, vossa força reside na lealdade dos vossos homens e nas ${weeklyLedger.silverdew} moedas de prata que garantem o soldo da tropa.${descText}${backstoryText}
+Vossa companhia livre de armas descansa as mãos sobre os cabos de espada nos arredores de ${locLandmark}. ${weatherText}. Sem terras ou muralhas senhoriais para se esconder, vossa força reside na lealdade dos vossos homens e nas ${weeklyLedger.silverdew} moedas de prata que garantem o soldo da tropa.${descText}${backstoryText}
 
 A estrada se abre à vossa frente. Qual é a vossa próxima ordem?`;
+    }
 
     case 'Artificer':
       return `[MESTRE] O calor das forjas ilumina as abóbadas de pedra de ${locLandmark}. Como ${character.title} da ${houseName}${mottoText}, o domínio do ferro, das obras defensivas e das armas vos pertence.

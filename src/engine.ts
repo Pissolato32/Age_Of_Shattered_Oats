@@ -512,7 +512,7 @@ export function createInitialState(archetype: any, region: string, resetRng: boo
       month: "Greening",
       year: 342,
       season: "Thawtide",
-      weather: "Clear, cool",
+      weather: "tempo firme e frio",
       silverdew: isNecro ? 50 : 300,
       food: isNecro ? 2 : 10.0,
       materials: {
@@ -588,7 +588,7 @@ export function createInitialState(archetype: any, region: string, resetRng: boo
         "Northern Snowlands": { tradeVolume: "Low", priceTrend: "Rising", shortages: "Grain" },
         "Nomad Steppe": { tradeVolume: "Medium", priceTrend: "Stable", shortages: "Timber" }
       },
-      weatherHistory: ["Clear", "Windy", "Light rain", "Cool, overcast"],
+      weatherHistory: ["Tempo firme", "Ventania", "Chuva leve", "Nublado e frio"],
       notableDeaths: []
     },
     crowns: [
