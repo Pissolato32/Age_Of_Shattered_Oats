@@ -40,7 +40,7 @@ export interface DiscoveredCandidate {
   };
   lifecycle: ModelLifecycleState;
   capabilities?: ModelCapabilityProfile;
-  fallbackConfigs?: FallbackModelConfig[];
+  fallbackConfigs?: readonly FallbackModelConfig[];
   enabled: boolean;
   freePolicy?: 'explicit-free' | 'free-tier';
   maxCost?: number;
@@ -190,7 +190,7 @@ export class ProviderDiscovery {
       if (updated.health.status === 'ONLINE') {
         updated.lifecycle = 'ELIGIBLE';
       } else if (updated.lifecycle === 'PAID') {
-        updated.lifecycle = updated.health.status === 'ONLINE' ? 'ELIGIBLE' : 'HEALTHY';
+        updated.lifecycle = (updated.health.status as HealthStatus) === 'ONLINE' ? 'ELIGIBLE' : 'HEALTHY';
       }
     } else if (newMode === 'UNKNOWN' || newMode === 'UNAVAILABLE') {
       if (updated.lifecycle === 'ELIGIBLE') {

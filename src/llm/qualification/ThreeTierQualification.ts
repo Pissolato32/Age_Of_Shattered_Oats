@@ -249,12 +249,13 @@ export class ThreeTierQualification {
         }
 
         // Evaluate Narrator (Mock/Sample projection)
+        const desc = (scenario.mockEngineReport as any)?.decisionReason || (scenario.mockEngineReport as any)?.summary || 'Ação resolvida pela engine.';
         const mockProjection = {
           outcome: scenario.mockEngineReport?.status === 'ACCEPTED' ? 'success' : 'rejected',
           subject: 'Renascent Lord',
           location: 'Grey Keep',
-          visibleEvents: [{ eventId: 'ev_01', description: scenario.mockEngineReport?.decisionReason || 'Ação resolvida pela engine.' }],
-          authoritativeFacts: [scenario.mockEngineReport?.decisionReason || 'Ação resolvida pela engine.'],
+          visibleEvents: [{ eventId: 'ev_01', description: desc }],
+          authoritativeFacts: [desc],
           sensoryContext: { region: 'Florestas do Rio', season: 'Longdark', environment: 'Bastion' }
         };
 

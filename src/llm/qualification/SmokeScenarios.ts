@@ -1,4 +1,4 @@
-import { NarrativeAction, NarrativeCommand, NarrativeProjection } from '../../lib/narrativeContracts';
+import { NarrativeAction } from '../../lib/narrativeContracts';
 
 export interface SmokeInterpreterScenario {
   readonly id: string;
@@ -12,7 +12,7 @@ export interface SmokeInterpreterScenario {
 export interface SmokeNarratorScenario {
   readonly id: string;
   readonly name: string;
-  readonly projection: NarrativeProjection;
+  readonly projection: Record<string, unknown>;
   readonly expectedSensoryTone: string;
 }
 

@@ -40,33 +40,49 @@ function createMockState(): CampaignState {
     worldLedger: {
       currentDate: { year: 342, month: 'Longdark', week: 2 }
     } as any
+  } as unknown as CampaignState;
+}
+
+function createTestCommand(overrides: Partial<NarrativeCommand> & { action: NarrativeCommand['action'] }): NarrativeCommand {
+  return {
+    contractVersion: 1,
+    commandId: overrides.commandId || `cmd_${Date.now()}`,
+    actorId: overrides.actorId || 'char_01',
+    action: overrides.action,
+    targetId: overrides.targetId,
+    objectId: overrides.objectId,
+    locationId: overrides.locationId,
+    magnitude: overrides.magnitude,
+    stance: overrides.stance || 'NEUTRAL',
+    constraints: overrides.constraints || [],
+    confidence: overrides.confidence ?? 1.0,
+    ambiguity: overrides.ambiguity || [],
+    requiresClarification: overrides.requiresClarification ?? false,
+    parameters: overrides.parameters
   };
 }
 
 export function runTradeBudgetInvariantTests() {
-  console.log("=== EXECUTANDO SUÍTE DE TESTES: M28.0 TRADE BUDGET INVARIANT & M28.1 MUTATION SEMANTICS ===");
+  console.log("=== EXECUTANDO SUÍTE DE TESTES: M28.0 TRADE BUDGET & M28.1 MUTATION SEMANTICS ===");
 
   // --------------------------------------------------------------------------
-  // 1. Separação Explícita de Quantidade vs MaxCost no RuleResolver
+  // 1. Separação de Quantidade Física vs. Teto Orçamentário (maxCost)
   // --------------------------------------------------------------------------
-  console.log("1. Testando separação entre quantidade e teto orçamentário...");
+  console.log("1. Testando separação de parâmetros na Engine determinística...");
 
   const state1 = createMockState();
-  const res1 = resolveAction('compre 100 unidades de comida', state1);
-  assert(res1.decision === 'ALLOWED', "compre 100 unidades deve ser ALLOWED");
-  assert(res1.intent === 'TRADE', "Intent deve ser TRADE");
-  const sd1 = res1.effects.find(e => e.resource === 'weeklyLedger.silverdew');
-  const food1 = res1.effects.find(e => e.resource === 'weeklyLedger.food');
-  assert(sd1?.delta === -150, "100 unidades de comida devem custar 150 SD");
-  assert(food1?.delta === 100, "Deve adquirir 100 unidades de comida");
-  console.log("  ✅ 'compre 100 unidades de comida' -> quantity=100, cost=150 SD.");
+  const resDenied = resolveAction("Compre 100 alimentos por até 100 moedas", state1, { maxCost: 100, quantity: 100 });
+  assert(resDenied.decision === 'DENIED', "Transação com custo acima do maxCost DEVE ser RECUSADA (DENIED)");
+  assert(resDenied.effects.length === 0, "Transação recusada por orçamento NÃO PODE ter efeitos");
+  assert(resDenied.decisionReason?.includes('ORÇAMENTO'), "Motivo de recusa deve indicar teto orçamentário");
+  console.log("  ✅ Transação acima de maxCost rejeitada com zero efeitos.");
 
   const state2 = createMockState();
   const res2 = resolveAction('compre comida, mas não gaste mais de 100 moedas', state2);
   assert(res2.decision === 'ALLOWED', "compra com teto deve ser ALLOWED");
   const sd2 = res2.effects.find(e => e.resource === 'weeklyLedger.silverdew');
   const food2 = res2.effects.find(e => e.resource === 'weeklyLedger.food');
-  assert(Math.abs(sd2?.delta ?? 0) <= 100, "Custo real não pode exceder o teto de 100 SD");
+  assert(Math.abs(Number(sd2?.delta ?? 0)) <= 100, "Custo real não pode exceder o teto de 100 SD");
   assert((food2?.delta ?? 0) === 66, "Deve adquirir 66 FSU (99 SD <= 100 SD)");
   console.log("  ✅ 'não gaste mais de 100 moedas' -> maxCost=100, quantity calculada segura.");
 
@@ -100,8 +116,7 @@ export function runTradeBudgetInvariantTests() {
     const initSD = s.weeklyLedger.silverdew;
     const initFood = s.weeklyLedger.food;
 
-    const cmd: NarrativeCommand = {
-      contractVersion: '2.0',
+    const cmd = createTestCommand({
       commandId: `cmd_prop_${tc.item}`,
       actorId: 'char_01',
       action: 'TRADE',
@@ -110,7 +125,7 @@ export function runTradeBudgetInvariantTests() {
         quantity: tc.qty,
         maxCost: tc.maxCost
       }
-    };
+    });
 
     const res = resolveNarrativeCommand(cmd, s);
     assert(res.report.status === 'REJECTED', `Transação excedendo teto deve ser REJECTED (${tc.item})`);
@@ -129,8 +144,7 @@ export function runTradeBudgetInvariantTests() {
 
   // T11
   const stateT11 = createMockState();
-  const cmdT11: NarrativeCommand = {
-    contractVersion: '2.0',
+  const cmdT11 = createTestCommand({
     commandId: 'cmd_t11',
     actorId: 'char_01',
     action: 'TRADE',
@@ -139,7 +153,7 @@ export function runTradeBudgetInvariantTests() {
       quantity: 100, // Lote de 100 FSU = 150 SD
       maxCost: 100
     }
-  };
+  });
   const resT11 = resolveNarrativeCommand(cmdT11, stateT11);
   assert(resT11.report.status === 'REJECTED', "T11 deve ser REJECTED");
   assert(resT11.actionMutatedState === false, "T11 actionMutatedState deve ser false");
@@ -149,8 +163,7 @@ export function runTradeBudgetInvariantTests() {
 
   // T16
   const stateT16 = createMockState();
-  const cmdT16: NarrativeCommand = {
-    contractVersion: '2.0',
+  const cmdT16 = createTestCommand({
     commandId: 'cmd_t16',
     actorId: 'char_01',
     action: 'TRADE',
@@ -160,7 +173,7 @@ export function runTradeBudgetInvariantTests() {
       maxCost: 100,
       rejectIfExceeds: true
     }
-  };
+  });
   const resT16 = resolveNarrativeCommand(cmdT16, stateT16);
   assert(resT16.report.status === 'REJECTED', "T16 deve ser REJECTED");
   assert(resT16.actionMutatedState === false, "T16 actionMutatedState deve ser false");
@@ -169,8 +182,7 @@ export function runTradeBudgetInvariantTests() {
 
   // Contra-teste (maxCost = 150)
   const stateCounter = createMockState();
-  const cmdCounter: NarrativeCommand = {
-    contractVersion: '2.0',
+  const cmdCounter = createTestCommand({
     commandId: 'cmd_counter',
     actorId: 'char_01',
     action: 'TRADE',
@@ -179,7 +191,7 @@ export function runTradeBudgetInvariantTests() {
       quantity: 100,
       maxCost: 150
     }
-  };
+  });
   const resCounter = resolveNarrativeCommand(cmdCounter, stateCounter);
   assert(resCounter.report.status === 'ACCEPTED', "Contra-teste deve ser ACCEPTED");
   assert(resCounter.actionMutatedState === true, "actionMutatedState deve ser true");
@@ -192,13 +204,12 @@ export function runTradeBudgetInvariantTests() {
   // --------------------------------------------------------------------------
   console.log("4. Testando telemetria de mutação separada...");
   const stateInfo = createMockState();
-  const cmdInfo: NarrativeCommand = {
-    contractVersion: '2.0',
+  const cmdInfo = createTestCommand({
     commandId: 'cmd_info',
     actorId: 'char_01',
     action: 'INFORMATION',
     objectId: 'tropas'
-  };
+  });
   const resInfo = resolveNarrativeCommand(cmdInfo, stateInfo);
   assert(resInfo.report.status === 'ACCEPTED', "INFORMATION deve ser ACCEPTED");
   assert(resInfo.actionMutatedState === false, "INFORMATION actionMutatedState deve ser false");

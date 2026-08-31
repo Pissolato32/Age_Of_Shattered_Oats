@@ -41,7 +41,7 @@ function createMockState(): CampaignState {
     worldLedger: {
       currentDate: { year: 342, month: 'Longdark', week: 2 }
     } as any
-  };
+  } as unknown as CampaignState;
 }
 
 export async function runThreeTierQualificationTests() {

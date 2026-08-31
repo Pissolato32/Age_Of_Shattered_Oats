@@ -663,8 +663,8 @@ export function resolveNarrativeCommand(
   // Defense-in-depth Assertion (M28.0): Ensure actual cost in silverdew does not exceed maxCost if specified
   if (command.action === 'TRADE' && typeof command.parameters?.maxCost === 'number' && resolution.decision === 'ALLOWED') {
     const totalSpent = resolution.effects
-      .filter(e => e.resource === 'weeklyLedger.silverdew' && e.delta < 0)
-      .reduce((sum, e) => sum + Math.abs(e.delta), 0);
+      .filter(e => e.resource === 'weeklyLedger.silverdew' && typeof e.delta === 'number' && e.delta < 0)
+      .reduce((sum, e) => sum + Math.abs(e.delta as number), 0);
     if (totalSpent > (command.parameters.maxCost as number)) {
       return rejectionReport(
         command,

@@ -196,11 +196,14 @@ export function CharacterCreator({ onCancel, onFinishCreation }: CharacterCreato
               />
             </div>
             <div>
-              <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Sobrenome / Nome da Casa</label>
+              <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">
+                {archetype === 'Landless' ? 'Sobrenome / Alcunha de Origem' : archetype === 'Artificer' ? 'Sobrenome / Forja' : archetype === 'Necromancer' ? 'Nome do Culto / Linhagem' : 'Sobrenome / Nome da Casa'}
+              </label>
               <input
                 type="text"
                 value={house}
                 onChange={(e) => setHouse(e.target.value)}
+                placeholder={archetype === 'Landless' ? 'Ex: Corvo, o Errante, Vance' : 'Ex: Vance, Stormcrest'}
                 className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
               />
             </div>
@@ -302,42 +305,109 @@ export function CharacterCreator({ onCancel, onFinishCreation }: CharacterCreato
       {/* STEP 4: HERALDRY & SUMMARY */}
       {step === 4 && (
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Cores do Estandarte</label>
-              <input
-                type="text"
-                value={colors}
-                onChange={(e) => setColors(e.target.value)}
-                placeholder="Ex: Dark Blue and Silver"
-                className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
-              />
+          {archetype === 'Landless' ? (
+            <div className="p-4 bg-[#121215] border border-[#2D2D30] rounded-sm">
+              <h5 className="text-xs font-bold text-emerald-400 mb-2 uppercase tracking-widest">// CONDIÇÃO DIEGÉTICA: VAGANTE SEM FEUDO</h5>
+              <p className="text-xs text-[#AAA] leading-relaxed">
+                Como <strong>Caminhante Sem Terra</strong>, você ainda não possui terras senhoriais, brasão formal ou estandarte dinástico. 
+                Sua heráldica e lema de linhagem poderão ser formalmente fundados no decorrer da crônica se você vier a conquistar um feudo, 
+                prestar juramento a um senhor ou fundar sua própria companhia livre.
+              </p>
             </div>
-            <div>
-              <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Símbolo Heráldico</label>
-              <input
-                type="text"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value)}
-                placeholder="Ex: Wolf, Eagle, Bear"
-                className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
-              />
+          ) : archetype === 'Artificer' ? (
+            <div className="p-4 bg-[#121215] border border-[#2D2D30] rounded-sm">
+              <h5 className="text-xs font-bold text-amber-400 mb-2 uppercase tracking-widest">// MARCA DA FORJA & OFÍCIO</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Símbolo / Marca do Ferreiro</label>
+                  <input
+                    type="text"
+                    value={symbol}
+                    onChange={(e) => setSymbol(e.target.value)}
+                    placeholder="Ex: Bigorna, Martelo Duplo, Chama"
+                    className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Princípio do Ofício</label>
+                  <input
+                    type="text"
+                    value={motto}
+                    onChange={(e) => setMotto(e.target.value)}
+                    placeholder="Ex: O Aço Nunca Mente"
+                    className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          ) : archetype === 'Necromancer' ? (
+            <div className="p-4 bg-[#121215] border border-[#2D2D30] rounded-sm">
+              <h5 className="text-xs font-bold text-purple-400 mb-2 uppercase tracking-widest">// INSÍGNIA OCULTA & PACTO DAS ALMAS</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Símbolo da Morte</label>
+                  <input
+                    type="text"
+                    value={symbol}
+                    onChange={(e) => setSymbol(e.target.value)}
+                    placeholder="Ex: Caveira de Ébano, Coroa Quebrada"
+                    className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Lema Proibido</label>
+                  <input
+                    type="text"
+                    value={motto}
+                    onChange={(e) => setMotto(e.target.value)}
+                    placeholder="Ex: O Sangue Lembra"
+                    className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Cores do Estandarte</label>
+                  <input
+                    type="text"
+                    value={colors}
+                    onChange={(e) => setColors(e.target.value)}
+                    placeholder="Ex: Dark Blue and Silver"
+                    className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Símbolo Heráldico</label>
+                  <input
+                    type="text"
+                    value={symbol}
+                    onChange={(e) => setSymbol(e.target.value)}
+                    placeholder="Ex: Wolf, Eagle, Bear"
+                    className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Lema da Casa Nobre</label>
+                <input
+                  type="text"
+                  value={motto}
+                  onChange={(e) => setMotto(e.target.value)}
+                  placeholder="Ex: Our Word Is Our Bond."
+                  className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
+                />
+              </div>
+            </>
+          )}
 
           <div>
-            <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Lema da Casa</label>
-            <input
-              type="text"
-              value={motto}
-              onChange={(e) => setMotto(e.target.value)}
-              placeholder="Ex: Our Word Is Our Bond."
-              className="w-full bg-[#050506] border border-[#2D2D30] p-3 text-sm text-white focus:outline-none focus:border-[#F2A900]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">Antecedente (História de Origem)</label>
+            <label className="block text-xs text-[#888] uppercase mb-2 tracking-wider">
+              {archetype === 'Landless' ? 'Antecedente (Como você foi parar no exílio ou nas estradas)' : 'Antecedente (História de Origem)'}
+            </label>
             <textarea
               value={backstory}
               onChange={(e) => setBackstory(e.target.value)}
@@ -349,7 +419,10 @@ export function CharacterCreator({ onCancel, onFinishCreation }: CharacterCreato
             <h5 className="text-xs font-bold text-[#F2A900] mb-3 uppercase tracking-widest">// REVISÃO MECÂNICA E DETERMINÍSTICA</h5>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
               <div><span className="text-[#888] block">Nome:</span> <span className="text-white font-bold">{name}</span></div>
-              <div><span className="text-[#888] block">Casa:</span> <span className="text-white font-bold">{house}</span></div>
+              <div>
+                <span className="text-[#888] block">{archetype === 'Landless' ? 'Origem / Bando:' : 'Casa:'}</span> 
+                <span className="text-white font-bold">{house || (archetype === 'Landless' ? 'Sem Casa' : 'Vance')}</span>
+              </div>
               <div><span className="text-[#888] block">Arquétipo:</span> <span className="text-[#00E5FF] font-bold">{archetype}</span></div>
               <div><span className="text-[#888] block">Região Inicial:</span> <span className="text-white font-bold">{region}</span></div>
             </div>
