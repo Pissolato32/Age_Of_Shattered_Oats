@@ -1,19 +1,19 @@
-# Age of Shattered Oaths - Invariantes de Domínio e Engenharia
+# Age of Shattered Oaths - Domain & Engineering Invariants
 
-1. **Autoridade do Engine e Proveniência de Mutação**:
-   - `engine.ts` é o orquestrador autoritativo do sistema.
-   - Toda mutação persistente no estado do jogo (`CampaignState`) precisa ter proveniência determinística e rastreável.
-   - `worldLedger` é a fonte canônica da verdade para os dados e recursos sob sua responsabilidade.
+1. **Engine Authority and Mutation Provenance**:
+   - `engine.ts` is the authoritative orchestrator of the system.
+   - Every persistent mutation in the game state (`CampaignState`) must have deterministic and traceable provenance.
+   - `worldLedger` is the canonical source of truth for the data and resources under its ownership.
 
-2. **RNG e Determinismo**:
-   - Toda aleatoriedade deve utilizar estritamente o mecanismo canônico de RNG determinístico/semeado do motor.
-   - É terminantemente proibido introduzir `Math.random()` ou fontes de aleatoriedade não reproduzíveis no pipeline mecânico.
+2. **RNG and Determinism**:
+   - All randomness must strictly utilize the canonical deterministic/seeded RNG mechanism of the engine (`RandomService`).
+   - Introducing `Math.random()` or non-reproducible randomness sources into the mechanical pipeline is strictly forbidden.
 
-3. **Integridade Estrutural e Tipagem**:
-   - Não crie estado paralelo ou campos redundantes para contornar estruturas existentes.
-   - É proibido usar `any` para escapar do sistema de tipos ou mascarar conflitos de representação.
-   - Nunca altere a semântica de um subsistema existente apenas para fazer um teste isolado passar.
+3. **Structural Integrity and Type Safety**:
+   - Never create parallel state or redundant fields to bypass existing structures.
+   - Using `any` to bypass the type system or mask representation conflicts is strictly prohibited.
+   - Never alter the semantics of an existing subsystem merely to make an isolated test pass.
 
-4. **Preservação de Invariantes em Testes**:
-   - Mudanças mecânicas devem preservar todas as invariantes de conservação e regras de domínio existentes.
-   - Testes devem verificar invariantes e propriedades estruturais, não apenas outputs arbitrários ou pontuais.
+4. **Preservation of Invariants in Testing**:
+   - Mechanical changes must preserve all existing conservation invariants and domain business rules.
+   - Tests must verify structural properties and invariants, not merely arbitrary or point-in-time outputs.

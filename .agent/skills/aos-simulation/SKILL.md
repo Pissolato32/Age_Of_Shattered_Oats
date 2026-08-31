@@ -1,35 +1,35 @@
 ---
 name: aos-simulation
-description: Procedimento operacional para selecionar o nível adequado de validação, testes de estresse, simulação e replays determinísticos.
+description: Operational procedure to select the appropriate level of validation, stress tests, simulation, and deterministic replays.
 ---
 
-# Procedimento de Validação e Simulação
+# Validation and Simulation Procedure
 
-## Princípio Fundamental de Validação
-> **Simulação não é prova de correção mecânica.**
-> Simulações e testes de estresse servem para encontrar comportamentos emergentes, deriva estatística e regressões em escala. A garantia formal de propriedades e conservação de recursos é responsabilidade dos **testes de invariantes**.
+## Fundamental Principle of Validation
+> **Simulation is not a proof of mechanical correctness.**
+> Simulations and stress tests serve to discover emergent behaviors, statistical drift, and regressions at scale. Formal guarantees of conservation properties and resource bounds are the exclusive domain of **invariant tests**.
 
 ---
 
-## Matriz de Decisão: Mudança → Validação Necessária
+## Decision Matrix: Change Type → Required Validation
 
-| Tipo de Alteração | Validação Mínima Exigida | Comandos / Testes |
+| Change Type | Minimum Required Validation | Commands / Tests |
 | :--- | :--- | :--- |
-| **Regra de domínio pequena** | Teste específico + suite relacionada | `npx tsx tests/domain/<Domain>.test.ts` |
-| **`engine.ts` (Loop / Orquestrador)** | Testes de integração + Replay | `npx tsx tests/integration/*` e `npm run replay:validate` |
-| **RNG / Determinismo** | Replay determinístico + Simulação | `npm run replay:validate` e `npm run sim:magnitude` |
-| **Combate / Estatísticas** | Testes de domínio + Magnitude | `npx tsx tests/domain/CombatStatsCalculator.test.ts` e `npm run sim:magnitude` |
-| **Economia / Recursos** | Testes de domínio + Simulação longa | `npx tsx tests/domain/Commerce.test.ts` e `npm run stress:long` |
-| **Estado / Persistência** | Auditoria de persistência + Replay | `npx tsx tests/M25StatePersistenceAudit.test.ts` e `npm run replay:validate` |
-| **Alteração transversal** | Suite completa de testes | `npm test` |
-| **Otimização de performance** | Suite de testes de estresse | `npm run stress:short` / `npm run stress:medium` / `npm run stress:long` |
+| **Small Domain Rule** | Targeted test + related suite | `npx tsx tests/domain/<Domain>.test.ts` |
+| **`engine.ts` (Loop / Orchestrator)** | Integration tests + Replay validation | `npx tsx tests/integration/*` and `npm run replay:validate` |
+| **RNG / Determinism** | Deterministic replay + Magnitude simulation | `npm run replay:validate` and `npm run sim:magnitude` |
+| **Combat / Statistics** | Domain tests + Magnitude simulation | `npx tsx tests/domain/CombatStatsCalculator.test.ts` and `npm run sim:magnitude` |
+| **Economy / Resources** | Domain tests + Long stress simulation | `npx tsx tests/domain/Commerce.test.ts` and `npm run stress:long` |
+| **State / Persistence** | Persistence audit + Replay validation | `npx tsx tests/M25StatePersistenceAudit.test.ts` and `npm run replay:validate` |
+| **Cross-Cutting Change** | Full test suite | `npm test` |
+| **Performance Optimization** | Stress test suite | `npm run stress:short` / `npm run stress:medium` / `npm run stress:long` |
 
 ---
 
-## Catálogo de Comandos
-- **Validação de Replay**: `npm run replay:validate`
-- **Simulação de Magnitude**: `npm run sim:magnitude`
-- **Stress Curto (10k ticks)**: `npm run stress:short`
-- **Stress Médio (50k ticks)**: `npm run stress:medium`
-- **Stress Longo (100k ticks)**: `npm run stress:long`
-- **Suite Completa**: `npm test`
+## Command Catalog
+- **Replay Validation**: `npm run replay:validate`
+- **Magnitude Simulation**: `npm run sim:magnitude`
+- **Short Stress (10k ticks)**: `npm run stress:short`
+- **Medium Stress (50k ticks)**: `npm run stress:medium`
+- **Long Stress (100k ticks)**: `npm run stress:long`
+- **Full Suite**: `npm test`

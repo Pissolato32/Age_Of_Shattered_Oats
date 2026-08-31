@@ -1,11 +1,11 @@
 ---
 name: aos-narrative-pipeline
-description: Diretrizes e validação do fluxo de projeção sensorial, contratos semânticos e silêncio mecânico.
+description: Guidelines and validation for the sensory projection pipeline, semantic contracts, and mechanical silence.
 ---
 
-# Pipeline de Projeção Narrativa
+# Narrative Projection Pipeline
 
-## Fluxo Arquitetural Unidirecional
+## Unidirectional Architectural Flow
 ```
 Engine
   ↓
@@ -20,19 +20,19 @@ Post-Processor
 Narrative Output
 ```
 
-## Princípios de Autoridade e Fidelidade
-1. **O LLM Não Possui Autoridade Mecânica**:
-   - O LLM atua estritamente como pós-processador sensorial.
-   - A narrativa pode transformar a semântica mecânica em linguagem diegética e visceral (Iron Chronicle), mas **nunca pode inventar fatos mecânicos**, baixas, recursos ou eventos que não estejam presentes ou estritamente implicados pelo `ExecutionReport`/contrato semântico.
+## Authority and Fidelity Principles
+1. **The LLM Holds Zero Mechanical Authority**:
+   - The LLM acts strictly as a sensory post-processor.
+   - The narrative may transform mechanical semantics into visceral, diegetic language (Iron Chronicle), but **must NEVER invent mechanical facts**, casualties, resources, or events not present or strictly implied by the authoritative `ExecutionReport` and semantic contract.
 
-2. **Silêncio Técnico Absoluto**:
-   - Nenhum dado técnico ou jargão de RPG/código pode vazar para a superfície narrativa do jogador, incluindo:
-     - Siglas e moedas: `SD`, `FSU`, `AC`, `XP`
-     - Mecânicas de regras: `RNG`, `roll`, `dados`, `DCs`, `modificadores`
-     - Metadados: `IDs internos`, `nomes de classes/serviços`, `detalhes de implementação`
-   - Exceção: Telas explicitamente reservadas para debug ou painéis técnicos estruturados (ex: Ledger).
+2. **Absolute Mechanical Silence**:
+   - No technical data or RPG/code jargon must ever leak into the player narrative surface, including:
+     - Acronyms & currencies: `SD`, `FSU`, `AC`, `XP`
+     - Rule mechanics: `RNG`, `roll`, `dice`, `DCs`, `modifiers`
+     - Metadata: `internal IDs`, `class/service names`, `implementation details`
+   - Exception: Screens explicitly designated for debug or structured technical ledger panels (e.g. LedgerViewer).
 
-## Validação de Contratos
+## Contract Validation
 - `npx tsx tests/NarrativeContracts.test.ts`
 - `npx tsx tests/SemanticInputContract.test.ts`
 - `npx tsx tests/NarrativeProjection.test.ts`

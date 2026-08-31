@@ -1,19 +1,19 @@
 ---
 name: aos-change-validation
-description: Workflow operacional de 10 passos para investigar, implementar e validar alterações de engenharia no repositório.
+description: 10-step operational workflow to investigate, implement, and validate engineering changes in the repository.
 ---
 
-# Workflow de Validação de Mudanças (10 Passos)
+# Change Validation Workflow (10 Steps)
 
-Siga este procedimento antes de considerar qualquer alteração concluída no projeto:
+Follow this procedure before considering any change completed in the project:
 
-1. **Inspecionar a arquitetura existente**: Identifique os módulos, contratos e fluxos envolvidos.
-2. **Procurar implementação equivalente**: Verifique se já existe código, tipo ou serviço atendendo à mesma finalidade.
-3. **Identificar a fonte canônica da verdade**: Localize quem é o dono autoritativo do dado (`worldLedger`, subsistema específico ou `engine.ts`).
-4. **Identificar invariantes afetados**: Mapeie propriedades de conservação, determinismo de RNG ou contratos semânticos impactados.
-5. **Implementar a menor mudança possível**: Corrija o fluxo existente na raiz; nunca adicione camadas desnecessárias, adaptadores artificiais ou campos redundantes.
-6. **Executar testes específicos**: Rode os testes unitários do domínio alterado (`tests/domain/*`).
-7. **Executar testes de integração**: Valide o encadeamento entre subsistemas (`tests/integration/*`).
-8. **Executar replay / simulação**: Rode `npm run replay:validate` ou a simulação correspondente conforme a matriz de simulação.
-9. **Verificar diff**: Inspecione se há tipos `any`, dependências supérfluas ou violações de silêncio mecânico no diff.
-10. **Gate de Playtest Humano (PLAYTEST_REQUIRED)**: Ao atingir `TECHNICALLY_DONE`, a IA deve parar imediatamente e convocar o playtest do usuário. O item só passa a `DONE` com a validação humana da experiência diegética (WIP=1). Achados não-bloqueantes são destinados ao Backlog.
+1. **Inspect Existing Architecture**: Identify the modules, contracts, and execution pipelines involved.
+2. **Search for Equivalent Implementations**: Verify if an existing type, service, or function already serves the same purpose.
+3. **Identify Canonical Source of Truth**: Locate the authoritative owner of the data (`worldLedger`, specific subsystem, or `engine.ts`).
+4. **Identify Affected Invariants**: Map conservation properties, RNG determinism, or semantic contracts impacted.
+5. **Implement Minimal Sufficient Change**: Fix the existing flow at its root; never add redundant layers, artificial adapters, or duplicate fields.
+6. **Execute Targeted Domain Tests**: Run unit tests for the altered domain (`tests/domain/*`).
+7. **Execute Integration Tests**: Validate subsystem chaining (`tests/integration/*`).
+8. **Execute Replay / Simulation**: Run `npm run replay:validate` or corresponding simulation per the simulation matrix.
+9. **Inspect Git Diff**: Ensure zero `any` types, zero redundant dependencies, and absolute adherence to mechanical silence.
+10. **Human Playtest Gate (`PLAYTEST_REQUIRED`)**: Upon reaching `TECHNICALLY_DONE`, the AI must immediately stop coding and hand over to the user for live browser playtesting (WIP=1). Non-blocking findings are deferred to the Backlog.
