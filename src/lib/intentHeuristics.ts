@@ -364,7 +364,7 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
   }
 
   // 11. Ação Verbal Explícita: ESPIONAGE (exclui patrulhas armadas de tropas regulares)
-  if (actionLemmas.espionage && (!entities.hasMilitaryTroops || /batedor|espi|infiltr|sond|rastre/i.test(normalized))) {
+  if (actionLemmas.espionage && (!entities.hasMilitaryTroops || /batedor|espi|infiltr|sond|rastre|reconhec/i.test(normalized))) {
     const loc = extractLocationOrTarget(playerInput);
     if (!loc && !addressee) {
       return buildCommand('ESPIONAGE', {

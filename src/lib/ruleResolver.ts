@@ -73,7 +73,16 @@ function sanitizeActionText(rawText: string): string {
  * 4. Cálculo de Efeitos Mecânicos (Deltas de recursos).
  * 5. Emissão de Decisão: ALLOWED, DENIED, NOT_FOUND ou AMBIGUOUS com Evidências Canon.
  */
-export function resolveAction(userActionRaw: string, worldState?: CampaignState): RuleResolutionResult {
+export interface TradeResolutionOptions {
+  maxCost?: number;
+  quantity?: number;
+}
+
+export function resolveAction(
+  userActionRaw: string,
+  worldState?: CampaignState,
+  options?: TradeResolutionOptions
+): RuleResolutionResult {
   const userAction = sanitizeActionText(userActionRaw);
 
   if (!userAction || userAction.trim().length === 0) {
@@ -504,17 +513,57 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
     if (lowerAction.includes('imposto') || lowerAction.includes('coletar')) {
       effects = [{ resource: 'weeklyLedger.silverdew', delta: 50 }];
     } else if (lowerAction.includes('comprar') || lowerAction.includes('compra') || lowerAction.includes('compre')) {
-      const numMatch = userAction.match(/\b(\d+)\b/);
+      // 1. Extração determinística de Orçamento (maxCost) e Quantidade física (quantity)
+      let maxCost: number | undefined = options?.maxCost;
+      let quantity: number | undefined = options?.quantity;
+
+      // Parsing textual de maxCost (moedas, prata, sd, teto, limite, não gaste mais de)
+      if (maxCost === undefined) {
+        const budgetPatterns = [
+          /(?:nao gaste mais de|não gaste mais de)\s*(\d+)/i,
+          /(?:gastando|gaste|teto|limite|maximo|máximo|orcamento|orçamento|ate|até|por no maximo|por no máximo)\s*(?:de|ate|até)?\s*(\d+)\s*(?:moedas|moeda|prata|silverdew|sd)?/i,
+          /(\d+)\s*(?:moedas de prata|moedas|moeda|prata|silverdew|sd)\b/i
+        ];
+        for (const bp of budgetPatterns) {
+          const m = userAction.match(bp);
+          if (m) {
+            maxCost = parseInt(m[1], 10);
+            break;
+          }
+        }
+      }
+
+      // Parsing textual de quantity (unidades, fardos, sacas, fsu, etc.)
+      if (quantity === undefined) {
+        const qtyPatterns = [
+          /(\d+)\s*(?:unidades|unidade|fardos|fardo|sacas|saca|fsu|madeira|tora|toras|pedra|pedras|ferro|graos|grãos|comida|alimentos)\b/i
+        ];
+        for (const qp of qtyPatterns) {
+          const m = userAction.match(qp);
+          if (m) {
+            quantity = parseInt(m[1], 10);
+            break;
+          }
+        }
+      }
+
       const isTimber = lowerAction.includes('madeira') || lowerAction.includes('tora') || lowerAction.includes('wood') || lowerAction.includes('timber');
       const isStone = lowerAction.includes('pedra') || lowerAction.includes('stone');
       const isIron = lowerAction.includes('ferro') || lowerAction.includes('iron');
 
       if (isTimber) {
         // Preço canônico de madeira: 0.75 SD/unidade (ou lote padrão de 20 por 15 SD)
-        const qty = numMatch ? parseInt(numMatch[1], 10) : 20;
+        const qty = quantity !== undefined ? quantity : (maxCost !== undefined ? Math.floor(maxCost / 0.75) : 20);
         const totalSd = Math.ceil(qty * 0.75);
 
-        if (worldState) {
+        // Invariante de Orçamento (M28.0)
+        if (maxCost !== undefined && totalSd > maxCost) {
+          allowed = false;
+          decisionReason = `Compra RECUSADA (ORÇAMENTO). Custo da operação (${totalSd} SD) excede o orçamento máximo autorizado (${maxCost} SD).`;
+        } else if (qty <= 0) {
+          allowed = false;
+          decisionReason = `Compra RECUSADA (ORÇAMENTO). Orçamento máximo (${maxCost ?? 0} SD) insuficiente para adquirir qualquer unidade de madeira.`;
+        } else if (worldState) {
           const curSD = worldState.weeklyLedger.silverdew;
           const hasSD = curSD >= totalSd;
           conditions.push({
@@ -538,9 +587,16 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
           ];
         }
       } else if (isStone) {
-        const qty = numMatch ? parseInt(numMatch[1], 10) : 10;
+        const qty = quantity !== undefined ? quantity : (maxCost !== undefined ? Math.floor(maxCost / 1.0) : 10);
         const totalSd = Math.ceil(qty * 1.0);
-        if (worldState) {
+
+        if (maxCost !== undefined && totalSd > maxCost) {
+          allowed = false;
+          decisionReason = `Compra RECUSADA (ORÇAMENTO). Custo da operação (${totalSd} SD) excede o orçamento máximo autorizado (${maxCost} SD).`;
+        } else if (qty <= 0) {
+          allowed = false;
+          decisionReason = `Compra RECUSADA (ORÇAMENTO). Orçamento máximo (${maxCost ?? 0} SD) insuficiente para adquirir pedra.`;
+        } else if (worldState) {
           const curSD = worldState.weeklyLedger.silverdew;
           const hasSD = curSD >= totalSd;
           conditions.push({ condition: `Tesouro >= ${totalSd} SD`, result: hasSD });
@@ -556,9 +612,16 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
           }
         }
       } else if (isIron) {
-        const qty = numMatch ? parseInt(numMatch[1], 10) : 5;
+        const qty = quantity !== undefined ? quantity : (maxCost !== undefined ? Math.floor(maxCost / 2.0) : 5);
         const totalSd = Math.ceil(qty * 2.0);
-        if (worldState) {
+
+        if (maxCost !== undefined && totalSd > maxCost) {
+          allowed = false;
+          decisionReason = `Compra RECUSADA (ORÇAMENTO). Custo da operação (${totalSd} SD) excede o orçamento máximo autorizado (${maxCost} SD).`;
+        } else if (qty <= 0) {
+          allowed = false;
+          decisionReason = `Compra RECUSADA (ORÇAMENTO). Orçamento máximo (${maxCost ?? 0} SD) insuficiente para adquirir ferro.`;
+        } else if (worldState) {
           const curSD = worldState.weeklyLedger.silverdew;
           const hasSD = curSD >= totalSd;
           conditions.push({ condition: `Tesouro >= ${totalSd} SD`, result: hasSD });
@@ -575,11 +638,29 @@ export function resolveAction(userActionRaw: string, worldState?: CampaignState)
         }
       } else {
         // Compra de Grãos / Alimentos (1.5 SD por FSU)
-        const qty = numMatch ? parseInt(numMatch[1], 10) : 10;
+        // Se a quantidade física foi especificada explicitamente (ex: 100 FSU), usa-a.
+        // Se apenas o teto de orçamento foi especificado, adquire lote proporcional seguro <= maxCost.
+        // Se nenhuma quantidade ou teto foi informado, usa o lote padrão de 10 FSU (15 SD).
+        let qty: number;
+        if (quantity !== undefined) {
+          qty = quantity;
+        } else if (maxCost !== undefined) {
+          qty = Math.floor(maxCost / 1.5);
+        } else {
+          qty = 10;
+        }
+
         const unitPrice = 1.5;
         const totalSd = Math.ceil(qty * unitPrice);
 
-        if (worldState) {
+        // Invariante de Orçamento (M28.0)
+        if (maxCost !== undefined && totalSd > maxCost) {
+          allowed = false;
+          decisionReason = `Compra RECUSADA (ORÇAMENTO). Custo da operação (${totalSd} SD) excede o orçamento máximo autorizado (${maxCost} SD).`;
+        } else if (qty <= 0) {
+          allowed = false;
+          decisionReason = `Compra RECUSADA (ORÇAMENTO). Orçamento máximo (${maxCost ?? 0} SD) insuficiente para adquirir mantimentos.`;
+        } else if (worldState) {
           const curSD = worldState.weeklyLedger.silverdew;
           const hasSD = curSD >= totalSd;
           conditions.push({

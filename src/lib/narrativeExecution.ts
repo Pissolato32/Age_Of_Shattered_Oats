@@ -39,6 +39,8 @@ export interface NarrativeResolutionResult {
   /** The resulting state. A cloned state when the resolution mutated resources; the same reference otherwise. The input is never mutated. */
   readonly state: CampaignState;
   readonly mutated: boolean;
+  /** Explicit M28.1 declaration of whether the action itself mutated state (independent of weekly systemic ticks) */
+  readonly actionMutatedState: boolean;
 }
 
 /**
@@ -80,7 +82,7 @@ const PARAMETER_ALLOW_LISTS: Readonly<Record<string, readonly string[]>> = {
   RECRUIT: ['quantity'],
   BUILD: [],
   TRAVEL: [],
-  TRADE: [],
+  TRADE: ['quantity', 'maxCost', 'rejectIfExceeds'],
   INFORMATION: [],
   FLAVOR_QUERY: []
 };
@@ -151,7 +153,8 @@ function rejectionReport(
       false
     ),
     state,
-    mutated: false
+    mutated: false,
+    actionMutatedState: false
   };
 }
 
@@ -429,7 +432,8 @@ export function resolveNarrativeCommand(
         false
       ),
       state,
-      mutated: false
+      mutated: false,
+      actionMutatedState: false
     };
   }
 
@@ -510,7 +514,8 @@ export function resolveNarrativeCommand(
     return {
       report,
       state: updatedState,
-      mutated
+      mutated,
+      actionMutatedState: mutated
     };
   }
 
@@ -588,7 +593,7 @@ export function resolveNarrativeCommand(
         hiddenInformationIds: [],
         events: []
       };
-      return { report, state, mutated: false };
+      return { report, state, mutated: false, actionMutatedState: false };
     }
 
     const genericRes = resolveGenericPlausibleAction(
@@ -643,11 +648,32 @@ export function resolveNarrativeCommand(
     return {
       report,
       state: updatedState,
-      mutated
+      mutated,
+      actionMutatedState: mutated
     };
   }
 
-  const resolution = resolveAction(phrase, state);
+  const tradeOptions = command.action === 'TRADE' ? {
+    maxCost: typeof command.parameters?.maxCost === 'number' ? command.parameters.maxCost : undefined,
+    quantity: typeof command.parameters?.quantity === 'number' ? command.parameters.quantity : undefined
+  } : undefined;
+
+  const resolution = resolveAction(phrase, state, tradeOptions);
+
+  // Defense-in-depth Assertion (M28.0): Ensure actual cost in silverdew does not exceed maxCost if specified
+  if (command.action === 'TRADE' && typeof command.parameters?.maxCost === 'number' && resolution.decision === 'ALLOWED') {
+    const totalSpent = resolution.effects
+      .filter(e => e.resource === 'weeklyLedger.silverdew' && e.delta < 0)
+      .reduce((sum, e) => sum + Math.abs(e.delta), 0);
+    if (totalSpent > (command.parameters.maxCost as number)) {
+      return rejectionReport(
+        command,
+        state,
+        `Operação de comércio RECUSADA (ORÇAMENTO). Custo (${totalSpent} SD) excede o orçamento máximo autorizado (${command.parameters.maxCost} SD).`
+      );
+    }
+  }
+
   const { updatedState, mutated } = applyResolutionToState(state, resolution);
   const report = buildExecutionReport(command, resolution, state, updatedState, mutated, magnitude);
   const finalState = attachTemporalConsequencesAndEvents(report, updatedState, mutated, command);
@@ -655,7 +681,8 @@ export function resolveNarrativeCommand(
   return {
     report,
     state: finalState,
-    mutated
+    mutated,
+    actionMutatedState: mutated
   };
 }
 

@@ -19,6 +19,7 @@ export interface CausalTraceLogEntry {
     actionExecuted: string;
     reasonCode: string;
     mutated: boolean;
+    actionMutatedState: boolean;
     discoveredInformation?: readonly any[];
   };
   stateBefore: {
@@ -33,9 +34,12 @@ export interface CausalTraceLogEntry {
     laborPool: number;
     garrison: number;
   };
+  actionMutatedState: boolean;
   actionDeltas: Array<{ path: string; before: unknown; after: unknown; delta?: number }>;
+  systemWeeklyDeltas: Record<string, number>;
   weeklyDeltas: Record<string, number>;
   totalDeltas: Record<string, number>;
+  totalStateChanged: boolean;
   stateDeltas: Array<{ path: string; before: unknown; after: unknown; delta?: number }>;
   weeklyFinancials: {
     income: number;
@@ -207,6 +211,9 @@ export async function executePlaytestTurnPristine(playerInput: string): Promise<
     }
   }
 
+  const actionMutatedState = (cycleResult as any).actionMutatedState ?? (cycleResult.report.stateChanges.length > 0);
+  const totalStateChanged = Object.values(totalDeltas).some(d => d !== 0);
+
   const traceEntry: CausalTraceLogEntry = {
     turn: finalState.worldLedger.currentDate.week,
     date: `${finalState.worldLedger.currentDate.month}, Ano ${finalState.worldLedger.currentDate.year}, Semana ${finalState.worldLedger.currentDate.week}`,
@@ -217,13 +224,17 @@ export async function executePlaytestTurnPristine(playerInput: string): Promise<
       actionExecuted: cycleResult.report.actionExecuted,
       reasonCode: cycleResult.report.reasonCode,
       mutated: cycleResult.report.stateChanges.length > 0,
+      actionMutatedState,
       discoveredInformation: cycleResult.report.discoveredInformation
     },
     stateBefore,
     stateAfter,
+    actionMutatedState,
     actionDeltas,
+    systemWeeklyDeltas: weeklyDeltas,
     weeklyDeltas,
     totalDeltas,
+    totalStateChanged,
     stateDeltas: actionDeltas,
     weeklyFinancials: {
       income: 92.5,

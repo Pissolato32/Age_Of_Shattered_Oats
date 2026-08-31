@@ -2,6 +2,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ModelConfig, LLMProviderId, FallbackModelConfig } from '../contracts/LLMContract';
 import { BillingGuard, BillingMode } from '../validators/BillingGuard';
+import {
+  BillingEligibility,
+  DiscoveredCandidate,
+  HealthCheckEvent,
+  ModelLifecycleState,
+  ProviderDiscovery
+} from './ProviderDiscovery';
 
 export type LLMTask = 'INTERPRET_INTENT' | 'NARRATE_EXECUTION';
 
@@ -157,7 +164,7 @@ export const DEFAULT_MODEL_REGISTRY_CONFIG: ModelRegistryConfig = {
 
 export class ModelRegistry {
   private readonly config: ModelRegistryConfig;
-  private readonly runtimeStatus: Map<string, { status: ModelLifecycleStatus; rateLimitedUntil?: number }> = new Map();
+  private readonly dynamicCandidates: Map<string, DiscoveredCandidate> = new Map();
 
   constructor(customConfigPath?: string) {
     if (customConfigPath && fs.existsSync(customConfigPath)) {
@@ -181,9 +188,38 @@ export class ModelRegistry {
       }
     }
 
-    // Initialize runtime status and validate models
+    // Initialize dynamic candidates from configuration baseline
     for (const model of this.config.models) {
-      this.runtimeStatus.set(model.id, { status: model.status || 'ACTIVE' });
+      const billing = ProviderDiscovery.evaluateBillingEligibility(
+        model.provider,
+        model.model,
+        'FREE',
+        model.freePolicy
+      );
+
+      const candidate: DiscoveredCandidate = {
+        id: model.id,
+        provider: model.provider,
+        model: model.model,
+        discoveredAt: Date.now(),
+        billing: {
+          mode: billing.mode,
+          eligible: billing.eligible,
+          lastVerifiedAt: Date.now()
+        },
+        health: {
+          status: model.status === 'DEGRADED' ? 'DEGRADED' : 'ONLINE',
+          lastCheckedAt: Date.now()
+        },
+        lifecycle: model.status === 'DEGRADED' ? 'DEGRADED' : (billing.eligible ? 'ELIGIBLE' : 'HEALTHY'),
+        capabilities: model.capabilities,
+        fallbackConfigs: model.fallbackConfigs,
+        enabled: model.enabled,
+        freePolicy: model.freePolicy,
+        maxCost: model.maxCost
+      };
+
+      this.dynamicCandidates.set(model.id, candidate);
       BillingGuard.assertFreeModel(model);
       if (model.fallbackConfigs && Array.isArray(model.fallbackConfigs)) {
         for (const fb of model.fallbackConfigs) {
@@ -200,89 +236,157 @@ export class ModelRegistry {
     }
   }
 
+  /**
+   * Registers a newly discovered model candidate at runtime.
+   */
+  public registerDiscoveredCandidate(candidate: DiscoveredCandidate): void {
+    this.dynamicCandidates.set(candidate.id, candidate);
+  }
+
+  /**
+   * Records a health event (HTTP 200, 404, 429, timeout, etc.) on a candidate.
+   */
+  public recordHealthEvent(modelId: string, event: HealthCheckEvent): DiscoveredCandidate | undefined {
+    const candidate = this.dynamicCandidates.get(modelId);
+    if (!candidate) return undefined;
+
+    const updated = ProviderDiscovery.processHealthEvent(candidate, event);
+    this.dynamicCandidates.set(modelId, updated);
+    return updated;
+  }
+
+  /**
+   * Records a dynamic billing update on a candidate (FREE, PAID, UNKNOWN, UNAVAILABLE).
+   */
+  public recordBillingUpdate(modelId: string, newBilling: BillingEligibility): DiscoveredCandidate | undefined {
+    const candidate = this.dynamicCandidates.get(modelId);
+    if (!candidate) return undefined;
+
+    const updated = ProviderDiscovery.updateBillingState(candidate, newBilling);
+    this.dynamicCandidates.set(modelId, updated);
+    return updated;
+  }
+
+  public getCandidate(modelId: string): DiscoveredCandidate | undefined {
+    const candidate = this.dynamicCandidates.get(modelId);
+    if (!candidate) return undefined;
+
+    // Check rate limit expiration
+    if (candidate.lifecycle === 'RATE_LIMITED' && candidate.health.rateLimitedUntil) {
+      if (Date.now() >= candidate.health.rateLimitedUntil) {
+        candidate.health.status = 'ONLINE';
+        candidate.health.rateLimitedUntil = undefined;
+        candidate.health.failureReason = undefined;
+        candidate.lifecycle = candidate.billing.eligible ? 'ELIGIBLE' : 'HEALTHY';
+        this.dynamicCandidates.set(modelId, candidate);
+      }
+    }
+
+    return candidate;
+  }
+
+  public getAllCandidates(): readonly DiscoveredCandidate[] {
+    return Array.from(this.dynamicCandidates.values());
+  }
+
   public getModels(): readonly RegisteredModelConfig[] {
     return this.config.models;
   }
 
   public getEnabledModels(): readonly RegisteredModelConfig[] {
-    return this.config.models.filter(m => m.enabled);
+    return Array.from(this.dynamicCandidates.values())
+      .filter(c => c.enabled)
+      .map(c => this.toRegisteredModelConfig(c));
   }
 
   public getModelByProvider(provider: LLMProviderId): RegisteredModelConfig | undefined {
-    return this.config.models.find(m => m.provider === provider && m.enabled);
+    const candidate = Array.from(this.dynamicCandidates.values()).find(
+      c => c.provider === provider && c.enabled
+    );
+    return candidate ? this.toRegisteredModelConfig(candidate) : undefined;
   }
 
   public markRateLimited(modelId: string, cooldownMs: number = 60000): void {
-    const entry = this.runtimeStatus.get(modelId) || { status: 'ACTIVE' };
-    entry.status = 'RATE_LIMITED';
-    entry.rateLimitedUntil = Date.now() + cooldownMs;
-    this.runtimeStatus.set(modelId, entry);
+    this.recordHealthEvent(modelId, { httpStatus: 429, cooldownMs });
   }
 
   public markUnavailable(modelId: string): void {
-    const entry = this.runtimeStatus.get(modelId) || { status: 'ACTIVE' };
-    entry.status = 'UNAVAILABLE';
-    this.runtimeStatus.set(modelId, entry);
+    this.recordHealthEvent(modelId, { httpStatus: 404 });
   }
 
   public markPaid(modelId: string): void {
-    const entry = this.runtimeStatus.get(modelId) || { status: 'ACTIVE' };
-    entry.status = 'PAID';
-    this.runtimeStatus.set(modelId, entry);
+    this.recordBillingUpdate(modelId, 'PAID');
   }
 
   public markActive(modelId: string): void {
-    const entry = this.runtimeStatus.get(modelId) || { status: 'ACTIVE' };
-    entry.status = 'ACTIVE';
-    entry.rateLimitedUntil = undefined;
-    this.runtimeStatus.set(modelId, entry);
+    this.recordHealthEvent(modelId, { httpStatus: 200 });
   }
 
   public getModelStatus(modelId: string): ModelLifecycleStatus {
-    const entry = this.runtimeStatus.get(modelId);
-    if (!entry) return 'ACTIVE';
+    const candidate = this.getCandidate(modelId);
+    if (!candidate) return 'ACTIVE';
 
-    if (entry.status === 'RATE_LIMITED' && entry.rateLimitedUntil) {
-      if (Date.now() >= entry.rateLimitedUntil) {
-        entry.status = 'ACTIVE';
-        entry.rateLimitedUntil = undefined;
-      }
+    switch (candidate.lifecycle) {
+      case 'ELIGIBLE':
+      case 'HEALTHY':
+      case 'DISCOVERED':
+        return 'ACTIVE';
+      case 'RATE_LIMITED':
+        return 'RATE_LIMITED';
+      case 'DEGRADED':
+        return 'DEGRADED';
+      case 'PAID':
+        return 'PAID';
+      case 'UNAVAILABLE':
+      case 'RETIRED':
+        return 'UNAVAILABLE';
+      default:
+        return 'ACTIVE';
     }
-    return entry.status;
   }
 
   /**
-   * Task-Based Dynamic Resolver with Strict Multi-Stage Funnel:
-   * 1. Billing Eligibility (assertFreeModel / strict check)
-   * 2. Provider Availability (configured API key)
-   * 3. Lifecycle Status (ACTIVE vs RATE_LIMITED cooldown vs UNAVAILABLE/PAID)
+   * Task-Based Dynamic Resolver with Strict Multi-Stage Funnel (M28.2):
+   * 1. Billing Eligibility (Dynamic check: FREE required; PAID/UNKNOWN fail-closed)
+   * 2. Provider Availability (configured API key / mock)
+   * 3. Lifecycle Status (ELIGIBLE / HEALTHY vs RATE_LIMITED cooldown vs UNAVAILABLE/PAID)
    * 4. Task Capability Ranking (Interpreter score vs Narrator score)
-   * 5. Fallback to Mock if all remote models fail
+   * 5. Fallback to Mock if all remote candidates fail
    */
   public resolveModelForTask(task: LLMTask, billingMode: BillingMode = 'free-tier'): RegisteredModelConfig {
-    const candidates = this.config.models.filter(m => m.enabled);
+    const candidates = Array.from(this.dynamicCandidates.values()).filter(c => c.enabled);
 
-    const eligible = candidates.filter(m => {
-      // 1. Billing check
-      if (billingMode === 'strict' && m.freePolicy !== 'explicit-free') {
+    const eligible = candidates.filter(c => {
+      // 1. Dynamic Billing check (FAIL-CLOSED on UNKNOWN and PAID)
+      if (c.billing.mode !== 'FREE' || !c.billing.eligible) {
         return false;
       }
+      if (billingMode === 'strict' && c.freePolicy !== 'explicit-free') {
+        return false;
+      }
+
       // 2. Provider configured
-      if (!ModelRegistry.isProviderConfigured(m.provider)) {
+      if (!ModelRegistry.isProviderConfigured(c.provider)) {
         return false;
       }
-      // 3. Status check
-      const status = this.getModelStatus(m.id);
-      if (status === 'UNAVAILABLE' || status === 'PAID' || status === 'RETIRED') {
+
+      // 3. Lifecycle Status check
+      const current = this.getCandidate(c.id);
+      if (!current) return false;
+
+      if (
+        current.lifecycle === 'UNAVAILABLE' ||
+        current.lifecycle === 'PAID' ||
+        current.lifecycle === 'RETIRED' ||
+        current.lifecycle === 'RATE_LIMITED'
+      ) {
         return false;
       }
-      if (status === 'RATE_LIMITED') {
-        return false;
-      }
-      return true;
+
+      return current.lifecycle === 'ELIGIBLE' || current.lifecycle === 'HEALTHY';
     });
 
-    const remoteEligible = eligible.filter(m => m.provider !== 'mock');
+    const remoteEligible = eligible.filter(c => c.provider !== 'mock');
 
     if (remoteEligible.length === 0) {
       return this.getMockModel();
@@ -304,12 +408,15 @@ export class ModelRegistry {
       return scoreB - scoreA;
     });
 
-    return remoteEligible[0];
+    return this.toRegisteredModelConfig(remoteEligible[0]);
   }
 
   public getMockModel(): RegisteredModelConfig {
-    const mock = this.config.models.find(m => m.provider === 'mock');
-    return mock || {
+    const mock = this.dynamicCandidates.get('mock-deterministic');
+    if (mock) {
+      return this.toRegisteredModelConfig(mock);
+    }
+    return {
       id: 'mock-deterministic',
       provider: 'mock',
       model: 'deterministic-local-mock',
@@ -317,6 +424,20 @@ export class ModelRegistry {
       maxCost: 0,
       enabled: true,
       status: 'ACTIVE'
+    };
+  }
+
+  private toRegisteredModelConfig(candidate: DiscoveredCandidate): RegisteredModelConfig {
+    return {
+      id: candidate.id,
+      provider: candidate.provider,
+      model: candidate.model,
+      freePolicy: candidate.freePolicy || (candidate.billing.mode === 'FREE' ? 'free-tier' : 'explicit-free'),
+      maxCost: candidate.maxCost ?? 0,
+      enabled: candidate.enabled,
+      status: this.getModelStatus(candidate.id),
+      capabilities: candidate.capabilities,
+      fallbackConfigs: candidate.fallbackConfigs
     };
   }
 
@@ -346,3 +467,4 @@ export class ModelRegistry {
     return Boolean(key && key.trim().length > 0);
   }
 }
+
