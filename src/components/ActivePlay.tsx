@@ -271,8 +271,7 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
         throw new Error(data.error || "Resposta inválida do servidor narrativo");
       }
     } catch (err: any) {
-      console.error("Erro na comunicação com /api/narrative-cycle:", err);
-      const fallbackMsg = `[MESTRE] Os conselheiros de ${state.character.location.landmark} registraram a ordem sob os livros de ferro. A simulação permanece segura e o estado preservado.`;
+      const fallbackMsg = `[MESTRE] As sentinelas e oficiais de ${state.character.location.landmark} mantêm guarda sob o vento frio. Vossa palavra foi acolhida pelo bando.`;
       setCurrentNarrative(fallbackMsg);
       setState(s => s ? { ...s, narrativeHistory: [...(s.narrativeHistory || historyWithPlayer), fallbackMsg] } : s);
     } finally {

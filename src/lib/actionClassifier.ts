@@ -85,9 +85,12 @@ export function classifyNarrativeCommand(
 ): ActionClassification {
   // Priority 0: Explicit clarification requirement from interpreter
   if (command.requiresClarification) {
+    const ambStr = Array.isArray(command.ambiguity)
+      ? command.ambiguity.join('; ')
+      : (typeof command.ambiguity === 'string' ? command.ambiguity : 'ambiguidade detectada');
     return {
       type: 'AMBIGUOUS',
-      reason: `O comando exige esclarecimento: ${command.ambiguity.join('; ') || 'ambiguidade detectada'}`,
+      reason: `O comando exige esclarecimento: ${ambStr || 'ambiguidade detectada'}`,
       pipeline: 'CLARIFICATION_PIPELINE'
     };
   }

@@ -48,7 +48,7 @@ export function CharacterCreator({ onCancel, onFinishCreation }: CharacterCreato
       baseState.character.banner.colors = 'Sem Estandarte';
       baseState.character.banner.symbol = 'Nenhum';
       baseState.character.banner.motto = '';
-      baseState.character.location.landmark = 'Acampamento nos arredores de Grey Keep';
+      baseState.character.location.landmark = 'Grey Keep';
       baseState.weeklyLedger.silverdew = 200;
       baseState.holdings.name = 'Sem Feudo (Bando Errante)';
       baseState.holdings.type = 'Camp';
