@@ -647,130 +647,154 @@ export function LedgerViewer({ state, onClose }: LedgerViewerProps) {
           {tab === 'councils' && (
             <div className="space-y-6">
               {(() => {
-                let councilsList: any[] = [];
+                const isLandless = state.holdings?.type === 'Camp' || state.holdings?.type === 'None';
+
+                // Own councils: councils the character presides over (top-level state.councils)
+                let ownCouncils: any[] = [];
                 if (state.councils) {
-                  if (Array.isArray(state.councils)) {
-                    councilsList = state.councils;
-                  } else {
-                    councilsList = Object.values(state.councils).filter(c => c && typeof c === 'object');
-                  }
-                } else if (state.worldLedger?.councils) {
-                  councilsList = state.worldLedger.councils;
+                  ownCouncils = Array.isArray(state.councils)
+                    ? state.councils
+                    : Object.values(state.councils).filter(c => c && typeof c === 'object');
                 }
 
-                if (councilsList.length > 0) {
-                  return councilsList.map((council: any) => {
-                    const fundVal = typeof council.emergencyFund === 'object' ? council.emergencyFund.size : council.emergencyFund || 0;
-                    return (
-                      <div key={council.name} className="border border-[#2D2D30] bg-[#0F0F12] p-4 space-y-4">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#2D2D30] pb-2 gap-2">
-                          <div>
-                            <h3 className="text-white font-bold text-xs uppercase flex items-center gap-2">
-                              <Landmark className="w-4 h-4 text-[#F2A900]" /> {council.name}
-                            </h3>
-                            {council.nature && <span className="text-[9px] text-[#888] font-mono uppercase">{council.nature}</span>}
-                          </div>
-                          <span className="text-[10px] bg-amber-950/30 border border-amber-900/40 text-[#F2A900] px-2 py-0.5 font-bold font-mono">
-                            Fundo de Emergência: {fundVal} SD
-                          </span>
-                        </div>
+                // World councils: political institutions that exist in the world regardless of ownership
+                const worldCouncils: any[] = state.worldLedger?.councils ?? [];
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Seats/Members table */}
-                          <div>
-                            <h4 className="text-[#888] font-mono text-[9px] uppercase tracking-wider mb-2 border-b border-neutral-900 pb-1">Assentos do Conselho</h4>
-                            <div className="space-y-1.5">
-                              {council.seats?.map((seat: any, sIdx: number) => (
-                                <div key={sIdx} className="flex justify-between items-center bg-[#151518]/40 p-2 border border-neutral-900 text-xs">
-                                  <div>
-                                    <span className="font-bold text-white block text-xs">
-                                      {seat.name || seat.representative}
-                                    </span>
-                                    <span className="text-[9px] text-[#666] uppercase">
-                                      {seat.role || `Casa ${seat.house}`}
-                                    </span>
-                                  </div>
-                                  <div className="flex gap-4 font-mono text-[10px] shrink-0">
-                                    {seat.disposition !== undefined && (
-                                      <div>Apreço/Votos: <span className="text-emerald-400 font-bold">{seat.disposition || seat.votes}</span></div>
-                                    )}
-                                    {seat.loyalty !== undefined && (
-                                      <div>Lealdade/Status: <span className="text-[#00E5FF] font-bold">{seat.loyalty || seat.status}</span></div>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Agendas & Rules */}
-                          <div>
-                            {(() => {
-                              const agendas = council.pendingAgendas || council.pendingAgenda;
-                              if (!agendas) return null;
-                              return (
-                                <div className="mb-4">
-                                  <h4 className="text-[#888] font-mono text-[9px] uppercase tracking-wider mb-2 border-b border-neutral-900 pb-1">Agendas & Pautas Pendentes</h4>
-                                  <div className="space-y-2">
-                                    {agendas.length > 0 ? (
-                                      agendas.map((agenda: string, aIdx: number) => (
-                                        <div key={aIdx} className="p-2.5 bg-[#151518] border border-l-2 border-neutral-800 border-l-[#F2A900] text-[11px] leading-relaxed text-slate-300 font-mono">
-                                          &gt; {agenda}
-                                        </div>
-                                      ))
-                                    ) : (
-                                      <div className="p-3 text-center text-[#555] italic border border-neutral-900">Nenhuma pauta pendente registrada.</div>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })()}
-
-                            {council.rules && (
-                              <div>
-                                <h4 className="text-[#888] font-mono text-[9px] uppercase tracking-wider mb-2 border-b border-neutral-900 pb-1">Regras & Protocolos</h4>
-                                <div className="p-2.5 bg-neutral-950 border border-neutral-900 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1">
-                                  {council.rules.map((rule: string, rIdx: number) => (
-                                    <div key={rIdx}>• {rule}</div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {council.emergencyFund?.contributions && (
-                              <div className="mt-4">
-                                <h4 className="text-[#888] font-mono text-[9px] uppercase tracking-wider mb-2 border-b border-neutral-900 pb-1">Contribuições de Fundo</h4>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-mono text-[10px]">
-                                  {Object.entries(council.emergencyFund.contributions).map(([house, amt]: any) => (
-                                    <div key={house} className="p-1.5 bg-[#151518]/60 border border-neutral-900 text-center">
-                                      <span className="text-[#666] block text-[8px] uppercase">{house}</span>
-                                      <span className="text-white font-bold">{amt} SD</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  });
-                } else {
+                const renderCouncilCard = (council: any, isExternal: boolean) => {
+                  const fundVal = typeof council.emergencyFund === 'object' ? council.emergencyFund.size : council.emergencyFund || 0;
                   return (
-                    <div className="border border-[#2D2D30] bg-[#121215] p-8 text-center space-y-3">
-                      <Landmark className="w-8 h-8 text-[#F2A900]/60 mx-auto mb-1" />
-                      <div className="inline-block p-2 bg-emerald-950/40 border border-emerald-800 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                        // CONDIÇÃO: SEM ASSENTO EM CONSELHOS SENHORIAIS
+                    <div key={council.name} className={`border bg-[#0F0F12] p-4 space-y-4 ${isExternal ? 'border-[#1E2A1E] opacity-80' : 'border-[#2D2D30]'}`}>
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#2D2D30] pb-2 gap-2">
+                        <div>
+                          <h3 className="text-white font-bold text-xs uppercase flex items-center gap-2">
+                            <Landmark className={`w-4 h-4 ${isExternal ? 'text-slate-500' : 'text-[#F2A900]'}`} /> {council.name}
+                          </h3>
+                          {council.nature && <span className="text-[9px] text-[#888] font-mono uppercase">{council.nature}</span>}
+                          {isExternal && (
+                            <span className="text-[8px] text-slate-500 font-mono uppercase block mt-0.5">Instituição política regional — sem assento seu</span>
+                          )}
+                        </div>
+                        <span className="text-[10px] bg-amber-950/30 border border-amber-900/40 text-[#F2A900] px-2 py-0.5 font-bold font-mono">
+                          Fundo de Emergência: {fundVal} SD
+                        </span>
                       </div>
-                      <p className="text-xs text-[#AAA] max-w-lg mx-auto leading-relaxed">
-                        Como companhia livre de armas, vosso bando não preside conselhos administrativos nem possui assento cativo nas cortes senhoriais da região.
-                      </p>
-                      <p className="text-[11px] text-[#666] italic">
-                        Assentos políticos, arbitragens feudais e votos em conclaves poderão ser obtidos mediante prestígio, concessão de terras ou serviços prestados à nobreza.
-                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h4 className="text-[#888] font-mono text-[9px] uppercase tracking-wider mb-2 border-b border-neutral-900 pb-1">Assentos do Conselho</h4>
+                          <div className="space-y-1.5">
+                            {council.seats?.map((seat: any, sIdx: number) => (
+                              <div key={sIdx} className="flex justify-between items-center bg-[#151518]/40 p-2 border border-neutral-900 text-xs">
+                                <div>
+                                  <span className="font-bold text-white block text-xs">{seat.name || seat.representative}</span>
+                                  <span className="text-[9px] text-[#666] uppercase">{seat.role || `Casa ${seat.house}`}</span>
+                                </div>
+                                <div className="flex gap-4 font-mono text-[10px] shrink-0">
+                                  {seat.disposition !== undefined && (
+                                    <div>Apreço/Votos: <span className="text-emerald-400 font-bold">{seat.disposition || seat.votes}</span></div>
+                                  )}
+                                  {seat.loyalty !== undefined && (
+                                    <div>Lealdade/Status: <span className="text-[#00E5FF] font-bold">{seat.loyalty || seat.status}</span></div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          {(() => {
+                            const agendas = council.pendingAgendas || council.pendingAgenda;
+                            if (!agendas) return null;
+                            return (
+                              <div className="mb-4">
+                                <h4 className="text-[#888] font-mono text-[9px] uppercase tracking-wider mb-2 border-b border-neutral-900 pb-1">Agendas & Pautas Pendentes</h4>
+                                <div className="space-y-2">
+                                  {agendas.length > 0 ? (
+                                    agendas.map((agenda: string, aIdx: number) => (
+                                      <div key={aIdx} className="p-2.5 bg-[#151518] border border-l-2 border-neutral-800 border-l-[#F2A900] text-[11px] leading-relaxed text-slate-300 font-mono">
+                                        &gt; {agenda}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="p-3 text-center text-[#555] italic border border-neutral-900">Nenhuma pauta pendente registrada.</div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          {council.rules && (
+                            <div>
+                              <h4 className="text-[#888] font-mono text-[9px] uppercase tracking-wider mb-2 border-b border-neutral-900 pb-1">Regras & Protocolos</h4>
+                              <div className="p-2.5 bg-neutral-950 border border-neutral-900 font-mono text-[10px] leading-relaxed text-slate-400 space-y-1">
+                                {council.rules.map((rule: string, rIdx: number) => (
+                                  <div key={rIdx}>• {rule}</div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {council.emergencyFund?.contributions && (
+                            <div className="mt-4">
+                              <h4 className="text-[#888] font-mono text-[9px] uppercase tracking-wider mb-2 border-b border-neutral-900 pb-1">Contribuições de Fundo</h4>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 font-mono text-[10px]">
+                                {Object.entries(council.emergencyFund.contributions).map(([house, amt]: any) => (
+                                  <div key={house} className="p-1.5 bg-[#151518]/60 border border-neutral-900 text-center">
+                                    <span className="text-[#666] block text-[8px] uppercase">{house}</span>
+                                    <span className="text-white font-bold">{amt} SD</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   );
+                };
+
+                if (isLandless) {
+                  return (
+                    <>
+                      {/* Landless: no own councils */}
+                      <div className="border border-[#2D2D30] bg-[#121215] p-6 text-center space-y-3">
+                        <Landmark className="w-8 h-8 text-[#F2A900]/60 mx-auto mb-1" />
+                        <div className="inline-block p-2 bg-emerald-950/40 border border-emerald-800 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                          // CONDIÇÃO: SEM ASSENTO EM CONSELHOS SENHORIAIS
+                        </div>
+                        <p className="text-xs text-[#AAA] max-w-lg mx-auto leading-relaxed">
+                          Como companhia livre de armas, vosso capitão não preside nem possui assento cativo em conselho administrativo senhorial.
+                        </p>
+                        <p className="text-[11px] text-[#666] italic">
+                          Assentos políticos poderão ser obtidos mediante prestígio, concessão de terras ou serviços prestados à nobreza local.
+                        </p>
+                      </div>
+
+                      {/* World councils: institutions that exist independently in the region */}
+                      {worldCouncils.length > 0 && (
+                        <div className="space-y-3">
+                          <h3 className="text-[#888] font-mono text-[9px] uppercase tracking-wider border-b border-[#2D2D30] pb-1">
+                            // Instituições Políticas Conhecidas na Região
+                          </h3>
+                          {worldCouncils.map(c => renderCouncilCard(c, true))}
+                        </div>
+                      )}
+                    </>
+                  );
                 }
+
+                // Landed: show own councils or empty state
+                if (ownCouncils.length > 0) {
+                  return <>{ownCouncils.map(c => renderCouncilCard(c, false))}</>;
+                }
+
+                return (
+                  <div className="border border-[#2D2D30] bg-[#121215] p-8 text-center space-y-3">
+                    <Landmark className="w-8 h-8 text-[#F2A900]/60 mx-auto mb-1" />
+                    <p className="text-xs text-[#AAA]">Nenhum conselho administrativo estabelecido em vosso feudo.</p>
+                  </div>
+                );
               })()}
             </div>
           )}
