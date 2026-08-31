@@ -29,6 +29,14 @@ These rules must be strictly followed by any AI agent or model participating in 
 - Avoid excessive adjectives, incoherent magical metaphors, or any form of fanfiction that creates secondary events that did not actually occur.
 - Use concise and direct Brazilian Portuguese, normally in 1–2 short paragraphs per response.
 
+## 5. DEVELOPMENT GOVERNANCE: PERSONAL KANBAN (WIP=1) & HUMAN PLAYTEST GATE
+
+- **Axiom 1:** The AI can decide HOW to implement an item; it CANNOT decide alone that the item is DONE.
+- **Axiom 2:** The Backlog can grow and be refined at any time; active WIP (Work In Progress) CANNOT exceed 1.
+- **State Flow:** `BACKLOG` -> `IN_PROGRESS` (WIP=1) -> `TECHNICALLY_DONE` -> `PLAYTEST_REQUIRED` -> `DONE`.
+- **AI Stop Rule:** Upon reaching `TECHNICALLY_DONE` (clean compilation + proportional tests passing), the AI must immediately stop implementing and hand over control to the human user for browser playtesting.
+- **Triage:** Blocking defects stay in current WIP; cosmetic preferences, new ideas, preventive refactoring, and theoretical audits go to the `BACKLOG`.
+
 # Game Master Instructions (Technical Prompt)
 
 Any AI model call used to narrate events must use the following base prompt:

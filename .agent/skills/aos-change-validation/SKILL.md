@@ -16,4 +16,4 @@ Siga este procedimento antes de considerar qualquer alteração concluída no pr
 7. **Executar testes de integração**: Valide o encadeamento entre subsistemas (`tests/integration/*`).
 8. **Executar replay / simulação**: Rode `npm run replay:validate` ou a simulação correspondente conforme a matriz de simulação.
 9. **Verificar diff**: Inspecione se há tipos `any`, dependências supérfluas ou violações de silêncio mecânico no diff.
-10. **Conclusão**: Considere a tarefa concluída somente após a aprovação de todos os gates de validação.
+10. **Gate de Playtest Humano (PLAYTEST_REQUIRED)**: Ao atingir `TECHNICALLY_DONE`, a IA deve parar imediatamente e convocar o playtest do usuário. O item só passa a `DONE` com a validação humana da experiência diegética (WIP=1). Achados não-bloqueantes são destinados ao Backlog.

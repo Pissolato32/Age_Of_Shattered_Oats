@@ -40,15 +40,19 @@ export function CharacterCreator({ onCancel, onFinishCreation }: CharacterCreato
     
     if (archetype === 'Landed Knight') {
       baseState.character.archetype = 'Landed Knight';
-      baseState.character.title = 'Sir Landed Knight';
+      baseState.character.title = 'Sir';
       baseState.weeklyLedger.silverdew = 400; // Knight starting money
     } else if (archetype === 'Landless') {
       baseState.character.archetype = 'Landless';
-      baseState.character.title = 'Captain';
+      baseState.character.title = 'Capitão';
+      baseState.character.banner.colors = 'Sem Estandarte';
+      baseState.character.banner.symbol = 'Nenhum';
+      baseState.character.banner.motto = '';
       baseState.weeklyLedger.silverdew = 200;
     } else if (archetype === 'Artificer') {
       baseState.character.archetype = 'Artificer';
-      baseState.character.title = 'Master Smith';
+      baseState.character.title = 'Mestre Artífice';
+      baseState.character.banner.colors = 'Ferro e Cinzas';
       baseState.weeklyLedger.silverdew = 150;
     }
 
