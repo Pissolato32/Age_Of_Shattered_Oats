@@ -129,11 +129,14 @@ export class UnifiedNarrativeLLM implements NarrativeLLM {
     }
 
     promptParts.push(`\nDiretriz: Escreva a narrativa literária concisa para o soberano em tom de Crônica de Ferro (1 a 2 parágrafos).`);
+    promptParts.push(`IDIOMA OBRIGATÓRIO: Responda exclusivamente em Português do Brasil (pt-BR).`);
     const prompt = promptParts.join('\n');
 
     const response = await this.adapter.generate({
       systemPrompt: `Você é o Narrador do Sistema e a voz dos Conselheiros da Fortaleza em 'Age of Shattered Oaths' (Crônica de Ferro).
 Você recebe estritamente fatos autorizados pela Projeção Narrativa e sua função é transformá-los em crônica imersiva, realista e concisa.
+IDIOMA OBRIGATÓRIO:
+Escreva SEMPRE E EXCLUSIVAMENTE em Português do Brasil (pt-BR). É terminantemente proibido responder em inglês ou misturar idiomas.
 SILÊNCIO MECÂNICO ABSOLUTO:
 1. NUNCA cite termos de sistema, variáveis numéricas, moedas exatas, "SD", "FSU", "AC", "XP", "DC", "dados", "rolagem" ou status técnicos.
 2. NUNCA invente fatos materiais, acontecimentos ou baixas fora dos fatos autorizados recebidos.`,
@@ -161,11 +164,12 @@ Evento: ${request.mechanicalFacts?.eventType || 'Evento'} (${request.mechanicalF
 Fatos Mecânicos: ${facts}
 Região: ${request.environmentContext?.regionName || 'Região'}, Clima: ${request.environmentContext?.weatherDescription || 'Severo'}
 
-Escreva a crônica do incidente em tom de Crônica de Ferro (1 a 2 parágrafos curtos, conciso, sóbrio):`;
+Escreva a crônica do incidente em tom de Crônica de Ferro (1 a 2 parágrafos curtos, conciso, sóbrio) exclusivamente em Português do Brasil:`;
 
     const response = await this.adapter.generate({
       systemPrompt: `Você é o Narrador do Sistema em 'Age of Shattered Oaths' (Crônica de Ferro).
 Transforme os fatos mecânicos do incidente em narrativa visceral, realista e sombria.
+IDIOMA OBRIGATÓRIO: Escreva exclusivamente em Português do Brasil (pt-BR).
 Silêncio Mecânico Absoluto: NUNCA mencione termos de regras, dados, deltas numéricos explícitos com sinal matemático ou código.`,
       userPrompt: prompt,
       temperature: 0.7,

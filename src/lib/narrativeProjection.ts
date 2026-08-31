@@ -161,6 +161,7 @@ export function toNarrativeProjection(
 
   // 4. Allowed Inferences
   const allowedInferences: string[] = [
+    'A narrativa deve ser escrita estritamente em Português do Brasil (pt-BR).',
     'A narrativa pode descrever a atmosfera física condizente com a estação e o terreno.',
     'A narrativa pode retratar a postura dos oficiais e o peso do comando sem alterar o resultado.',
     'A narrativa deve permanecer em tom de Crônica de Ferro (frio, diegético, fatalista).'
