@@ -175,7 +175,7 @@ export interface Smith {
 
 export interface Holdings {
   name: string;
-  type: 'Castle' | 'Fortified Town' | 'Bastion' | 'Walled City';
+  type: 'Castle' | 'Fortified Town' | 'Bastion' | 'Walled City' | 'Camp' | 'None';
   tier: number;
   region: string;
   position: string;

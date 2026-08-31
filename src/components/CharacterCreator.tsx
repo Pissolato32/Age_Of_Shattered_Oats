@@ -48,7 +48,16 @@ export function CharacterCreator({ onCancel, onFinishCreation }: CharacterCreato
       baseState.character.banner.colors = 'Sem Estandarte';
       baseState.character.banner.symbol = 'Nenhum';
       baseState.character.banner.motto = '';
+      baseState.character.location.landmark = 'Acampamento nos arredores de Grey Keep';
       baseState.weeklyLedger.silverdew = 200;
+      baseState.holdings.name = 'Sem Feudo (Bando Errante)';
+      baseState.holdings.type = 'Camp';
+      baseState.holdings.population = 0;
+      baseState.holdings.laborPool = 0;
+      baseState.holdings.garrison = 0;
+      baseState.holdings.resourcePatches = [];
+      baseState.holdings.villages = [];
+      baseState.holdings.otherHoldings = [];
     } else if (archetype === 'Artificer') {
       baseState.character.archetype = 'Artificer';
       baseState.character.title = 'Mestre Artífice';

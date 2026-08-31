@@ -353,61 +353,89 @@ export function LedgerViewer({ state, onClose }: LedgerViewerProps) {
 
           {/* TAB 4: HOLDINGS & PAT_RESOURCES (G.4) */}
           {tab === 'holdings' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              {/* Primary Holding Details */}
-              <div className="border border-[#2D2D30] bg-[#151518]/60 p-4">
-                <h3 className="text-white font-bold text-xs mb-3 border-b border-[#2D2D30] pb-1.5 uppercase">// Propriedade Senhorial</h3>
-                <div className="space-y-2 text-[11px]">
-                  <div className="flex justify-between"><span>Nome do Assento:</span> <span className="text-white font-bold">{state.holdings.name}</span></div>
-                  <div className="flex justify-between"><span>Tipo de Assento:</span> <span className="text-white">{state.holdings.type} (Tier {state.holdings.tier})</span></div>
-                  <div className="flex justify-between"><span>População Local:</span> <span className="text-white">{state.holdings.population} cidadãos</span></div>
-                  <div className="flex justify-between"><span>Mão de Obra Ativa:</span> <span className="text-white">{state.holdings.laborPool} adultos (40%)</span></div>
-                  <div className="flex justify-between"><span>Fortificação:</span> <span className="text-white">{state.holdings.fortification.type}</span></div>
-                  <div className="flex justify-between"><span>Bônus de Muralha:</span> <span className="text-emerald-400 font-bold">+{state.holdings.fortification.acBonus} AC</span></div>
+            state.character.archetype === 'Landless' || (state.holdings.population === 0 && state.holdings.resourcePatches.length === 0) ? (
+              <div className="border border-[#2D2D30] bg-[#121215] p-8 text-center space-y-4">
+                <div className="inline-block p-2.5 bg-emerald-950/40 border border-emerald-800 text-emerald-400 rounded-sm">
+                  <h3 className="font-bold text-xs uppercase tracking-widest">// CONDIÇÃO: BANDO SEM TERRAS (LANDLESS)</h3>
                 </div>
-              </div>
-
-              {/* Resident Smith Card */}
-              <div className="border border-[#2D2D30] bg-[#151518]/60 p-4">
-                <h3 className="text-white font-bold text-xs mb-3 border-b border-[#2D2D30] pb-1.5 uppercase">// Ferreiro Residente (G.35)</h3>
-                <div className="space-y-2 text-[11px]">
-                  <div className="flex justify-between"><span>Mestre Ferreiro:</span> <span className="text-white font-bold">{state.holdings.residentSmith.name}</span></div>
-                  <div className="flex justify-between"><span>Nível de Forja:</span> <span className="text-white">Lvl {state.holdings.residentSmith.level} / 5</span></div>
-                  <div className="flex justify-between"><span>Especialidade:</span> <span className="text-[#00E5FF]">{state.holdings.residentSmith.specialty}</span></div>
-                  <div className="flex justify-between"><span>Experiência (XP):</span> <span className="text-slate-400">{state.holdings.residentSmith.xp} / 100 XP</span></div>
+                <p className="text-xs text-[#AAA] max-w-xl mx-auto leading-relaxed">
+                  Vossa companhia de armas não possui feudo, fortaleza ou domínio senhorial. 
+                  Vocês mantêm um <strong>Acampamento de Marcha</strong> a céu aberto nos arredores de {state.character.location.landmark || 'Grey Keep'} ({state.character.location.region || 'Central Plains'}).
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto text-left text-xs pt-4 border-t border-[#2D2D30]/60">
+                  <div className="bg-[#18181C] p-3 border border-[#2D2D30]">
+                    <span className="text-[#666] block uppercase text-[10px]">Efetivo do Bando</span>
+                    <span className="text-white font-bold">{state.army.units.reduce((acc, u) => acc + (u.size || 0), 0)} Homens em Armas</span>
+                  </div>
+                  <div className="bg-[#18181C] p-3 border border-[#2D2D30]">
+                    <span className="text-[#666] block uppercase text-[10px]">Cofre da Companhia</span>
+                    <span className="text-[#F2A900] font-bold">{state.weeklyLedger.silverdew} Moedas de Prata</span>
+                  </div>
+                  <div className="bg-[#18181C] p-3 border border-[#2D2D30]">
+                    <span className="text-[#666] block uppercase text-[10px]">Provisões de Estrada</span>
+                    <span className="text-emerald-400 font-bold">{state.weeklyLedger.food.toFixed(0)} Fardos de Ração</span>
+                  </div>
                 </div>
+                <p className="text-[11px] text-[#666] italic pt-2">
+                  Castelos, forjas e feudos vassalos poderão ser conquistados, tomados por armas ou concedidos por senhores durante a campanha.
+                </p>
               </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Primary Holding Details */}
+                <div className="border border-[#2D2D30] bg-[#151518]/60 p-4">
+                  <h3 className="text-white font-bold text-xs mb-3 border-b border-[#2D2D30] pb-1.5 uppercase">// Propriedade Senhorial</h3>
+                  <div className="space-y-2 text-[11px]">
+                    <div className="flex justify-between"><span>Nome do Assento:</span> <span className="text-white font-bold">{state.holdings.name}</span></div>
+                    <div className="flex justify-between"><span>Tipo de Assento:</span> <span className="text-white">{state.holdings.type} (Tier {state.holdings.tier})</span></div>
+                    <div className="flex justify-between"><span>População Local:</span> <span className="text-white">{state.holdings.population} cidadãos</span></div>
+                    <div className="flex justify-between"><span>Mão de Obra Ativa:</span> <span className="text-white">{state.holdings.laborPool} adultos (40%)</span></div>
+                    <div className="flex justify-between"><span>Fortificação:</span> <span className="text-white">{state.holdings.fortification.type}</span></div>
+                    <div className="flex justify-between"><span>Bônus de Muralha:</span> <span className="text-emerald-400 font-bold">+{state.holdings.fortification.acBonus} AC</span></div>
+                  </div>
+                </div>
 
-              {/* Resource Patches */}
-              <div className="border border-[#2D2D30] bg-[#0F0F12] p-4 md:col-span-2 overflow-x-auto">
-                <h3 className="text-white font-bold text-xs mb-3 uppercase">// Patches de Recursos Ativos</h3>
-                <table className="w-full text-[11px] text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#2D2D30] text-[#666]">
-                      <th className="py-1.5">NOME DO PATCH</th>
-                      <th className="py-1.5">TIPO</th>
-                      <th className="py-1.5">QUALIDADE</th>
-                      <th className="py-1.5">RENDIMENTO / DIA</th>
-                      <th className="py-1.5">TRABALHADORES (LABOR)</th>
-                      <th className="py-1.5">RENDA / MÊS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {state.holdings.resourcePatches.map((p, i) => (
-                      <tr key={p.id} className={`border-b border-neutral-900 text-slate-300 ${i % 2 === 0 ? 'bg-[#151518]/30' : ''}`}>
-                        <td className="py-1.5 font-bold text-white">{p.name}</td>
-                        <td className="py-1.5">{p.type}</td>
-                        <td className="py-1.5">{p.quality}</td>
-                        <td className="py-1.5 text-emerald-500 font-bold">+{p.yieldPerDay} SU</td>
-                        <td className="py-1.5">{p.laborRequired} alocados</td>
-                        <td className="py-1.5 text-[#F2A900] font-bold">+{p.incomePerDay * 30} SD</td>
+                {/* Resident Smith Card */}
+                <div className="border border-[#2D2D30] bg-[#151518]/60 p-4">
+                  <h3 className="text-white font-bold text-xs mb-3 border-b border-[#2D2D30] pb-1.5 uppercase">// Ferreiro Residente (G.35)</h3>
+                  <div className="space-y-2 text-[11px]">
+                    <div className="flex justify-between"><span>Mestre Ferreiro:</span> <span className="text-white font-bold">{state.holdings.residentSmith.name}</span></div>
+                    <div className="flex justify-between"><span>Nível de Forja:</span> <span className="text-white">Lvl {state.holdings.residentSmith.level} / 5</span></div>
+                    <div className="flex justify-between"><span>Especialidade:</span> <span className="text-[#00E5FF]">{state.holdings.residentSmith.specialty}</span></div>
+                    <div className="flex justify-between"><span>Experiência (XP):</span> <span className="text-slate-400">{state.holdings.residentSmith.xp} / 100 XP</span></div>
+                  </div>
+                </div>
+
+                {/* Resource Patches */}
+                <div className="border border-[#2D2D30] bg-[#0F0F12] p-4 md:col-span-2 overflow-x-auto">
+                  <h3 className="text-white font-bold text-xs mb-3 uppercase">// Patches de Recursos Ativos</h3>
+                  <table className="w-full text-[11px] text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#2D2D30] text-[#666]">
+                        <th className="py-1.5">NOME DO PATCH</th>
+                        <th className="py-1.5">TIPO</th>
+                        <th className="py-1.5">QUALIDADE</th>
+                        <th className="py-1.5">RENDIMENTO / DIA</th>
+                        <th className="py-1.5">TRABALHADORES (LABOR)</th>
+                        <th className="py-1.5">RENDA / MÊS</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {state.holdings.resourcePatches.map((p, i) => (
+                        <tr key={p.id} className={`border-b border-neutral-900 text-slate-300 ${i % 2 === 0 ? 'bg-[#151518]/30' : ''}`}>
+                          <td className="py-1.5 font-bold text-white">{p.name}</td>
+                          <td className="py-1.5">{p.type}</td>
+                          <td className="py-1.5">{p.quality}</td>
+                          <td className="py-1.5 text-emerald-500 font-bold">+{p.yieldPerDay} SU</td>
+                          <td className="py-1.5">{p.laborRequired} alocados</td>
+                          <td className="py-1.5 text-[#F2A900] font-bold">+{p.incomePerDay * 30} SD</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )
           )}
 
           {/* TAB 5: WORLD STATE (G.W) */}

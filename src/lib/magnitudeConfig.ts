@@ -90,6 +90,8 @@ export const RECRUITMENT_MRS_CONFIG: RecruitmentMRSConfig = Object.freeze<Recrui
     treasury: [200, 1000, 2500, 5000]
   },
   structuralTypeTier: {
+    None: 0,
+    Camp: 0,
     Bastion: 1,
     'Fortified Town': 2,
     Castle: 3,
