@@ -474,26 +474,115 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
 
           {/* Input Area */}
           <div className="p-6 border-t border-[#e4e4e7]/10 bg-[#111113]">
-            <form onSubmit={handleCustomCommandSubmit} className="flex items-center border-b border-[#e4e4e7] pb-2">
-              <span className="text-[#f2a900] mr-3 font-mono font-bold text-lg select-none">&gt;</span>
-              <input
-                type="text"
-                placeholder="Insira ordens ou ações livres..."
-                value={customCommand}
-                onChange={(e) => setCustomCommand(e.target.value)}
-                disabled={isNarrating}
-                className="flex-1 bg-transparent border-none text-[#f2a900] font-mono text-sm outline-none placeholder-[#e4e4e7]/30 caret-[#f2a900]"
-              />
-              <button
-                type="submit"
-                disabled={isNarrating || !customCommand.trim()}
-                className="bg-[#f2a900] text-[#0b0b0c] font-bold uppercase h-6 px-4 font-mono text-[10px] tracking-wider border-none cursor-pointer hover:opacity-85 transition disabled:opacity-40"
-              >
-                Executar
-              </button>
-            </form>
+            {state.sessionLog?.pendingClarification ? (
+              // Clarification mode: show options or free text input
+              <div className="space-y-3">
+                <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#f2a900] mb-2">
+                  &gt; ESCLARECIMENTO SOLICITADO (Round {state.sessionLog.pendingClarification.round}/2)
+                </div>
+                <div className="font-mono text-xs text-[#e4e4e7] mb-3 border-l-2 border-[#f2a900] pl-3">
+                  {state.sessionLog.pendingClarification.question}
+                </div>
+                {state.sessionLog.pendingClarification.options?.map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={async () => {
+                      if (isNarrating) return;
+                      setIsNarrating(true);
+                      try {
+                        const clientApiKey = localStorage.getItem("aos_gemini_api_key") || "";
+                        const clientOpenCodeKey = localStorage.getItem("aos_opencode_api_key") || localStorage.getItem("aos_ox_alpha_api_key") || "";
+                        const clientOpenRouterKey = localStorage.getItem("aos_openrouter_api_key") || "";
+                        const clientHuggingFaceKey = localStorage.getItem("aos_huggingface_api_key") || "";
+                        const clientProvider = localStorage.getItem("aos_llm_provider") || (clientOpenCodeKey ? "opencode" : "cascading");
+                        const response = await fetch("/api/narrative-cycle", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "x-gemini-api-key": clientApiKey,
+                            "x-opencode-api-key": clientOpenCodeKey,
+                            "x-openrouter-api-key": clientOpenRouterKey,
+                            "x-huggingface-api-key": clientHuggingFaceKey,
+                            "x-provider": clientProvider
+                          },
+                          body: JSON.stringify({
+                            playerInput: opt.label,
+                            state,
+                            clientApiKey,
+                            clientOpenCodeKey,
+                            clientOpenRouterKey,
+                            clientHuggingFaceKey,
+                            provider: clientProvider,
+                            selectedOption: opt.semanticValue
+                          })
+                        });
+                        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+                        const data = await response.json();
+                        if (data.success && data.resultState) {
+                          const masterNarrative = data.narrative.startsWith("[MESTRE]")
+                            ? data.narrative
+                            : `[MESTRE] ${data.narrative}`;
+                          setCurrentNarrative(masterNarrative);
+                          const updatedHistory = [...(data.resultState.narrativeHistory || state.narrativeHistory || []), `[JOGADOR] "${opt.label}"`, masterNarrative];
+                          setState({
+                            ...data.resultState,
+                            narrativeHistory: updatedHistory
+                          });
+                        }
+                      } catch (err: any) {
+                        console.error("Erro no esclarecimento:", err);
+                      } finally {
+                        setIsNarrating(false);
+                      }
+                    }}
+                    disabled={isNarrating}
+                    className="w-full py-2 px-4 border border-[#f2a900]/30 text-[11px] font-mono text-[#f2a900] bg-[#f2a900]/5 hover:bg-[#f2a900]/15 transition duration-200 text-left cursor-pointer disabled:opacity-50"
+                  >
+                    [{opt.label}]
+                  </button>
+                ))}
+                <form onSubmit={handleCustomCommandSubmit} className="flex items-center border-b border-[#e4e4e7] pb-2 mt-2">
+                  <span className="text-[#f2a900] mr-3 font-mono font-bold text-lg select-none">&gt;</span>
+                  <input
+                    type="text"
+                    placeholder="Outra coisa..."
+                    value={customCommand}
+                    onChange={(e) => setCustomCommand(e.target.value)}
+                    disabled={isNarrating}
+                    className="flex-1 bg-transparent border-none text-[#f2a900] font-mono text-sm outline-none placeholder-[#e4e4e7]/30 caret-[#f2a900]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isNarrating || !customCommand.trim()}
+                    className="bg-[#f2a900] text-[#0b0b0c] font-bold uppercase h-6 px-4 font-mono text-[10px] tracking-wider border-none cursor-pointer hover:opacity-85 transition disabled:opacity-40"
+                  >
+                    Enviar
+                  </button>
+                </form>
+              </div>
+            ) : (
+              // Normal mode: text input
+              <form onSubmit={handleCustomCommandSubmit} className="flex items-center border-b border-[#e4e4e7] pb-2">
+                <span className="text-[#f2a900] mr-3 font-mono font-bold text-lg select-none">&gt;</span>
+                <input
+                  type="text"
+                  placeholder="Insira ordens ou ações livres..."
+                  value={customCommand}
+                  onChange={(e) => setCustomCommand(e.target.value)}
+                  disabled={isNarrating}
+                  className="flex-1 bg-transparent border-none text-[#f2a900] font-mono text-sm outline-none placeholder-[#e4e4e7]/30 caret-[#f2a900]"
+                />
+                <button
+                  type="submit"
+                  disabled={isNarrating || !customCommand.trim()}
+                  className="bg-[#f2a900] text-[#0b0b0c] font-bold uppercase h-6 px-4 font-mono text-[10px] tracking-wider border-none cursor-pointer hover:opacity-85 transition disabled:opacity-40"
+                >
+                  Executar
+                </button>
+              </form>
+            )}
             <div className="font-mono text-[9px] uppercase tracking-[0.15em] text-[#e4e4e7]/30 mt-2">
-              Status: Terminal Online // Aguardando Parâmetros
+              Status: Terminal Online // {state.sessionLog?.pendingClarification ? 'Aguardando Esclarecimento' : 'Aguardando Parâmetros'}
             </div>
           </div>
         </div>
