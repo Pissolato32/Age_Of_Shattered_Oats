@@ -422,12 +422,15 @@ export interface CampaignState {
     week: number;
     hash: string;
   }>;
-  // MEM-002: Canonical memory stores (optional for backward compatibility)
+  // MEM-002/MEM-003: Canonical memory stores (optional for backward compatibility)
   memoryStores?: {
     events?: import('./memory/contracts').CampaignEvent[];
     memories?: import('./memory/contracts').MemoryRecord[];
     knowledge?: import('./memory/contracts').KnowledgeRecord[];
     relationships?: import('./memory/contracts').RelationshipRecord[];
+    // MEM-003: Propagation state
+    agentRegistry?: import('./memory/propagation/AgentRegistry').AgentEntry[];
+    migratedMemoryIds?: string[];
   };
   advisors?: {
     counselorName: string;
