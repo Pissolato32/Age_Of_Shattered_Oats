@@ -13,6 +13,7 @@ import { buildNarrativeContext, buildObserverProjection, resolveNarrativeCommand
 import { SemanticViolation, validateNarrativeConsistency } from './semanticValidation';
 import { RandomService } from '../core/RandomService';
 import { extractTemporalScope } from './intentHeuristics';
+import { ClarificationContext } from './clarificationContracts';
 
 export interface NarrativeCycleInput {
   readonly playerInput: string;
@@ -21,6 +22,8 @@ export interface NarrativeCycleInput {
   readonly llm: NarrativeLLM;
   readonly rng?: RandomService;
   readonly excludedSecretStatements?: readonly string[];
+  /** Present when the player is responding to a clarification question. */
+  readonly clarificationContext?: ClarificationContext;
 }
 
 export interface NarrativeCycleResult {
@@ -31,6 +34,16 @@ export interface NarrativeCycleResult {
   readonly narrative: string;
   readonly validation: readonly SemanticViolation[];
   readonly resultState: CampaignState;
+  /** Clarification trace data — present only when clarification was involved. */
+  readonly clarificationTrace?: {
+    readonly originalInput?: string;
+    readonly masterQuestion?: string;
+    readonly options?: Array<{ readonly id: string; readonly label: string; readonly semanticValue: string }>;
+    readonly playerAnswer?: string;
+    readonly selectedOption?: string;
+    readonly round?: number;
+    readonly resolution: 'RESOLVED' | 'EXHAUSTED' | 'NORMAL_TURN';
+  };
 }
 
 export function buildSafeFallbackNarrative(report: ExecutionReport): string {
@@ -63,7 +76,8 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
   console.log(`[NarrativeCycle] 1. Interpretando: "${input.playerInput}"...`);
   const command = await input.llm.interpret({
     playerInput: input.playerInput,
-    projection: initialProjection
+    projection: initialProjection,
+    clarificationContext: input.clarificationContext
   });
   console.log(`[NarrativeCycle] -> Comando: ${command.action} (conf: ${command.confidence})`);
 
@@ -131,6 +145,26 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
     console.log(`[NarrativeCycle] ✅ Narrativa aprovada sem violações (${narrative.length} chars).`);
   }
 
+  // Build clarification trace data
+  let clarificationTrace: NarrativeCycleResult['clarificationTrace'] = { resolution: 'NORMAL_TURN' };
+
+  if (input.clarificationContext) {
+    // This is a clarification response turn
+    clarificationTrace = {
+      originalInput: input.clarificationContext.originalInput,
+      masterQuestion: input.clarificationContext.masterQuestion,
+      playerAnswer: input.clarificationContext.playerAnswer,
+      selectedOption: input.clarificationContext.selectedOption,
+      resolution: command.requiresClarification ? 'EXHAUSTED' : 'RESOLVED'
+    };
+  } else if (command.requiresClarification) {
+    // This is a new ambiguity detection — the question will be in the narrative
+    clarificationTrace = {
+      masterQuestion: narrative, // The LLM's clarification question
+      resolution: 'EXHAUSTED' // Will be updated to RESOLVED if resolved later
+    };
+  }
+
   return {
     command,
     report,
@@ -138,6 +172,7 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
     context,
     narrative,
     validation,
-    resultState
+    resultState,
+    clarificationTrace
   };
 }

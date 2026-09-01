@@ -6,6 +6,7 @@ import { GeminiAdapter } from './GeminiAdapter';
 import { OpenRouterAdapter } from './OpenRouterAdapter';
 import { HuggingFaceAdapter } from './HuggingFaceAdapter';
 import { OpenCodeAdapter } from './OpenCodeAdapter';
+import { GroqAdapter } from './GroqAdapter';
 import { MockAdapter } from './MockAdapter';
 import { ModelRegistry } from '../registry/ModelRegistry';
 import { ModelConfig, LLMProviderId } from '../contracts/LLMContract';
@@ -61,6 +62,9 @@ export class UnifiedNarrativeLLM implements NarrativeLLM {
       case 'opencode':
         this.adapter = new OpenCodeAdapter(config, apiKey);
         break;
+      case 'groq':
+        this.adapter = new GroqAdapter(config, apiKey);
+        break;
       case 'mock':
       default:
         this.adapter = new MockAdapter(config);
@@ -69,7 +73,31 @@ export class UnifiedNarrativeLLM implements NarrativeLLM {
   }
 
   async interpret(input: InterpretInput): Promise<NarrativeCommand> {
-    const prompt = `Analise a entrada do jogador abaixo e retorne o JSON de intenção:\n\n<PLAYER_INPUT>\n${input.playerInput}\n</PLAYER_INPUT>`;
+    let prompt: string;
+
+    if (input.clarificationContext) {
+      // Clarification flow: include full context for re-interpretation
+      const ctx = input.clarificationContext;
+      prompt = `CONTEXTO DA SESSÃO DE ESCLARECIMENTO
+
+ORIGINAL DO JOGADOR: "${ctx.originalInput}"
+
+INTENÇÃO PROPOSTA: ${ctx.proposedCommand.action}
+${ctx.proposedCommand.ambiguity.length > 0 ? `AMBIGUIDADES: ${ctx.proposedCommand.ambiguity.join(', ')}` : ''}
+
+PERGUNTA DO MESTRE: "${ctx.masterQuestion}"
+
+RESPOSTA DO JOGADOR: "${ctx.playerAnswer}"
+${ctx.selectedOption ? `OPÇÃO SELECIONADA: ${ctx.selectedOption}` : ''}
+
+TAREFA: Reavaliar a intenção original utilizando a resposta do jogador como esclarecimento.
+Não reinterprete a resposta isoladamente. Considere o contexto completo.
+
+RETORNE APENAS JSON.`;
+    } else {
+      // Normal flow
+      prompt = `Analise a entrada do jogador abaixo e retorne o JSON de intenção:\n\n<PLAYER_INPUT>\n${input.playerInput}\n</PLAYER_INPUT>`;
+    }
 
     const response = await this.adapter.generate({
       systemPrompt: `Você é o Classificador de Intenções de Age of Shattered Oaths. Responda APENAS com JSON estruturado contendo 'action', 'targetId', 'objectId', 'locationId', 'magnitude', 'stance', 'confidence', 'requiresClarification', 'ambiguity'.`,

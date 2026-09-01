@@ -19,6 +19,18 @@ import { CampaignState } from "./src/types";
 import { sanitizeState } from "./src/engine";
 import { SceneResolver } from "./src/domain/events/SceneResolver";
 import { IncidentNarrativeTranslator } from "./src/domain/events/narrative/IncidentNarrativeTranslator";
+import {
+  hasPendingClarification,
+  getPendingClarification,
+  buildClarificationContext,
+  createPendingClarification,
+  canAskAnotherQuestion,
+  createNextRoundClarification,
+  clearPendingClarification,
+  setPendingClarification,
+  formatClarificationPrompt
+} from "./src/lib/clarificationManager";
+import { PendingClarification } from "./src/lib/clarificationContracts";
 
 dotenv.config();
 
@@ -176,7 +188,7 @@ async function startServer() {
   // 4. Canonical Narrative Cycle Endpoint (Full Pipeline: Natural Language -> NarrativeCommand -> Engine -> Projection -> Narration -> Validation)
   app.post("/api/narrative-cycle", async (req, res) => {
     try {
-      const { playerInput, state, clientApiKey, clientOpenCodeKey, clientOpenRouterKey, clientHuggingFaceKey, provider, modelId } = req.body;
+      const { playerInput, state, clientApiKey, clientOpenCodeKey, clientOpenRouterKey, clientHuggingFaceKey, provider, modelId, selectedOption } = req.body;
       if (!playerInput || typeof playerInput !== "string") {
         return res.status(400).json({ error: "Parâmetro 'playerInput' é obrigatório." });
       }
@@ -203,12 +215,82 @@ async function startServer() {
 
       const normalizedState = sanitizeState(state);
 
-      const result = await runNarrativeCycle({
-        playerInput,
-        state: normalizedState,
-        observer,
-        llm
-      });
+      // Check if there's a pending clarification
+      const pendingClarification = getPendingClarification(normalizedState);
+
+      let result;
+      let finalState = normalizedState;
+
+      if (pendingClarification) {
+        // Player is responding to a clarification question
+        console.log(`[API /narrative-cycle] Resposta a esclarecimento (round ${pendingClarification.round}): "${playerInput}"`);
+
+        // Build clarification context
+        const clarificationContext = buildClarificationContext(
+          pendingClarification,
+          playerInput,
+          selectedOption
+        );
+
+        // Run narrative cycle with clarification context
+        result = await runNarrativeCycle({
+          playerInput,
+          state: normalizedState,
+          observer,
+          llm,
+          clarificationContext
+        });
+
+        if (result.command.requiresClarification) {
+          // Still ambiguous — escalate or fallback
+          if (canAskAnotherQuestion(pendingClarification)) {
+            // Create next round clarification
+            const nextRound = createNextRoundClarification(
+              pendingClarification,
+              result.narrative, // Use the LLM's question as the new question
+              undefined
+            );
+            if (nextRound) {
+              finalState = setPendingClarification(normalizedState, nextRound);
+            } else {
+              // Fallback: clear pending and proceed with UNKNOWN
+              finalState = clearPendingClarification(normalizedState);
+            }
+          } else {
+            // Hit max rounds — clear pending and proceed with UNKNOWN
+            console.log(`[API /narrative-cycle] Max clarification rounds reached. Falling back.`);
+            finalState = clearPendingClarification(normalizedState);
+          }
+        } else {
+          // Resolved! Clear pending and proceed normally
+          console.log(`[API /narrative-cycle] Esclarecimento resolvido: ${result.command.action}`);
+          finalState = clearPendingClarification(normalizedState);
+        }
+      } else {
+        // Normal flow — no pending clarification
+        result = await runNarrativeCycle({
+          playerInput,
+          state: normalizedState,
+          observer,
+          llm
+        });
+
+        if (result.command.requiresClarification) {
+          // New ambiguity detected — store pending clarification
+          const pending = createPendingClarification(
+            playerInput,
+            result.command,
+            result.narrative, // Use the LLM's question
+            undefined,
+            1
+          );
+          if (pending) {
+            finalState = setPendingClarification(normalizedState, pending);
+          }
+        } else {
+          finalState = result.resultState;
+        }
+      }
 
       return res.json({
         success: true,
@@ -216,9 +298,10 @@ async function startServer() {
         report: result.report,
         narrative: result.narrative,
         validation: result.validation,
-        resultState: result.resultState,
+        resultState: finalState,
         provider: llm.providerId,
-        model: llm.modelId
+        model: llm.modelId,
+        pendingClarification: finalState.sessionLog?.pendingClarification ?? null
       });
     } catch (err: any) {
       console.error("Erro na execução do ciclo narrativo canônico:", err);
