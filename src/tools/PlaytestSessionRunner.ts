@@ -55,6 +55,23 @@ export interface CausalTraceLogEntry {
   };
   llmResponse: string;
   semanticValidationViolations: string[];
+  /** Clarification loop data — present only when clarification was involved. */
+  clarification?: {
+    /** The original input that triggered the ambiguous interpretation. */
+    originalInput?: string;
+    /** The question asked by the Master. */
+    masterQuestion?: string;
+    /** Structured options offered to the player. */
+    options?: Array<{ id: string; label: string; semanticValue: string }>;
+    /** The player's clarification answer (free text or button label). */
+    playerAnswer?: string;
+    /** The semantic value if the player clicked a button. */
+    selectedOption?: string;
+    /** Current clarification round (1 or 2). */
+    round?: number;
+    /** Whether the clarification was resolved or exhausted. */
+    resolution: 'RESOLVED' | 'EXHAUSTED' | 'NORMAL_TURN';
+  };
 }
 
 const PLAYTEST_STATE_FILE = path.resolve(process.cwd(), 'artifacts/playtest_campaign_state.json');
@@ -249,7 +266,8 @@ export async function executePlaytestTurnPristine(playerInput: string): Promise<
       relationshipsCount: cycleResult.context.relationships.length
     },
     llmResponse: cycleResult.narrative,
-    semanticValidationViolations: cycleResult.validation.map(v => v.message)
+    semanticValidationViolations: cycleResult.validation.map(v => v.message),
+    clarification: cycleResult.clarificationTrace ?? { resolution: 'NORMAL_TURN' }
   };
 
   appendCausalTrace(traceEntry);
