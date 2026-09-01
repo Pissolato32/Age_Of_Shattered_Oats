@@ -4,12 +4,15 @@ import {
   IncidentNarrativeResponse
 } from '../domain/events/narrative/IncidentNarrativeContracts';
 import { ClarificationContext } from './clarificationContracts';
+import type { MemoryRecord, KnowledgeRecord } from '../memory/contracts';
 
 export interface InterpretInput {
   readonly playerInput: string;
   readonly projection: ObserverProjection;
   /** Present when the player is responding to a clarification question. */
   readonly clarificationContext?: ClarificationContext;
+  // MEM-004: Retrieved context from memory stores
+  readonly retrievedContext?: readonly (MemoryRecord | KnowledgeRecord)[];
 }
 
 export interface NarrativeLLM {

@@ -184,6 +184,58 @@ export class KnowledgeStore implements Iterable<KnowledgeRecord> {
   }
 
   /**
+   * Query knowledge records by agent and subject (factId) with optional temporal scope.
+   */
+  queryByAgentAndSubject(agentId: string, factId: string, temporalScope?: {
+    mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION';
+    targetTurn?: number;
+  }): readonly KnowledgeRecord[] {
+    let results = this._records.filter(r => r.agentId === agentId && r.factId === factId);
+    results = this.applyTemporalFilter(results, temporalScope);
+    return results;
+  }
+
+  /**
+   * Query knowledge records by temporal scope.
+   */
+  queryByTemporalScope(temporalScope: {
+    mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION';
+    targetTurn?: number;
+  }): readonly KnowledgeRecord[] {
+    return this.applyTemporalFilter(this._records, temporalScope);
+  }
+
+  /**
+   * Apply temporal filter to a set of records.
+   */
+  private applyTemporalFilter(records: readonly KnowledgeRecord[], temporalScope?: {
+    mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION';
+    targetTurn?: number;
+  }): KnowledgeRecord[] {
+    if (!temporalScope) {
+      return [...records];
+    }
+
+    const { mode, targetTurn } = temporalScope;
+
+    switch (mode) {
+      case 'HISTORICAL_POINT':
+        // Only facts that existed at or before the target turn
+        return records.filter(r => r.obtainedTurn <= (targetTurn ?? 0));
+      case 'TEMPORAL_EVOLUTION':
+        // All facts
+        return [...records];
+      case 'CURRENT_STATE':
+      default:
+        // Only current (non-superseded) facts
+        const supersededIds = new Set(
+          records.filter(r => r.supersedes).map(r => r.supersedes!)
+        );
+        return records.filter(r => !supersededIds.has(r.id));
+    }
+  }
+
+  /**
    * Get the number of records.
    */
   size(): number {

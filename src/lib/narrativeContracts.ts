@@ -1,5 +1,7 @@
 export const NARRATIVE_CONTRACT_VERSION = 1 as const;
 
+import type { MemoryRecord, KnowledgeRecord } from '../memory/contracts';
+
 export type NarrativeAction =
   | 'RECRUIT'
   | 'BUILD'
@@ -241,6 +243,10 @@ export interface NarrativeContext {
   readonly executionResult: ExecutionReport;
   readonly narrativeConstraints: readonly NarrativeConstraint[];
   readonly query?: NarrativeQueryContext;
+  // MEM-004: Retrieved context from memory stores
+  readonly retrievedMemories?: readonly MemoryRecord[];
+  readonly retrievedKnowledge?: readonly KnowledgeRecord[];
+  readonly retrievalStatus?: 'FOUND' | 'PARTIAL' | 'NONE';
 }
 
 export interface KnowledgeBoundary {

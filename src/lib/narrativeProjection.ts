@@ -13,6 +13,7 @@ import {
   NarrativeQueryContext,
   ExecutionReport
 } from './narrativeContracts';
+import type { RetrievalResult } from '../memory/retrieval/ContextRetrievalService';
 export function classifyTreasuryStanding(silverdew: number): { tier: string; description: string } {
   if (silverdew >= 1000) return { tier: 'ABUNDANTE', description: 'Os cofres da fortaleza estão cheios.' };
   if (silverdew >= 300) return { tier: 'ESTÁVEL', description: 'O tesouro possui fundos suficientes para manutenção.' };
@@ -204,7 +205,8 @@ const DEFAULT_CONSTRAINTS: readonly NarrativeConstraint[] = [
 export function createObserverProjection(
   state: CampaignState,
   observer: NarrativeObserver,
-  queryScope?: NarrativeQueryContext['temporalScope']
+  queryScope?: NarrativeQueryContext['temporalScope'],
+  retrievalResult?: RetrievalResult,
 ): ObserverProjection {
   const isPlayer = observer.kind === 'PLAYER';
 
@@ -496,6 +498,23 @@ export function createObserverProjection(
         week: state.weeklyLedger.week || 1,
         knowledgeTier: 'PLAYER_KNOWLEDGE'
       });
+    }
+  }
+
+  // MEM-004: Integrate retrieved memories into knownFacts
+  if (retrievalResult && retrievalResult.memories.length > 0) {
+    for (const memory of retrievalResult.memories) {
+      const fact: AuthorizedKnowledgeFact = {
+        factId: `memory_${memory.id}`,
+        statement: memory.description,
+        tier: 'CHARACTER_KNOWLEDGE',
+        certainty: 'CONFIRMED',
+        source: 'ENGINE',
+        subjectId: memory.subjectId,
+        createdTurn: memory.tickRegistered,
+        tags: memory.tags,
+      };
+      knownFacts = [...knownFacts, fact];
     }
   }
 

@@ -186,6 +186,69 @@ export class MemoryStore implements Iterable<MemoryRecord> {
   }
 
   /**
+   * Query memories by subject ID with optional temporal scope.
+   */
+  queryBySubject(subjectId: string, temporalScope?: {
+    mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION';
+    targetTurn?: number;
+  }): readonly MemoryRecord[] {
+    let results = this._records.filter(r => r.subjectId === subjectId);
+    return this.applyTemporalFilter(results, temporalScope);
+  }
+
+  /**
+   * Query memories by tags with optional temporal scope.
+   */
+  queryByTags(tags: readonly string[], temporalScope?: {
+    mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION';
+    targetTurn?: number;
+  }): readonly MemoryRecord[] {
+    let results = this._records.filter(r =>
+      tags.some(tag => r.tags.includes(tag))
+    );
+    return this.applyTemporalFilter(results, temporalScope);
+  }
+
+  /**
+   * Query memories by temporal scope.
+   */
+  queryByTemporalScope(temporalScope: {
+    mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION';
+    targetTurn?: number;
+  }): readonly MemoryRecord[] {
+    return this.applyTemporalFilter(this._records, temporalScope);
+  }
+
+  /**
+   * Apply temporal filter to a set of records.
+   */
+  private applyTemporalFilter(records: readonly MemoryRecord[], temporalScope?: {
+    mode: 'CURRENT_STATE' | 'HISTORICAL_POINT' | 'TEMPORAL_EVOLUTION';
+    targetTurn?: number;
+  }): MemoryRecord[] {
+    if (!temporalScope) {
+      return records.filter(r => !r.decayed);
+    }
+
+    const { mode, targetTurn } = temporalScope;
+
+    switch (mode) {
+      case 'HISTORICAL_POINT':
+        // Only facts that existed at or before the target turn
+        return records.filter(r =>
+          !r.decayed && r.tickRegistered <= (targetTurn ?? 0)
+        );
+      case 'TEMPORAL_EVOLUTION':
+        // All facts, including decayed ones
+        return [...records];
+      case 'CURRENT_STATE':
+      default:
+        // Only non-decayed facts
+        return records.filter(r => !r.decayed);
+    }
+  }
+
+  /**
    * Get the number of records.
    */
   size(): number {
