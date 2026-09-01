@@ -1,6 +1,7 @@
 import type { SceneState } from './domain/events/models';
 import type { HistoricalCharacter } from './domain/character/CharacterLifecycle';
 import type { GenealogyRecord } from './domain/character/Genealogy';
+import type { PendingClarification } from './lib/clarificationContracts';
 
 export interface Character {
   name: string;
@@ -350,6 +351,7 @@ export interface CampaignState {
       originAction?: string;
       resolved?: boolean;
     }>;
+    pendingClarification?: PendingClarification;
   };
   worldLedger: {
     currentDate: { day: number; month: string; year: number; week: number };
