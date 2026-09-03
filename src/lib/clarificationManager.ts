@@ -6,6 +6,44 @@ import {
   ClarificationOption,
   MAX_CLARIFICATION_ROUNDS
 } from './clarificationContracts';
+import { parseSemanticInput } from './intentHeuristics';
+
+/**
+ * Checks if the player's input during a pending clarification is actually
+ * a new autonomous command or an explicit cancellation, rather than an answer to the question.
+ */
+export function isNewActionIntentOrCancel(
+  playerInput: string,
+  pendingAction: string,
+  selectedOption?: string
+): boolean {
+  if (selectedOption) {
+    return false; // Player clicked a clarification option button
+  }
+
+  const raw = playerInput.trim();
+  if (!raw) return false;
+
+  // 1. Explicit cancellation
+  if (/^\s*(?:cancelar|esquece|deixa\s+pra\s+l[aá]|mudei\s+de\s+ideia|voltar|nada)\b/i.test(raw)) {
+    return true;
+  }
+
+  // 2. Detect if the input contains a distinct action lemma for another domain
+  const parsed = parseSemanticInput(raw);
+  const { actionLemmas } = parsed;
+
+  if (actionLemmas.diplomacy && pendingAction !== 'DIPLOMACY') return true;
+  if (actionLemmas.construction && pendingAction !== 'BUILD') return true;
+  if (actionLemmas.recruit && pendingAction !== 'RECRUIT') return true;
+  if (actionLemmas.espionage && pendingAction !== 'ESPIONAGE') return true;
+  if (actionLemmas.travel && pendingAction !== 'TRAVEL') return true;
+  if (actionLemmas.military && pendingAction !== 'MILITARY') return true;
+  if (actionLemmas.commerce && pendingAction !== 'TRADE') return true;
+  if (actionLemmas.information && pendingAction !== 'INFORMATION') return true;
+
+  return false;
+}
 
 /**
  * Checks if the current state has a pending clarification.

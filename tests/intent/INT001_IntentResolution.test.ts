@@ -11,7 +11,8 @@ import {
   createPendingClarification,
   setPendingClarification,
   buildClarificationContext,
-  clearPendingClarification
+  clearPendingClarification,
+  isNewActionIntentOrCancel
 } from '../../src/lib/clarificationManager';
 import { interpretIntentHeuristically } from '../../src/lib/intentHeuristics';
 
@@ -409,6 +410,42 @@ async function runTests() {
     assert.equal(hasPendingClarification(finalState), false);
 
     console.log('  ✅ TEST 6 PASSOU: Esgotamento no Round 2 encerrou com UNKNOWN, PendingClarification limpo e zero mutação material.');
+  }
+
+  // TEST 7: Pivot de Intenção e Cancelamento durante Esclarecimento
+  {
+    console.log('\n--- TEST 7: Pivot de Intenção e Cancelamento durante Esclarecimento ---');
+    // 1. Resposta de parâmetro não deve pivotar
+    assert.equal(isNewActionIntentOrCancel('Na velha ponte de pedra', 'BUILD'), false);
+    assert.equal(isNewActionIntentOrCancel('10 soldados', 'RECRUIT'), false);
+    assert.equal(isNewActionIntentOrCancel('Opção 1', 'BUILD', 'opt-1'), false);
+
+    // 2. Cancelamento explícito deve pivotar
+    assert.equal(isNewActionIntentOrCancel('Cancelar', 'BUILD'), true);
+    assert.equal(isNewActionIntentOrCancel('Esquece, não faça nada', 'RECRUIT'), true);
+    assert.equal(isNewActionIntentOrCancel('Mudei de ideia', 'TRADE'), true);
+
+    // 3. Novo comando com ação diferente deve pivotar
+    assert.equal(
+      isNewActionIntentOrCancel('Quero enviar uma mensagem à Casa Blackthorn propondo uma trégua', 'RECRUIT'),
+      true
+    );
+    assert.equal(
+      isNewActionIntentOrCancel('Construir uma paliçada nas muralhas', 'ESPIONAGE'),
+      true
+    );
+    assert.equal(
+      isNewActionIntentOrCancel('Inspecionar a prontidão dos celeiros', 'BUILD'),
+      true
+    );
+
+    // 4. Se a ação mencionada for da mesma família, não pivota (continua resolvendo o parâmetro)
+    assert.equal(
+      isNewActionIntentOrCancel('Construir na velha ponte', 'BUILD'),
+      false
+    );
+
+    console.log('  ✅ TEST 7 PASSOU: Pivot de intenção e cancelamentos detectados corretamente sem colisão de drift.');
   }
 
   console.log('\n🎉 TODOS OS TESTES DA SUÍTE INT-001 PASSARAM COM SUCESSO!\n');

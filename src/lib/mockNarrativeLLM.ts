@@ -52,8 +52,7 @@ function narrateReport(context: NarrativeContext): string {
       return `O recrutamento foi autorizado: ${levies} soldados incorporados às suas forças, e o tesouro arcou com o ônus devido.`;
     }
     case 'BUILD': {
-      const silverdew = report.stateChanges.find(sc => sc.path === 'weeklyLedger.silverdew')?.delta ?? 0;
-      return `A construção foi autorizada: a paliçada avança sob as muralhas, custo total de ${Math.abs(silverdew)} SD.`;
+      return 'A construção foi autorizada: as obras da fortificação avançam sob as muralhas e o tesouro arcou com o custo de materiais e mão de obra.';
     }
     case 'TRADE': {
       const foodChange = report.stateChanges.find(sc => sc.path === 'weeklyLedger.food')?.delta;

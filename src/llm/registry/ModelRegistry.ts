@@ -50,12 +50,12 @@ export const DEFAULT_MODEL_REGISTRY_CONFIG: ModelRegistryConfig = {
     {
       id: 'gemini-free-default',
       provider: 'gemini',
-      model: 'gemini-flash-lite-latest',
+      model: 'gemini-3.5-flash',
       freePolicy: 'free-tier',
       maxCost: 0,
       enabled: true,
       status: 'ACTIVE',
-      lastQualifiedAt: '2026-08-30T22:56:00.000Z',
+      lastQualifiedAt: '2026-09-03T14:00:00.000Z',
       capabilities: {
         interpreterScore: 9.5,
         narratorScore: 8.6,
@@ -65,9 +65,8 @@ export const DEFAULT_MODEL_REGISTRY_CONFIG: ModelRegistryConfig = {
         avgLatencyMs: 1200
       },
       fallbackConfigs: [
-        { id: 'gemini-1.5-flash-fb', provider: 'gemini', model: 'gemini-1.5-flash', freePolicy: 'free-tier', maxCost: 0, enabled: true },
-        { id: 'gemini-2.0-flash-lite-fb', provider: 'gemini', model: 'gemini-2.0-flash-lite', freePolicy: 'free-tier', maxCost: 0, enabled: true },
-        { id: 'gemini-1.5-flash-fb', provider: 'gemini', model: 'gemini-1.5-flash', freePolicy: 'free-tier', maxCost: 0, enabled: true }
+        { id: 'gemini-3.5-flash-lite-fb', provider: 'gemini', model: 'gemini-3.5-flash-lite', freePolicy: 'free-tier', maxCost: 0, enabled: true },
+        { id: 'gemini-3.8-flash-fb', provider: 'gemini', model: 'gemini-3.8-flash', freePolicy: 'free-tier', maxCost: 0, enabled: true }
       ]
     },
     {

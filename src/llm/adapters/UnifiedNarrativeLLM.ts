@@ -241,7 +241,7 @@ NUNCA invente números de soldados, detalhes ou conspirações sob desconhecimen
 
     promptParts.push(`\nDISCIPLINA NARRATIVA E BUDGET OBRIGATÓRIO:
 - Categoria: ${category}
-- Teto Máximo: ${budget.hardMaxWords} palavras. (Faixa ideal: ${budget.targetWords[0]} a ${budget.targetWords[1]} palavras).
+- TETO MÁXIMO RIGOROSO: escreva entre ${budget.targetWords[0]} e ${budget.targetWords[1]} palavras. NUNCA ultrapasse ${budget.hardMaxWords - 10} palavras. Respostas prolixas serão sumariamente rejeitadas.
 - Parágrafos: exatamente ${budget.maxParagraphs} parágrafo(s), com ${budget.idealSentences[0]} a ${budget.idealSentences[1]} frases assertivas.
 - PROIBIÇÃO DE CLICHÊS DE ABERTURA: NUNCA inicie com "O vento frio/gélido...", "Sob o céu cinzento...", "As sombras se alongam...", ou "Com o peso de antigos juramentos...". Vá DIRETO aos fatos da fortaleza.`);
 

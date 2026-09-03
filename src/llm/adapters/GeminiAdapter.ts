@@ -46,12 +46,16 @@ export class GeminiAdapter extends BaseLLMAdapter {
           };
         }
 
-        const generationConfig: Record<string, unknown> = {};
+        const generationConfig: Record<string, unknown> = {
+          thinkingConfig: {
+            thinkingBudget: 0
+          }
+        };
         if (typeof request.temperature === 'number') {
           generationConfig.temperature = request.temperature;
         }
         if (typeof request.maxTokens === 'number') {
-          generationConfig.maxOutputTokens = request.maxTokens;
+          generationConfig.maxOutputTokens = Math.max(request.maxTokens, 350);
         }
         if (request.responseFormat === 'json') {
           generationConfig.responseMimeType = 'application/json';

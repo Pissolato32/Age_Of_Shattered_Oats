@@ -24,7 +24,8 @@ import {
   createNextRoundClarification,
   clearPendingClarification,
   setPendingClarification,
-  formatClarificationPrompt
+  formatClarificationPrompt,
+  isNewActionIntentOrCancel
 } from "./src/lib/clarificationManager";
 import { PendingClarification } from "./src/lib/clarificationContracts";
 
@@ -209,7 +210,7 @@ async function startServer() {
         observerId: "player"
       };
 
-      const normalizedState = sanitizeState(state);
+      let normalizedState = sanitizeState(state);
 
       // Check if there's a pending clarification
       const pendingClarification = getPendingClarification(normalizedState);
@@ -217,7 +218,12 @@ async function startServer() {
       let result;
       let finalState = normalizedState;
 
-      if (pendingClarification) {
+      // Detect if player is issuing a new top-level action or cancelling
+      const isPivot = pendingClarification
+        ? isNewActionIntentOrCancel(playerInput, pendingClarification.proposedCommand.action, selectedOption)
+        : false;
+
+      if (pendingClarification && !isPivot) {
         // Player is responding to a clarification question
         console.log(`[API /narrative-cycle] Resposta a esclarecimento (round ${pendingClarification.round}): "${playerInput}"`);
 
@@ -263,7 +269,12 @@ async function startServer() {
           finalState = clearPendingClarification(result.resultState);
         }
       } else {
-        // Normal flow — no pending clarification
+        // Normal flow — no pending clarification OR superseded by new action/cancellation
+        if (isPivot && pendingClarification) {
+          console.log(`[API /narrative-cycle] 🔄 Jogador alterou a intenção (de ${pendingClarification.proposedCommand.action} para nova ação). Cancelando esclarecimento pendente.`);
+          normalizedState = clearPendingClarification(normalizedState);
+        }
+
         result = await runNarrativeCycle({
           playerInput,
           state: normalizedState,
