@@ -25,6 +25,7 @@ export interface GenericResolutionRequest {
   readonly action: string;
   readonly targetId?: string;
   readonly parameters?: Readonly<Record<string, unknown>>;
+  readonly desiredOutcome?: string;
 }
 
 export interface GenericResolutionResult {
@@ -244,7 +245,7 @@ export function resolveGenericPlausibleAction(
     };
   }
 
-  const actionLower = request.action.toLowerCase();
+  const actionLower = `${request.action} ${request.desiredOutcome || ''}`.toLowerCase();
   const laborAvailable = state.holdings.laborPool;
   const treasurySd = state.weeklyLedger.silverdew;
   const structuralWorkCap = deriveStructuralWorkCap(state);
@@ -591,10 +592,16 @@ export function resolveGenericPlausibleAction(
   if (
     actionLower.includes('diploma') ||
     actionLower.includes('emissário') ||
+    actionLower.includes('emissario') ||
     actionLower.includes('aliança') ||
+    actionLower.includes('alianca') ||
     actionLower.includes('tratado') ||
     actionLower.includes('pacto') ||
-    actionLower.includes('visita formal')
+    actionLower.includes('visita formal') ||
+    actionLower.includes('mensagem formal') ||
+    actionLower.includes('carta formal') ||
+    actionLower.includes('sondar') ||
+    actionLower.includes('sondagem')
   ) {
     const costSd = 10;
     if (treasurySd < costSd) {
@@ -641,6 +648,30 @@ export function resolveGenericPlausibleAction(
     const rawProb = (21 - frictionThreshold) / 20;
     const probability = Number(Math.max(0.10, Math.min(0.85, rawProb)).toFixed(2));
 
+    const isLetterOrProbe =
+      actionLower.includes('mensagem') ||
+      actionLower.includes('carta') ||
+      actionLower.includes('redigir') ||
+      actionLower.includes('escrever') ||
+      actionLower.includes('sondar') ||
+      actionLower.includes('sondagem');
+
+    const consequenceDescription = isLetterOrProbe
+      ? (outcome === 'SUCCESS'
+          ? `A mensagem formal foi redigida e um mensageiro despachado sob salvo-conduto com os termos de sondagem.`
+          : outcome === 'PARTIAL_SUCCESS'
+            ? `A carta foi despachada sob escolta, embora batedores relatem cautela e desconfiança na fronteira.`
+            : outcome === 'CRITICAL_FAILURE'
+              ? `O mensageiro foi interceptado ou a missiva extraviada, gerando suspeitas de espionagem na fronteira.`
+              : `A mensagem não pôde ser despachada devido a bloqueios nas estradas e recusa de salvo-conduto.`)
+      : (outcome === 'SUCCESS'
+          ? `Emissários foram recebidos com honras e a Casa Nobre acolheu favoravelmente a proposta diplomática.`
+          : outcome === 'PARTIAL_SUCCESS'
+            ? `A corte vizinha aceitou ouvir nossos enviados, concordando com um pacto provisório de boa vizinhança.`
+            : outcome === 'CRITICAL_FAILURE'
+              ? `Houve um grave incidente protocolar; os emissários foram expulsos da fortaleza com insultos heráldicos.`
+              : `A proposta diplomática foi recusada com frieza pela Casa nobre.`);
+
     return {
       classification: 'PLAUSIBLE_UNMODELED',
       outcome,
@@ -652,13 +683,7 @@ export function resolveGenericPlausibleAction(
         {
           consequenceId: `csq_diplo_${rng.nextInt(1000, 9999)}`,
           kind: 'IMMEDIATE',
-          description: outcome === 'SUCCESS'
-            ? `Emissários foram recebidos com honras e a Casa Nobre acolheu favoravelmente a proposta diplomática.`
-            : outcome === 'PARTIAL_SUCCESS'
-              ? `A corte vizinha aceitou ouvir nossos enviados, concordando com um pacto provisório de boa vizinhança.`
-              : outcome === 'CRITICAL_FAILURE'
-                ? `Houve um grave incidente protocolar; os emissários foram expulsos da fortaleza com insultos heráldicos.`
-                : `A proposta diplomática foi recusada com frieza pela Casa nobre.`,
+          description: consequenceDescription,
           authorized: true
         }
       ],
@@ -739,7 +764,7 @@ export function resolveGenericPlausibleAction(
               ? `Patrulha de reconhecimento concluiu a rota sob condições adversas sem perdas.`
               : outcome === 'CRITICAL_FAILURE'
                 ? `Patrulha sofreu emboscada nas trilhas florestais, sofrendo baixas e desorganização.`
-                : `Manobras prejudicadas pelo terreno difícil e cansaço dos soldados.`,
+                : `Manobras frustradas pelo terreno adverso e atrito operacional nas passagens.`,
           authorized: true
         }
       ],

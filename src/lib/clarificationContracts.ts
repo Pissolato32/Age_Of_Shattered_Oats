@@ -65,4 +65,7 @@ export interface ClarificationContext {
 
   /** The semantic value if the player clicked a button (null if free text). */
   readonly selectedOption?: string;
+
+  /** The current clarification round number (1 or 2). */
+  readonly round?: number;
 }

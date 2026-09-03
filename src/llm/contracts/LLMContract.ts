@@ -1,4 +1,4 @@
-export type LLMProviderId = 'gemini' | 'openrouter' | 'huggingface' | 'opencode' | 'mock';
+export type LLMProviderId = 'gemini' | 'openrouter' | 'huggingface' | 'opencode' | 'groq' | 'mock';
 
 export type FreePolicy = 'explicit-free' | 'free-tier';
 

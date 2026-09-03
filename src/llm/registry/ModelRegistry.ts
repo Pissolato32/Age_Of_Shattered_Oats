@@ -67,7 +67,7 @@ export const DEFAULT_MODEL_REGISTRY_CONFIG: ModelRegistryConfig = {
       fallbackConfigs: [
         { id: 'gemini-1.5-flash-fb', provider: 'gemini', model: 'gemini-1.5-flash', freePolicy: 'free-tier', maxCost: 0, enabled: true },
         { id: 'gemini-2.0-flash-lite-fb', provider: 'gemini', model: 'gemini-2.0-flash-lite', freePolicy: 'free-tier', maxCost: 0, enabled: true },
-        { id: 'gemini-1.5-pro-fb', provider: 'gemini', model: 'gemini-1.5-pro', freePolicy: 'free-tier', maxCost: 0, enabled: true }
+        { id: 'gemini-1.5-flash-fb', provider: 'gemini', model: 'gemini-1.5-flash', freePolicy: 'free-tier', maxCost: 0, enabled: true }
       ]
     },
     {

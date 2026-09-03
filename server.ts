@@ -7,10 +7,6 @@ import { searchCodex } from "./src/lib/codexRetriever";
 import { resolveAction } from "./src/lib/ruleResolver";
 import { fetchWebFlavorContext } from "./src/lib/webFlavorService";
 import { runNarrativeCycle } from "./src/lib/narrativeCycle";
-import { GeminiNarrativeLLM } from "./src/lib/geminiNarrativeLLM";
-import { OpenCodeNarrativeLLM } from "./src/lib/openCodeNarrativeLLM";
-import { OpenRouterNarrativeLLM } from "./src/lib/openRouterNarrativeLLM";
-import { HuggingFaceNarrativeLLM } from "./src/lib/huggingFaceNarrativeLLM";
 import { CascadingNarrativeLLM } from "./src/lib/cascadingNarrativeLLM";
 import { MockNarrativeLLM } from "./src/lib/mockNarrativeLLM";
 import { UnifiedNarrativeLLM } from "./src/llm/adapters/UnifiedNarrativeLLM";
@@ -264,7 +260,7 @@ async function startServer() {
         } else {
           // Resolved! Clear pending and proceed normally
           console.log(`[API /narrative-cycle] Esclarecimento resolvido: ${result.command.action}`);
-          finalState = clearPendingClarification(normalizedState);
+          finalState = clearPendingClarification(result.resultState);
         }
       } else {
         // Normal flow — no pending clarification

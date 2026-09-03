@@ -7,74 +7,12 @@ import { CodexSearchModal } from "./CodexSearchModal";
 import { ApiKeyModal } from "./ApiKeyModal";
 import { executeGameplayPipeline } from "../lib/gameplayPipeline";
 import { globalRNG } from "../core/RandomService";
+import { StartingScenarioService } from "../domain/startingScenario/StartingScenarioService";
 
 interface ActivePlayProps {
   initialState: CampaignState;
   isTutorial: boolean;
   onExit: () => void;
-}
-
-// Helper to generate a tailored, immersive Iron Chronicle prologue based on character & custom lore
-function buildCanonicalPrologue(st: CampaignState, isTut: boolean): string {
-  const { character, weeklyLedger } = st;
-  const houseName = character.house ? `Casa ${character.house}` : "Vossa Casa";
-  const mottoText = character.banner?.motto ? ` sob o lema "${character.banner.motto}"` : "";
-  const symbolText = character.banner?.symbol ? `o estandarte do ${character.banner.symbol}` : "vosso estandarte";
-  const colorsText = character.banner?.colors ? `em ${character.banner.colors}` : "";
-  const locLandmark = character.location.landmark || "a fortaleza";
-  const locRegion = character.location.region || "as terras centrais";
-  const weatherText = weeklyLedger.weather ? `O clima apresenta-se em ${weeklyLedger.weather.toLowerCase()}` : "O vento sopra gélido";
-
-  if (isTut) {
-    return `[MESTRE] Você assumiu o comando de ${locLandmark} na região ${locRegion}. As muralhas de pedra seca resistem ao vento constante que desce das colinas.
-
-Mara, vossa conselheira de chancelaria, desenrola o mapa territorial sobre a mesa de carvalho:
-'O assento é vosso, meu lorde. Os cofres guardam ${weeklyLedger.silverdew} moedas de prata e temos ${weeklyLedger.food.toFixed(0)} fardos de provisão nos celeiros.'
-
-Do pátio exterior, o som de ferro batido e passos pesados anunciam a prontidão da guarda. Os batedores relatam movimentações nas fronteiras e as casas vizinhas observam em silêncio. As rédeas do domínio estão em vossas mãos.
-
-Vossos conselheiros aguardam vossas ordens. O que deseja comandar?`;
-  }
-
-  switch (character.archetype) {
-    case 'Landed Knight':
-      return `[MESTRE] O aço da vossa armadura range sob a geada matinal. Como ${character.title} da ${houseName}${mottoText}, vossa autoridade é reconhecida em ${locLandmark} (${locRegion}).
-
-Erguendo ${symbolText} ${colorsText}, vossos veteranos de armas montam vigília sobre os desfiladeiros. ${weatherText}. As reservas contam com ${weeklyLedger.silverdew} moedas de prata e uma guarnição pronta para o combate.
-
-Vossos homens aguardam vossas instruções. Qual é a vossa primeira ordem?`;
-
-    case 'Landless': {
-      const leaderTitle = character.house ? `${character.title} ${character.name} (${character.house})` : `${character.title} ${character.name}`;
-      return `[MESTRE] As cinzas da fogueira ainda fumegam na alvorada fria de ${locRegion}. Como ${leaderTitle}, vosso nome é forjado nas estradas e nas cinzas de batalhas passadas.
-
-Vossa companhia livre de armas descansa as mãos sobre os cabos de espada nos arredores de ${locLandmark}. ${weatherText}. Sem terras ou muralhas senhoriais para se esconder, vossa força reside na lealdade dos vossos homens e nas ${weeklyLedger.silverdew} moedas de prata que garantem o soldo da tropa.
-
-A estrada se abre à vossa frente. Qual é a vossa próxima ordem?`;
-    }
-
-    case 'Artificer':
-      return `[MESTRE] O calor das forjas ilumina as abóbadas de pedra de ${locLandmark}. Como ${character.title} da ${houseName}${mottoText}, o domínio do ferro, das obras defensivas e das armas vos pertence.
-
-Nas bancadas de trabalho, ferramentas e lingotes de metal acumulam-se para suprir a região. ${weatherText}. Os intendentes conferem ${weeklyLedger.silverdew} moedas de prata e os estoques de materiais disponíveis.
-
-As forjas estão acesas e os artífices aguardam diretrizes. O que deseja ordenar ou produzir?`;
-
-    case 'Necromancer':
-      return `[MESTRE] O silêncio sepulcral de ${locLandmark} é quebrado apenas pelo eco de juramentos rompidos. Como ${character.title} da ${houseName}, vós dominais os segredos que os homens comuns temem pronunciar.
-
-Sob a névoa densa de ${locRegion}, ${weatherText}. As cinzas do passado guardam poder e os mortos aguardam vosso chamado.
-
-A noite obedece à vossa vontade. O que deseja ordenar?`;
-
-    case 'Noble Ruler':
-    default:
-      return `[MESTRE] Os portões de ${locLandmark} abrem-se para o vosso governo em ${locRegion}. Como ${character.title} da ${houseName}${mottoText}, o destino destas terras e de seus súditos repousa sobre vossas decisões.
-
-Flutuando sobre as ameias, ${symbolText} ${colorsText} anuncia a presença de vosso senhorio perante os clãs e vassalos. ${weatherText}. Os livros de ferro da tesouraria registram ${weeklyLedger.silverdew} moedas de prata e ${weeklyLedger.food.toFixed(0)} fardos de provisão nos celeiros.
-
-Vosso conselho e marechais aguardam vossas primeiras instruções. O que deseja ordenar?`;
-  }
 }
 
 export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps) {
@@ -184,7 +122,13 @@ export function ActivePlay({ initialState, isTutorial, onExit }: ActivePlayProps
       return;
     }
 
-    const prologue = buildCanonicalPrologue(initialState, isTutorial);
+    const scenarioResult = StartingScenarioService.build({
+      state: initialState,
+      archetype: initialState.character.archetype,
+      region: initialState.character.location.landmark || initialState.character.location.region || 'Grey Keep',
+      rng: globalRNG
+    });
+    const prologue = `[MESTRE] ${scenarioResult.introNarration}`;
     setState(s => s ? { ...s, narrativeHistory: [prologue] } : s);
     setCurrentNarrative(prologue);
   }, []);

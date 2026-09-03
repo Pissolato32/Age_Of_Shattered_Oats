@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { CampaignState } from '../src/types';
-import { GeminiNarrativeLLM } from '../src/lib/geminiNarrativeLLM';
+import { UnifiedNarrativeLLM } from '../src/llm/adapters/UnifiedNarrativeLLM';
 import { runNarrativeCycle } from '../src/lib/narrativeCycle';
 import { NarrativeObserver } from '../src/lib/narrativeContracts';
 
@@ -75,7 +75,7 @@ console.log(`[P1] Enviando ao Gemini Online: "${prompt1}"...`);
 
 // Context Blackout Real
 const restoredState1: CampaignState = JSON.parse(rawCampaignJson);
-const onlineGemini1 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 25000 });
+const onlineGemini1 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 const res1 = await runNarrativeCycle({
   playerInput: prompt1,
@@ -124,7 +124,7 @@ console.log(`[P2] Enviando ao Gemini Online: "${prompt2}"...`);
 
 // Context Blackout Real
 const restoredState2: CampaignState = JSON.parse(rawCampaignJson);
-const onlineGemini2 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 25000 });
+const onlineGemini2 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 const res2 = await runNarrativeCycle({
   playerInput: prompt2,
@@ -171,7 +171,7 @@ console.log(`[P3] Enviando ao Gemini Online: "${prompt3}"...`);
 
 // Context Blackout Real
 const restoredState3: CampaignState = JSON.parse(rawCampaignJson);
-const onlineGemini3 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 25000 });
+const onlineGemini3 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 const res3 = await runNarrativeCycle({
   playerInput: prompt3,
@@ -218,7 +218,7 @@ console.log(`[P4] Enviando ao Gemini Online: "${prompt4}"...`);
 
 // Context Blackout Real
 const restoredState4: CampaignState = JSON.parse(rawCampaignJson);
-const onlineGemini4 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 25000 });
+const onlineGemini4 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 const res4 = await runNarrativeCycle({
   playerInput: prompt4,
@@ -266,7 +266,7 @@ console.log(`[P5] Enviando ao Gemini Online: "${prompt5}"...`);
 
 // Context Blackout Real
 const restoredState5: CampaignState = JSON.parse(rawCampaignJson);
-const onlineGemini5 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 25000 });
+const onlineGemini5 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 const res5 = await runNarrativeCycle({
   playerInput: prompt5,

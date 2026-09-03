@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { MockNarrativeLLM, interpretInput } from '../src/lib/mockNarrativeLLM';
-import { GeminiNarrativeLLM } from '../src/lib/geminiNarrativeLLM';
+import { UnifiedNarrativeLLM } from '../src/llm/adapters/UnifiedNarrativeLLM';
 import { NarrativeAction, NarrativeCommand } from '../src/lib/narrativeContracts';
 import { CANONICAL_DOMAINS } from '../src/lib/actionClassifier';
 import { createInitialState, buildObserverProjection } from '../src/engine';
@@ -61,7 +61,7 @@ console.log('=== INICIANDO ONLINE/OFFLINE PARITY MATRIX (M18.4) ===\n');
 
 async function runParitySuite() {
   const mockLLM = new MockNarrativeLLM();
-  const offlineGemini = new GeminiNarrativeLLM({ apiKey: undefined });
+  const offlineGemini = new UnifiedNarrativeLLM({ provider: 'mock' });
 
   let totalPassed = 0;
   let totalFailed = 0;

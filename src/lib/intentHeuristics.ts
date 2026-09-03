@@ -3,6 +3,7 @@ import {
   NarrativeAction,
   NARRATIVE_CONTRACT_VERSION
 } from './narrativeContracts';
+import type { ClarificationContext } from './clarificationContracts';
 
 export interface SemanticParsedInput {
   raw: string;
@@ -199,10 +200,121 @@ export function buildCommand(
 }
 
 /**
+ * Resolução heurística determinística de sessão de esclarecimento.
+ */
+export function resolveClarificationHeuristically(context: ClarificationContext): NarrativeCommand {
+  const { proposedCommand, playerAnswer, selectedOption } = context;
+  const answer = (selectedOption || playerAnswer).trim().toLowerCase();
+
+  // 1. Cancelamento explícito ou recusa
+  if (/cancelar|esquece|deixa\s+pra\s+l[aá]|nada|nenhuma?|desistir/i.test(answer)) {
+    return {
+      ...proposedCommand,
+      action: 'UNKNOWN',
+      requiresClarification: false,
+      confidence: 1.0,
+      ambiguity: []
+    };
+  }
+
+  // 2. Respostas vagas, evasivas ou que não resolvem
+  if (/tanto\s+faz|fa[cç]a\s+como\s+achar|n[aã]o\s+sei|qualquer|sim,\s+aquilo/i.test(answer)) {
+    return {
+      ...proposedCommand,
+      requiresClarification: true,
+      confidence: 0.5,
+      ambiguity: ['Resposta vaga ou não conclusiva']
+    };
+  }
+
+  // 3. Resolução por tipo de ação proposta
+  if (proposedCommand.action === 'BUILD') {
+    const loc = extractLocationOrTarget(playerAnswer);
+    const struct = /pali[cç]ada|muralha|port[aã]o|torre/i.exec(playerAnswer);
+    const objectId = struct ? struct[0] : (proposedCommand.objectId || 'palisada de madeira');
+    const locationId = loc || proposedCommand.locationId;
+
+    if (locationId || loc) {
+      return {
+        ...proposedCommand,
+        objectId,
+        locationId: locationId || loc,
+        requiresClarification: false,
+        confidence: 0.95,
+        ambiguity: []
+      };
+    }
+  }
+
+  if (proposedCommand.action === 'TRAVEL') {
+    const loc = extractLocationOrTarget(playerAnswer);
+    if (loc) {
+      return {
+        ...proposedCommand,
+        targetId: loc,
+        locationId: loc,
+        requiresClarification: false,
+        confidence: 0.95,
+        ambiguity: []
+      };
+    }
+  }
+
+  if (proposedCommand.action === 'RECRUIT') {
+    const numMatch = playerAnswer.match(/\b(\d+)\b/);
+    if (numMatch) {
+      const qty = parseInt(numMatch[1], 10);
+      return {
+        ...proposedCommand,
+        magnitude: { mode: 'FIXED', value: qty },
+        parameters: { ...proposedCommand.parameters, quantity: qty },
+        requiresClarification: false,
+        confidence: 0.95,
+        ambiguity: []
+      };
+    }
+  }
+
+  if (proposedCommand.action === 'INFORMATION') {
+    return {
+      ...proposedCommand,
+      requiresClarification: false,
+      confidence: 0.95,
+      ambiguity: []
+    };
+  }
+
+  // 4. Opção estruturada direta (botão)
+  if (selectedOption) {
+    return {
+      ...proposedCommand,
+      targetId: proposedCommand.targetId || selectedOption,
+      requiresClarification: false,
+      confidence: 0.95,
+      ambiguity: []
+    };
+  }
+
+  // 5. Fallback padrão: não foi possível resolver o parâmetro
+  return {
+    ...proposedCommand,
+    requiresClarification: true,
+    confidence: 0.5,
+    ambiguity: ['Parâmetro não resolvido pela resposta de esclarecimento']
+  };
+}
+
+/**
  * Single Source of Truth para Resolução Semântica por Papéis (Semantic Role Resolution).
  * Separação estrita entre Agente, Verbo de Ação, Objeto/Recurso e Alvo.
  */
-export function interpretIntentHeuristically(playerInput: string): NarrativeCommand {
+export function interpretIntentHeuristically(
+  playerInput: string,
+  clarificationContext?: ClarificationContext
+): NarrativeCommand {
+  if (clarificationContext) {
+    return resolveClarificationHeuristically(clarificationContext);
+  }
   if (playerInput.trim().length === 0) {
     return buildCommand('UNKNOWN', {
       requiresClarification: true,
@@ -339,9 +451,12 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
         confidence: 0.6
       }, playerInput);
     }
+    const loc = extractLocationOrTarget(playerInput);
     return buildCommand('BUILD', {
       commandId: `mock-build-${structure}`,
       objectId: structure,
+      locationId: loc,
+      targetId: loc,
       desiredOutcome: `construir ${structure}`,
       confidence: 0.95
     }, playerInput);
@@ -349,16 +464,17 @@ export function interpretIntentHeuristically(playerInput: string): NarrativeComm
 
   // 10. Ação Verbal Explícita: TRAVEL
   if (actionLemmas.travel) {
-    if (!/central plains|fronteira/i.test(normalized)) {
+    const loc = extractLocationOrTarget(playerInput);
+    if (!loc && !/central plains|fronteira/i.test(normalized)) {
       return buildCommand('TRAVEL', {
         requiresClarification: true,
         ambiguity: ['destino da viagem não identificado'],
         confidence: 0.6
       }, playerInput);
     }
-    const loc = extractLocationOrTarget(playerInput);
     return buildCommand('TRAVEL', {
       locationId: loc || 'Central Plains',
+      targetId: loc || 'Central Plains',
       confidence: 0.9
     }, playerInput);
   }

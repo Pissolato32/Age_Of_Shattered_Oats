@@ -94,7 +94,6 @@ console.log('[M21-A1] Inventariando e classificando 100% dos componentes do repo
     'src/lib/semanticValidation.ts': 'EXERCITED',
     'src/lib/genericResolution.ts': 'EXERCITED',
     'src/lib/magnitudeResolution.ts': 'EXERCITED',
-    'src/lib/geminiNarrativeLLM.ts': 'EXERCITED',
     'src/lib/mockNarrativeLLM.ts': 'EXERCITED',
     'src/lib/codexRetriever.ts': 'INFRA_ONLY',
     'src/lib/webFlavorService.ts': 'INFRA_ONLY',

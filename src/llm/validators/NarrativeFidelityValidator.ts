@@ -8,6 +8,9 @@ export interface DeterministicFactSet {
   readonly knownActorNames: readonly string[];
   readonly epistemicStatus?: string;
   readonly location?: string;
+  readonly reasonCode?: string;
+  readonly isDispatchOrProbe?: boolean;
+  readonly retrievedMemoryCount: number;
 }
 
 export interface FidelityValidationResult {
@@ -32,7 +35,8 @@ export class NarrativeFidelityValidator {
         status: 'UNKNOWN',
         isSuccess: true,
         deadActorNames: [],
-        knownActorNames: []
+        knownActorNames: [],
+        retrievedMemoryCount: 0
       };
     }
 
@@ -68,13 +72,36 @@ export class NarrativeFidelityValidator {
       if (!deadActorNames.includes('General Morr')) deadActorNames.push('General Morr');
     }
 
+    const reasonCode = 'reasonCode' in report
+      ? (report as any).reasonCode
+      : ('outcome' in report ? (report as any).outcome?.reason : undefined);
+
+    const consequences = 'consequences' in report
+      ? (report as any).consequences || []
+      : ('outcome' in report ? (report as any).outcome?.consequences || [] : []);
+
+    const isDispatchOrProbe = consequences.some((c: any) => {
+      const desc = typeof c === 'string' ? c : c?.description;
+      return typeof desc === 'string' && (
+        desc.includes('despachad') ||
+        desc.includes('mensagem formal') ||
+        desc.includes('sondagem') ||
+        desc.includes('partiram a cavalo')
+      );
+    });
+
+    const retrievedMemoryCount = context?.retrievedMemories ? context.retrievedMemories.length : 0;
+
     return {
       status,
       isSuccess,
       deadActorNames,
       knownActorNames,
       epistemicStatus: context?.executionResult?.answerStatus,
-      location: context?.scene?.locationId
+      location: context?.scene?.locationId,
+      reasonCode,
+      isDispatchOrProbe,
+      retrievedMemoryCount
     };
   }
 
@@ -110,7 +137,7 @@ export class NarrativeFidelityValidator {
 
     // 2. Epistemic check: NO_AUTHORIZED_INFORMATION
     if (factSet.epistemicStatus === 'NO_AUTHORIZED_INFORMATION') {
-      const detailedFactPattern = /(tropas inimigas avistadas marchando com 500 cavaleiros|o tesouro secreto foi descoberto|avistamos o acampamento exato)/i;
+      const detailedFactPattern = /(tropas inimigas avistadas|cavaleiros marchando|\b\d+\s+homens\s+inimigos|acampamento\s+localizado\s+com\s+precisão|o\s+tesouro\s+secreto\s+foi\s+descoberto)/i;
       if (detailedFactPattern.test(narrativeText)) {
         hallucination = true;
         factualGrounding = false;
@@ -137,6 +164,37 @@ export class NarrativeFidelityValidator {
       factualGrounding = false;
       stateDivergence = true;
       violations.push(`Narrative depicted deceased character 'General Morr' actively giving orders or fighting`);
+    }
+
+    // 4. Temporal Containment: Preclude premature arrival or concluded treaties on dispatch turns
+    if (factSet.isDispatchOrProbe) {
+      const prematureDiplomacyPattern = /(chegou\s+à\s+corte|chegaram\s+à\s+corte|recebid[oa]s?\s+no\s+castelo|banquete|tratado\s+assinado|acordo\s+foi\s+firmado|o\s+lorde\s+respondeu\s+aceitando|o\s+rei\s+concordou\s+com|recepção\s+calorosa)/i;
+      if (prematureDiplomacyPattern.test(narrativeText)) {
+        hallucination = true;
+        stateDivergence = true;
+        violations.push(`Narrative depicted premature arrival or accepted treaty on a message dispatch turn`);
+      }
+    }
+
+    // 5. Rejection Reason Fidelity: Preclude fabricated excuses contrary to authoritative reasonCode
+    if (factSet.status === 'REJECTED' && factSet.reasonCode) {
+      const reasonLower = factSet.reasonCode.toLowerCase();
+      if (/ouro|prata|silverdew|moeda|tesouro|fundos/i.test(reasonLower)) {
+        if (/soldados\s+estavam\s+exaustos|cansaço\s+dos\s+soldados|tropas\s+recusaram-se\s+por\s+fadiga/i.test(narrativeText)) {
+          hallucination = true;
+          factualGrounding = false;
+          violations.push(`Narrative fabricated troop fatigue excuse when engine rejection was economic: ${factSet.reasonCode}`);
+        }
+      }
+    }
+
+    // 6. Synthetic / Invented Memory Check: Preclude claims of clear memories when no memories were retrieved
+    if (factSet.retrievedMemoryCount === 0) {
+      const syntheticMemoryPattern = /(vós\s+vos\s+lembrais\s+com\s+clareza\s+de|relembrando\s+a\s+vitória\s+passada\s+em|como\s+está\s+registrado\s+nos\s+anais\s+secretos\s+da\s+casa)/i;
+      if (syntheticMemoryPattern.test(narrativeText)) {
+        hallucination = true;
+        violations.push(`Narrative evoked synthetic memories not present in retrieved context`);
+      }
     }
 
     return {

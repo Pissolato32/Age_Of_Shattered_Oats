@@ -40,14 +40,10 @@ export interface HistoricalMemoryRecord {
 
 export class CharacterLifecycleService {
   /**
-   * Returns and ensures the persistent historical roster exists in CampaignState.
+   * Generates the immutable default baseline characters for a new campaign.
    */
-  public static getHistoricalRoster(state: CampaignState): HistoricalCharacter[] {
-    if (state.historicalCharacters && Array.isArray(state.historicalCharacters)) {
-      return state.historicalCharacters;
-    }
-
-    const baseline: HistoricalCharacter[] = [
+  public static createDefaultBaseline(state: CampaignState): HistoricalCharacter[] {
+    return [
       {
         id: 'ruler_current',
         name: state.character.name,
@@ -109,7 +105,27 @@ export class CharacterLifecycleService {
         notes: 'Antigo marechal falecido em campanha'
       }
     ];
+  }
 
+  /**
+   * Pure read-only inspection of the historical roster without mutating CampaignState.
+   */
+  public static peekHistoricalRoster(state: CampaignState): readonly HistoricalCharacter[] {
+    if (state.historicalCharacters && Array.isArray(state.historicalCharacters)) {
+      return state.historicalCharacters;
+    }
+    return this.createDefaultBaseline(state);
+  }
+
+  /**
+   * Returns and ensures the persistent historical roster exists in CampaignState.
+   */
+  public static getHistoricalRoster(state: CampaignState): HistoricalCharacter[] {
+    if (state.historicalCharacters && Array.isArray(state.historicalCharacters)) {
+      return state.historicalCharacters;
+    }
+
+    const baseline = this.createDefaultBaseline(state);
     state.historicalCharacters = baseline;
     return baseline;
   }

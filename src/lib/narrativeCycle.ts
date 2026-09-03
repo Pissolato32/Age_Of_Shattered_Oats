@@ -14,6 +14,12 @@ import { SemanticViolation, validateNarrativeConsistency } from './semanticValid
 import { RandomService } from '../core/RandomService';
 import { extractTemporalScope } from './intentHeuristics';
 import { ClarificationContext } from './clarificationContracts';
+import { MemoryStore } from '../memory/MemoryStore';
+import { KnowledgeStore } from '../memory/KnowledgeStore';
+import { ContextRetrievalService, RetrievalResult } from '../memory/retrieval/ContextRetrievalService';
+import type { MemoryRecord, KnowledgeRecord } from '../memory/contracts';
+import { filterContextBySalience } from './salienceFilter';
+import { NarrativeJudge } from '../llm/validators/NarrativeJudge';
 
 export interface NarrativeCycleInput {
   readonly playerInput: string;
@@ -71,14 +77,65 @@ export function buildSafeFallbackNarrative(report: ExecutionReport): string {
 
 export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<NarrativeCycleResult> {
   const temporalScope = extractTemporalScope(input.playerInput);
-  const initialProjection = buildObserverProjection(input.state, input.observer, temporalScope);
+
+  let retrievalResult: RetrievalResult | undefined = undefined;
+  let retrievedContext: readonly (MemoryRecord | KnowledgeRecord)[] | undefined = undefined;
+
+  if (input.state.memoryStores?.memories || input.state.memoryStores?.knowledge) {
+    const memoryStore = new MemoryStore({ records: input.state.memoryStores.memories || [] });
+    const knowledgeStore = new KnowledgeStore({ records: input.state.memoryStores.knowledge || [] });
+    const retrievalService = new ContextRetrievalService(memoryStore, knowledgeStore);
+
+    retrievalResult = retrievalService.retrieve({
+      agentId: input.observer.observerId,
+      temporalScope,
+      limit: 10
+    });
+
+    if (retrievalResult.memories.length > 0 || retrievalResult.knowledge.length > 0) {
+      retrievedContext = [...retrievalResult.memories, ...retrievalResult.knowledge];
+    }
+  }
+
+  const initialProjection = buildObserverProjection(input.state, input.observer, temporalScope, retrievalResult);
 
   console.log(`[NarrativeCycle] 1. Interpretando: "${input.playerInput}"...`);
-  const command = await input.llm.interpret({
+  let command = await input.llm.interpret({
     playerInput: input.playerInput,
     projection: initialProjection,
-    clarificationContext: input.clarificationContext
+    clarificationContext: input.clarificationContext,
+    retrievedContext
   });
+
+  // INT-001: Drift Guard de Ação durante Esclarecimento
+  if (input.clarificationContext && command.action !== input.clarificationContext.proposedCommand.action && command.action !== 'UNKNOWN') {
+    console.warn(`[NarrativeCycle] ⚠️ Drift de ação durante clarificação (${command.action} != ${input.clarificationContext.proposedCommand.action}). Forçando UNKNOWN.`);
+    command = {
+      ...command,
+      action: 'UNKNOWN',
+      requiresClarification: false,
+      ambiguity: ['Ação divergente durante esclarecimento rejeitada']
+    };
+  }
+
+  // INT-001: Esgotamento no Round 2 (Fail-safe: UNKNOWN sem mutação)
+  const isRoundExhausted = Boolean(
+    input.clarificationContext?.round &&
+    input.clarificationContext.round >= 2 &&
+    command.requiresClarification
+  );
+
+  if (isRoundExhausted) {
+    console.log(`[NarrativeCycle] 🛑 Limite de 2 rodadas de esclarecimento atingido. Resolvendo para UNKNOWN com zero mutação.`);
+    command = {
+      ...command,
+      action: 'UNKNOWN',
+      requiresClarification: false,
+      confidence: 1.0,
+      ambiguity: ['Limite máximo de esclarecimentos atingido sem resolução conclusiva']
+    };
+  }
+
   console.log(`[NarrativeCycle] -> Comando: ${command.action} (conf: ${command.confidence})`);
 
   const resolution = resolveNarrativeCommand(command, input.state, input.rng);
@@ -86,7 +143,20 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
   let report = resolution.report;
   console.log(`[NarrativeCycle] 2. Resolução do Motor: Status ${report.status}, Ação ${report.actionExecuted}`);
 
-  const resultProjection = buildObserverProjection(resultState, input.observer, temporalScope);
+  let postRetrievalResult = retrievalResult;
+  if (resultState.memoryStores?.memories || resultState.memoryStores?.knowledge) {
+    const memoryStore = new MemoryStore({ records: resultState.memoryStores.memories || [] });
+    const knowledgeStore = new KnowledgeStore({ records: resultState.memoryStores.knowledge || [] });
+    const retrievalService = new ContextRetrievalService(memoryStore, knowledgeStore);
+
+    postRetrievalResult = retrievalService.retrieve({
+      agentId: input.observer.observerId,
+      temporalScope,
+      limit: 10
+    });
+  }
+
+  const resultProjection = buildObserverProjection(resultState, input.observer, temporalScope, postRetrievalResult);
 
   // Determinar status epistêmico da resposta para consultas
   if (report.actionExecuted === 'INFORMATION' || command.action === 'INFORMATION') {
@@ -118,7 +188,9 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
     temporalScope
   };
 
-  const context = buildNarrativeContext(resultProjection, report, query);
+  const rawContext = buildNarrativeContext(resultProjection, report, query, postRetrievalResult);
+  // Apply Salience Gate (NAR-002 Pilar 1 & 2)
+  const context = filterContextBySalience(rawContext, report);
 
   console.log(`[NarrativeCycle] 3. Narrando contexto com LLM (${input.llm.providerId})...`);
   let narrative = await input.llm.narrate(context);
@@ -126,23 +198,38 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
   let validation = validateNarrativeConsistency(report, context, narrative, {
     excludedSecretStatements: input.excludedSecretStatements
   });
+  let judgment = NarrativeJudge.judge(narrative, context, report);
 
-  if (validation.length > 0) {
-    console.warn(`[NarrativeCycle] ⚠️ Violações semânticas detectadas (${validation.length}):`, validation.map(v => v.message));
-    narrative = await input.llm.narrate(context);
+  if (validation.length > 0 || !judgment.isPass) {
+    const reasons = [
+      ...validation.map(v => v.message),
+      ...judgment.violations
+    ];
+    console.warn(`[NarrativeCycle] ⚠️ Violações detectadas (${reasons.length}):`, reasons);
+
+    // Tentativa 2: Regeneração Concisa (NAR-002 Pilar 4)
+    const compressionDirective = 'REGENERAÇÃO CONCISA: A versão anterior excedeu o limite de palavras ou violou regras de clichê/fidelidade. Comprima a narrativa em no máximo 2 frases diretas e objetivas, eliminando introduções climáticas e mantendo apenas os fatos ocorridos.';
+    narrative = typeof (input.llm as any).narrate === 'function'
+      ? await (input.llm as any).narrate(context, compressionDirective)
+      : await input.llm.narrate(context);
+
     validation = validateNarrativeConsistency(report, context, narrative, {
       excludedSecretStatements: input.excludedSecretStatements
     });
+    judgment = NarrativeJudge.judge(narrative, context, report);
 
-    if (validation.length > 0) {
-      console.error(`[NarrativeCycle] ❌ Persistiram violações. Acionando fallback autoritativo.`);
+    if (validation.length > 0 || !judgment.isPass) {
+      console.error(`[NarrativeCycle] ❌ Persistiram violações após regeneração. Acionando fallback autoritativo.`);
       narrative = buildSafeFallbackNarrative(report);
       validation = validateNarrativeConsistency(report, context, narrative, {
         excludedSecretStatements: input.excludedSecretStatements
       });
+      judgment = NarrativeJudge.judge(narrative, context, report);
+    } else {
+      console.log(`[NarrativeCycle] ✅ Narrativa aprovada após regeneração concisa (${narrative.length} chars, ${judgment.wordCount} palavras).`);
     }
   } else {
-    console.log(`[NarrativeCycle] ✅ Narrativa aprovada sem violações (${narrative.length} chars).`);
+    console.log(`[NarrativeCycle] ✅ Narrativa aprovada sem violações (${narrative.length} chars, ${judgment.wordCount} palavras).`);
   }
 
   // Build clarification trace data
@@ -155,7 +242,8 @@ export async function runNarrativeCycle(input: NarrativeCycleInput): Promise<Nar
       masterQuestion: input.clarificationContext.masterQuestion,
       playerAnswer: input.clarificationContext.playerAnswer,
       selectedOption: input.clarificationContext.selectedOption,
-      resolution: command.requiresClarification ? 'EXHAUSTED' : 'RESOLVED'
+      round: input.clarificationContext.round,
+      resolution: (command.requiresClarification || isRoundExhausted) ? 'EXHAUSTED' : 'RESOLVED'
     };
   } else if (command.requiresClarification) {
     // This is a new ambiguity detection — the question will be in the narrative

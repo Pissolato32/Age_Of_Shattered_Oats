@@ -69,19 +69,20 @@ export function toNarrativeProjection(
 ): NarrativeProjection {
   let outcome: NarrativeOutcome = 'rejected';
   if (report.status === 'ACCEPTED') {
+    const isProbeOrDispatch = report.consequences?.some(c => c.description.includes('despachad') || c.description.includes('sondagem'));
     outcome = report.actionExecuted === 'INFORMATION' || report.actionExecuted === 'FLAVOR_QUERY'
       ? 'query_answered'
-      : (report.checkpoint ? 'in_progress' : 'success');
+      : (isProbeOrDispatch || report.checkpoint ? 'in_progress' : 'success');
   } else if (report.status === 'REJECTED') {
     outcome = 'rejected';
   } else {
     outcome = 'failure';
   }
 
-  const subject = report.command.actorId && report.command.actorId !== 'player'
+  const subject = report.command?.actorId && report.command.actorId !== 'player'
     ? report.command.actorId
     : 'O Comandante';
-  const location = report.command.locationId || (scene ? scene.regionName : undefined);
+  const location = report.command?.locationId || (scene ? scene.regionName : undefined);
 
   // 1. Visible Events (Clean diegetic summaries)
   const visibleEvents: NarrativeEvent[] = [];
@@ -96,33 +97,37 @@ export function toNarrativeProjection(
 
   if (visibleEvents.length === 0) {
     let actionDesc = '';
-    switch (report.actionExecuted) {
-      case 'RECRUIT':
-        actionDesc = 'Novos homens foram alistados sob o estandarte.';
-        break;
-      case 'BUILD':
-        actionDesc = 'Obras defensivas e estruturas foram erguidas no local.';
-        break;
-      case 'TRAVEL':
-        actionDesc = 'As tropas completaram o deslocamento para o destino ordenado.';
-        break;
-      case 'MILITARY':
-        actionDesc = 'As manobras e patrulhas militares foram executadas nas posições designadas.';
-        break;
-      case 'INFORMATION':
-      case 'FLAVOR_QUERY':
-        actionDesc = 'A situação atual e os relatórios de campo foram avaliados pelo comando.';
-        break;
-      case 'DIPLOMACY':
-        actionDesc = 'Os emissários apresentaram as mensagens diplomáticas.';
-        break;
-      case 'TRADE':
-        actionDesc = 'As trocas de caravana e acordos de mercado foram firmados.';
-        break;
-      default:
-        actionDesc = report.status === 'ACCEPTED'
-          ? 'As ordens foram cumpridas pelos oficiais responsáveis.'
-          : 'A ordem não pôde ser executada pelas forças locais.';
+    if (report.status === 'REJECTED') {
+      actionDesc = report.reasonCode || 'A ordem não pôde ser executada pelas forças locais.';
+    } else {
+      switch (report.actionExecuted) {
+        case 'RECRUIT':
+          actionDesc = 'Novos homens foram alistados sob o estandarte.';
+          break;
+        case 'BUILD':
+          actionDesc = 'Obras defensivas e estruturas foram erguidas no local.';
+          break;
+        case 'TRAVEL':
+          actionDesc = 'As tropas completaram o deslocamento para o destino ordenado.';
+          break;
+        case 'MILITARY':
+          actionDesc = 'As manobras e patrulhas militares foram executadas nas posições designadas.';
+          break;
+        case 'INFORMATION':
+        case 'FLAVOR_QUERY':
+          actionDesc = 'A situação atual e os relatórios de campo foram avaliados pelo comando.';
+          break;
+        case 'DIPLOMACY':
+          actionDesc = report.consequences && report.consequences.length > 0
+            ? report.consequences[0].description
+            : 'A mensagem diplomática foi despachada sob salvo-conduto.';
+          break;
+        case 'TRADE':
+          actionDesc = 'As trocas de caravana e acordos de mercado foram firmados.';
+          break;
+        default:
+          actionDesc = 'As ordens foram cumpridas pelos oficiais responsáveis.';
+      }
     }
 
     visibleEvents.push({
@@ -135,6 +140,10 @@ export function toNarrativeProjection(
 
   // 2. Authoritative Facts
   const authoritativeFacts: string[] = [];
+  if (report.status === 'REJECTED' && report.reasonCode) {
+    authoritativeFacts.push(`Motivo da recusa mecânica: ${report.reasonCode}`);
+  }
+
   if (report.discoveredInformation && report.discoveredInformation.length > 0) {
     for (const info of report.discoveredInformation) {
       authoritativeFacts.push(info.statement);
@@ -168,7 +177,11 @@ export function toNarrativeProjection(
     'A narrativa deve ser escrita estritamente em Português do Brasil (pt-BR).',
     'A narrativa pode descrever a atmosfera física condizente com a estação e o terreno.',
     'A narrativa pode retratar a postura dos oficiais e o peso do comando sem alterar o resultado.',
-    'A narrativa deve permanecer em tom de Crônica de Ferro (frio, diegético, fatalista).'
+    'A narrativa deve permanecer em tom de Crônica de Ferro (frio, diegético, fatalista).',
+    'Fatos observados devem ser relatados como certezas físicas presentes na cena.',
+    'Sob ausência de dados (névoa de guerra/desconhecimento), declare incerteza sóbria sem inventar fatos.',
+    'Despachos diplomáticos narram apenas a partida e os preparativos imediatos, jamais a recepção antecipada.',
+    'NAR-001 é puramente derivativa: não possui autoridade para mutar estado ou inventar mecânicas.'
   ];
 
   return {

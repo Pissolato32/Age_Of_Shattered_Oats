@@ -41,7 +41,7 @@
         "id": "fact_defense_inspection_3",
         "ownerId": "player",
         "subjectId": "holdings.fortification",
-        "description": "Inspeção estrutural de Raven's Watch: A paliçada defensiva (Wooden Palisade Tier 1) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.",
+        "description": "Inspeção estrutural: A paliçada defensiva (Wooden Palisade Tier 1) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.",
         "importance": 5,
         "tickRegistered": 3,
         "decayed": false
@@ -50,7 +50,7 @@
         "id": "fact_defense_inspection_4",
         "ownerId": "player",
         "subjectId": "holdings.fortification",
-        "description": "Inspeção estrutural de Raven's Watch: A paliçada defensiva (Wooden Palisade Tier 1) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.",
+        "description": "Inspeção estrutural: A paliçada defensiva (Wooden Palisade Tier 1) e a torre leste encontram-se firmes e reparadas; o terraço sul e o fosso permanecem como setores vulneráveis de menor elevação sem muralhas de cantaria.",
         "importance": 5,
         "tickRegistered": 4,
         "decayed": false
@@ -500,8 +500,8 @@
       }
     },
     "weatherHistory": [
-      "Light rain",
-      "Cool, overcast",
+      "Chuva leve",
+      "Nublado e frio",
       "Chuvas sazonais (Velocidade +25% por lama)",
       "Vento forte e seco (Risco de incêndio)"
     ],

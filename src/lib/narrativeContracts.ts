@@ -258,7 +258,12 @@ export interface KnowledgeBoundary {
 export function createNarrativeContext(
   projection: ObserverProjection,
   executionResult: ExecutionReport,
-  query?: NarrativeQueryContext
+  query?: NarrativeQueryContext,
+  retrievalResult?: {
+    readonly memories?: readonly MemoryRecord[];
+    readonly knowledge?: readonly KnowledgeRecord[];
+    readonly status?: 'FOUND' | 'PARTIAL' | 'NONE';
+  }
 ): NarrativeContext {
   return {
     contractVersion: NARRATIVE_CONTRACT_VERSION,
@@ -270,6 +275,9 @@ export function createNarrativeContext(
     recentEvents: projection.recentEvents,
     executionResult,
     narrativeConstraints: projection.narrativeConstraints,
-    query
+    query,
+    retrievedMemories: retrievalResult?.memories,
+    retrievedKnowledge: retrievalResult?.knowledge,
+    retrievalStatus: retrievalResult?.status
   };
 }

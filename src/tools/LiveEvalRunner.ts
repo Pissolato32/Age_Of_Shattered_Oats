@@ -1,7 +1,7 @@
 import { createInitialState } from '../engine';
 import { runNarrativeCycle } from '../lib/narrativeCycle';
 import { MockNarrativeLLM } from '../lib/mockNarrativeLLM';
-import { GeminiNarrativeLLM } from '../lib/geminiNarrativeLLM';
+import { UnifiedNarrativeLLM } from '../llm/adapters/UnifiedNarrativeLLM';
 import { NarrativeObserver } from '../lib/narrativeContracts';
 import { AdkTraceCollector } from './AdkTraceCollector';
 
@@ -18,7 +18,7 @@ async function runLiveEvaluation() {
 
   // Select LLM (Gemini if API key present, otherwise Mock for deterministic eval)
   const llm = process.env.GEMINI_API_KEY
-    ? new GeminiNarrativeLLM({ modelId: modelName })
+    ? new UnifiedNarrativeLLM({ provider: 'gemini' })
     : new MockNarrativeLLM();
 
   const testCommands = [

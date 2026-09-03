@@ -446,6 +446,7 @@ export function resolveNarrativeCommand(
       {
         action: command.action,
         targetId: command.targetId,
+        desiredOutcome: command.desiredOutcome,
         parameters: command.parameters as Record<string, unknown>
       },
       state,
@@ -600,6 +601,7 @@ export function resolveNarrativeCommand(
       {
         action: command.action,
         targetId: command.targetId,
+        desiredOutcome: command.desiredOutcome,
         parameters: command.parameters as Record<string, unknown>
       },
       state,

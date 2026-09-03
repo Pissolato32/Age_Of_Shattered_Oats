@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, appendFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { CampaignState } from '../src/types';
-import { GeminiNarrativeLLM } from '../src/lib/geminiNarrativeLLM';
+import { UnifiedNarrativeLLM } from '../src/llm/adapters/UnifiedNarrativeLLM';
 import { runNarrativeCycle } from '../src/lib/narrativeCycle';
 import { AuthorizedKnowledgeFact, NarrativeObserver } from '../src/lib/narrativeContracts';
 
@@ -102,7 +102,7 @@ baseCampaignState.character.memories.push({
 // CONTEXT BLACKOUT REAL: Serializar e instanciar novo client online
 const snapshot1 = JSON.stringify(baseCampaignState);
 const restoredState1: CampaignState = JSON.parse(snapshot1);
-const onlineGemini1 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 20000 });
+const onlineGemini1 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 const prompt1 = "Roric, quais forças potencialmente hostis conhecemos atualmente nas nossas fronteiras?";
 console.log(`[Cenário 1] Enviando ao Gemini Online: "${prompt1}"...`);
@@ -222,7 +222,7 @@ restoredState1.character.memories.push({
 // CONTEXT BLACKOUT REAL
 const snapshot2 = JSON.stringify(restoredState1);
 const restoredState2: CampaignState = JSON.parse(snapshot2);
-const onlineGemini2 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 20000 });
+const onlineGemini2 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 const prompt2 = "Há alguma relação conhecida entre os acontecimentos recentes na fronteira e nossas dificuldades comerciais?";
 console.log(`[Cenário 2] Enviando ao Gemini Online: "${prompt2}"...`);
@@ -337,7 +337,7 @@ restoredState2.character.memories.push({
 // CONTEXT BLACKOUT REAL
 const snapshot3 = JSON.stringify(restoredState2);
 const restoredState3: CampaignState = JSON.parse(snapshot3);
-const onlineGemini3 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 20000 });
+const onlineGemini3 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 const prompt3 = "Quem comanda a posição e como sabemos disso?";
 console.log(`[Cenário 3] Enviando ao Gemini Online: "${prompt3}"...`);
@@ -433,7 +433,7 @@ restoredState3.character.memories.push({
 // CONTEXT BLACKOUT REAL
 const snapshot4 = JSON.stringify(restoredState3);
 const restoredState4: CampaignState = JSON.parse(snapshot4);
-const onlineGemini4 = new GeminiNarrativeLLM({ apiKey, timeoutMs: 20000 });
+const onlineGemini4 = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 
 // Pergunta A: Estado Atual
 const prompt4A = "Qual é a situação atual da passagem na Velha Ponte?";
@@ -499,7 +499,7 @@ console.log('--- CENÁRIO 5: Tríade Temporal Epistêmica (Presente, Passado e E
 // 5A: Presente
 const prompt5Present = "Quem comanda atualmente a posição na ponte?";
 console.log(`[Cenário 5A - Presente] Enviando: "${prompt5Present}"...`);
-const onlineGemini5A = new GeminiNarrativeLLM({ apiKey, timeoutMs: 20000 });
+const onlineGemini5A = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 const res5A = await runNarrativeCycle({
   playerInput: prompt5Present,
   state: restoredState4,
@@ -512,7 +512,7 @@ const c5APassed = /vane|ironhand|capit[aã]o/i.test(res5A.narrative);
 // 5B: Passado (Turno 9 - Retrojeção prevenida por KnowledgeSnapshot)
 const prompt5Past = "Quem sabíamos que comandava a posição no Turno 9?";
 console.log(`[Cenário 5B - Passado T09] Enviando: "${prompt5Past}"...`);
-const onlineGemini5B = new GeminiNarrativeLLM({ apiKey, timeoutMs: 20000 });
+const onlineGemini5B = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 const res5B = await runNarrativeCycle({
   playerInput: prompt5Past,
   state: restoredState4,
@@ -526,7 +526,7 @@ const c5BPassed = /desconhecid|n[aã]o sab[ií]|sem registro|incert|ignorado|an[
 // 5C: Evolução Temporal
 const prompt5Evol = "Como nossa compreensão da identidade do comandante mudou ao longo da campanha?";
 console.log(`[Cenário 5C - Evolução] Enviando: "${prompt5Evol}"...`);
-const onlineGemini5C = new GeminiNarrativeLLM({ apiKey, timeoutMs: 20000 });
+const onlineGemini5C = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 const res5C = await runNarrativeCycle({
   playerInput: prompt5Evol,
   state: restoredState4,
@@ -572,7 +572,7 @@ console.log('--- CONTROLE NEGATIVO: Entidade Inexistente nos Fatos (Casa Blackth
 const promptControl = "O que sabemos sobre a Casa Blackthorn e sua participação na ponte?";
 console.log(`[Controle Negativo] Enviando ao Gemini Online: "${promptControl}"...`);
 
-const onlineGeminiControl = new GeminiNarrativeLLM({ apiKey, timeoutMs: 20000 });
+const onlineGeminiControl = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
 const resControl = await runNarrativeCycle({
   playerInput: promptControl,
   state: restoredState4,

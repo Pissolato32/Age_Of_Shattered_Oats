@@ -38,7 +38,8 @@ export function buildClarificationContext(
     proposedCommand: pending.proposedCommand,
     masterQuestion: pending.question,
     playerAnswer,
-    selectedOption
+    selectedOption,
+    round: pending.round
   };
 }
 

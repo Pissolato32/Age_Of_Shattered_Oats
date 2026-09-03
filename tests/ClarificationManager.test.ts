@@ -322,7 +322,7 @@ function createState(withPending: boolean = false): CampaignState {
   const context = {
     originalInput: 'Quero cuidar da situação dos homens.',
     proposedCommand: {
-      contractVersion: 1,
+      contractVersion: 1 as const,
       commandId: 'cmd_test_9',
       actorId: 'player',
       action: 'INFORMATION' as const,
@@ -355,7 +355,7 @@ function createState(withPending: boolean = false): CampaignState {
   const context = {
     originalInput: 'Quero cuidar da situação dos homens.',
     proposedCommand: {
-      contractVersion: 1,
+      contractVersion: 1 as const,
       commandId: 'cmd_test_10',
       actorId: 'player',
       action: 'INFORMATION' as const,

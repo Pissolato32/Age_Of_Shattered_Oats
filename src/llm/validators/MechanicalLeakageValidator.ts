@@ -19,8 +19,12 @@ export class MechanicalLeakageValidator {
     /\bStatus REJECTED\b/i,
     /\bExecutionReport\b/i,
     /\bRuleResolver\b/i,
+    /\bCampaignState\b/i,
+    /\bNarrativeContext\b/i,
+    /\bNarrativeCommand\b/i,
     /\bCodex\b/i,
-    /\b\[Semana \d+\]/i
+    /\b\[Semana \d+\]/i,
+    /\b\d+\s+moedas\b/i
   ];
 
   public static validate(narrativeText: string): LeakageValidationResult {

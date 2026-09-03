@@ -20,6 +20,7 @@ import { createNarrativeContext, ExecutionReport, NarrativeCommand, NarrativeCon
 import { createObserverProjection } from "./lib/narrativeProjection";
 import { NarrativeResolutionResult, resolveNarrativeCommand as resolveNarrativeCommandCore } from "./lib/narrativeExecution";
 import { resolveEmergentIncidents } from "./domain/events/EmergentIncidentPipeline";
+import type { RetrievalResult } from "./memory/retrieval/ContextRetrievalService";
 
 /**
  * Builds an observer-scoped narrative context from an already-authorized projection.
@@ -28,9 +29,10 @@ import { resolveEmergentIncidents } from "./domain/events/EmergentIncidentPipeli
 export function buildNarrativeContext(
   projection: ObserverProjection,
   executionReport: ExecutionReport,
-  query?: NarrativeQueryContext
+  query?: NarrativeQueryContext,
+  retrievalResult?: RetrievalResult
 ): NarrativeContext {
-  return createNarrativeContext(projection, executionReport, query);
+  return createNarrativeContext(projection, executionReport, query, retrievalResult);
 }
 
 /**
@@ -39,9 +41,10 @@ export function buildNarrativeContext(
 export function buildObserverProjection(
   state: CampaignState,
   observer: ObserverProjection['observer'],
-  queryScope?: NarrativeQueryContext['temporalScope']
+  queryScope?: NarrativeQueryContext['temporalScope'],
+  retrievalResult?: RetrievalResult
 ): ObserverProjection {
-  return createObserverProjection(state, observer, queryScope);
+  return createObserverProjection(state, observer, queryScope, retrievalResult);
 }
 
 /**

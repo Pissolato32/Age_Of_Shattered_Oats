@@ -15,7 +15,13 @@ export type MockBehaviorMode =
   | 'INVALID_SCHEMA'
   | 'WRONG_INTENT'
   | 'MECHANICAL_LEAK'
-  | 'CLAIM_VICTORY_ON_LOSS';
+  | 'CLAIM_VICTORY_ON_LOSS'
+  | 'TEMPORAL_LEAP'
+  | 'FABRICATED_EXCUSE'
+  | 'FABRICATED_FOG'
+  | 'SYNTHETIC_MEMORY'
+  | 'PROLIX_OUTPUT'
+  | 'CLICHE_PREAMBLE';
 
 export class MockAdapter extends BaseLLMAdapter {
   readonly providerId = 'mock' as const;
@@ -46,9 +52,11 @@ export class MockAdapter extends BaseLLMAdapter {
 
     let text = '';
 
+    const isClarificationPrompt = request.userPrompt.includes('CONTEXTO DA SESSÃO DE ESCLARECIMENTO');
+
     // INTENT INTERPRETATION MODE (JSON)
-    if (playerInputMatch && request.responseFormat === 'json') {
-      const inputStr = playerInputMatch[1].trim();
+    if ((playerInputMatch || isClarificationPrompt) && request.responseFormat === 'json') {
+      const inputStr = playerInputMatch ? playerInputMatch[1].trim() : '';
 
       switch (this.mode) {
         case 'INVALID_JSON':
@@ -91,7 +99,34 @@ export class MockAdapter extends BaseLLMAdapter {
 
         case 'CORRECT':
         default: {
-          const cmd = interpretIntentHeuristically(inputStr);
+          let cmd;
+          if (isClarificationPrompt) {
+            const origMatch = request.userPrompt.match(/ORIGINAL DO JOGADOR:\s*"([^"]+)"/i);
+            const actionMatch = request.userPrompt.match(/INTENÇÃO PROPOSTA:\s*([A-Z_]+)/i);
+            const qMatch = request.userPrompt.match(/PERGUNTA DO MESTRE:\s*"([^"]+)"/i);
+            const ansMatch = request.userPrompt.match(/RESPOSTA DO JOGADOR:\s*"([^"]+)"/i);
+            const optMatch = request.userPrompt.match(/OPÇÃO SELECIONADA:\s*([^\n\r]+)/i);
+
+            cmd = interpretIntentHeuristically(ansMatch ? ansMatch[1] : '', {
+              originalInput: origMatch ? origMatch[1] : '',
+              proposedCommand: {
+                contractVersion: 1,
+                commandId: 'cmd_clarification',
+                actorId: 'player',
+                action: (actionMatch ? actionMatch[1] : 'UNKNOWN') as any,
+                constraints: [],
+                confidence: 0.8,
+                ambiguity: [],
+                requiresClarification: true
+              },
+              masterQuestion: qMatch ? qMatch[1] : '',
+              playerAnswer: ansMatch ? ansMatch[1] : '',
+              selectedOption: optMatch ? optMatch[1].trim() : undefined
+            });
+          } else {
+            cmd = interpretIntentHeuristically(inputStr);
+          }
+
           text = JSON.stringify({
             action: cmd.action,
             targetId: cmd.targetId || null,
@@ -109,19 +144,45 @@ export class MockAdapter extends BaseLLMAdapter {
       }
     } else {
       // NARRATIVE MODE
-      switch (this.mode) {
-        case 'MECHANICAL_LEAK':
-          text = `As sentinelas registraram a perda de 50 SD. O teste de DC 15 rolou 18 com roll e status ACCEPTED.`;
-          break;
+      if (this.mode === 'MECHANICAL_LEAK') {
+        text = `As sentinelas registraram a perda de 50 SD. O teste de DC 15 rolou 18 com roll e status ACCEPTED.`;
+      } else if (request.userPrompt.includes('REGENERAÇÃO CONCISA:')) {
+        text = 'Os intendentes registraram as obras concluídas nos livros de ferro da fortaleza sem novos incidentes.';
+      } else {
+        switch (this.mode) {
+          case 'CLAIM_VICTORY_ON_LOSS':
+            text = `Construímos com sucesso todas as fortificações e os novos soldados contratados marchamos triunfantes com ouro recebido.`;
+            break;
 
-        case 'CLAIM_VICTORY_ON_LOSS':
-          text = `Construímos com sucesso todas as fortificações e os novos soldados contratados marchamos triunfantes com ouro recebido.`;
-          break;
+          case 'TEMPORAL_LEAP':
+            text = `O mensageiro cavalgou veloz e chegou à corte do castelo vizinho, onde um banquete foi servido e o tratado assinado com celebração imediata.`;
+            break;
 
-        case 'CORRECT':
-        default:
-          text = `Os batedores retornam das brumas de Grey Keep. O vento açoita as ameias da fortaleza enquanto os homens de armas mantêm a vigília em silêncio sob a geada de inverno.`;
-          break;
+          case 'FABRICATED_EXCUSE':
+            text = `A ordem não foi cumprida pelas sentinelas pois os soldados estavam exaustos demais após dias de frio.`;
+            break;
+
+          case 'FABRICATED_FOG':
+            text = `Os batedores inspecionam o horizonte e relatam tropas inimigas avistadas com quinhentos lanceiros acampados junto ao desfiladeiro.`;
+            break;
+
+          case 'SYNTHETIC_MEMORY':
+            text = `Vós vos lembrais com clareza de como vossos ancestrais ergueram estas mesmas muralhas sob juramento de sangue com os reis antigos.`;
+            break;
+
+          case 'PROLIX_OUTPUT':
+            text = 'O reino estende-se vasto pelas colinas intermináveis de Grey Keep enquanto os senhores de terras distantes observam com cautela redobrada as decisões emanadas da corte principal. Os homens de armas, endurecidos por incontáveis invernos rigorosos e batalhas sangrentas no desfiladeiro cinzento, reúnem-se no pátio lamacento para discutir as ordens recebidas dos conselheiros que ainda guardam o peso dos velhos juramentos solenes de lealdade eterna à coroa desfeita, esperando que as fundações de madeira e pedra resistam ao cerco futuro dos bárbaros e das casas rivais que marcham em segredo sob a névoa fria da manhã sombria que nunca parece terminar nestas terras abandonadas pelos deuses antigos.';
+            break;
+
+          case 'CLICHE_PREAMBLE':
+            text = 'O vento gélido sopra contra as muralhas da fortaleza enquanto a guarnição vigia o fosso sob a geada.';
+            break;
+
+          case 'CORRECT':
+          default:
+            text = `Os batedores retornam das brumas de Grey Keep. A sentinela da torre norte avista patrulhas nas colinas e os homens mantêm vigília.`;
+            break;
+        }
       }
     }
 

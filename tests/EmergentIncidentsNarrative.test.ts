@@ -11,7 +11,7 @@ import {
   MechanicalFacts
 } from '../src/domain/events/narrative/IncidentNarrativeContracts';
 import { MockNarrativeLLM } from '../src/lib/mockNarrativeLLM';
-import { GeminiNarrativeLLM } from '../src/lib/geminiNarrativeLLM';
+import { UnifiedNarrativeLLM } from '../src/llm/adapters/UnifiedNarrativeLLM';
 
 console.log('--- TEST SUITE: EmergentIncidentsNarrative (M18.9-D) ---');
 
@@ -228,7 +228,7 @@ const oppRaven: EventOpportunity = {
 // ============================================================================
 {
   const mockLLM = new MockNarrativeLLM();
-  const geminiLLM = new GeminiNarrativeLLM({ apiKey: undefined }); // Without API key, falls back cleanly
+  const geminiLLM = new UnifiedNarrativeLLM({ provider: 'mock' }); // Mock adapter — deterministic fallback
 
   const state = createInitialState('Noble Ruler', 'Central Plains');
   const baseEvent = createEventRecord(oppTracks, 14, 0, 'TRAVEL');

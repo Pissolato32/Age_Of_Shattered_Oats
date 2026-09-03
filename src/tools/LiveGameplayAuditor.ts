@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { createInitialState, buildObserverProjection } from '../engine';
 import { runNarrativeCycle } from '../lib/narrativeCycle';
-import { GeminiNarrativeLLM } from '../lib/geminiNarrativeLLM';
+import { UnifiedNarrativeLLM } from '../llm/adapters/UnifiedNarrativeLLM';
 import { PLAYER_OBSERVER } from '../../tests/fixtures/narrativeSlice.fixtures';
 import { CampaignState } from '../types';
 
@@ -16,7 +16,7 @@ async function runLiveGameplaySession() {
     process.exit(1);
   }
 
-  const llm = new GeminiNarrativeLLM({ apiKey });
+  const llm = new UnifiedNarrativeLLM({ provider: 'gemini', apiKey });
   let currentState: CampaignState = createInitialState('Landless', 'Florestas do Rio');
   currentState.character.title = 'Capitão Errante';
   currentState.character.location.landmark = 'Fenwick';
