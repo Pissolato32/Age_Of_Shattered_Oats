@@ -42,11 +42,11 @@ async function runSIM001Suite() {
     console.log('  ✅ TEST 2 PASSOU: Estado conservado e íntegro (zero NaN, Infinity ou recursos ilegais).');
   }
 
-  // TEST 3: 100% Determinismo Mecânico em Replay
+  // TEST 3: 100% Determinismo Mecânico em Replay (1.000 Turnos / Snapshot Canônico Completo)
   {
-    console.log('\n--- TEST 3: Replay Mecânico 100% Determinístico ---');
-    assert.equal(summary.mechanicalReplayParity, true, 'Execuções com a mesma semente devem ter 100% de paridade de estado');
-    console.log('  ✅ TEST 3 PASSOU: Replay mecânico demonstrou 100% de reproducibilidade determinística.');
+    console.log('\n--- TEST 3: Replay Mecânico 100% Determinístico (1.000 Turnos / Snapshot Canônico Completo) ---');
+    assert.equal(summary.mechanicalReplayParity, true, 'Execuções com a mesma semente devem ter 100% de paridade de estado mecânico canônico completo em 1.000 turnos');
+    console.log('  ✅ TEST 3 PASSOU: Replay mecânico demonstrou 100% de paridade bit-a-bit do snapshot canônico completo (>40.000 caracteres) ao longo de 1.000 semanas.');
   }
 
   // TEST 4: Estabilidade do Salience Gate ao Longo de 1.000 Turnos

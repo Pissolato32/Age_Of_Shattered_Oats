@@ -39,11 +39,12 @@ export class LongHorizonSimulationRunner {
     const enableLogging = options.enableLogging ?? false;
 
     const startTime = Date.now();
+    globalRNG.setSeed(seed);
     const rng = new RandomService(seed);
     const telemetry = new LongHorizonTelemetryCollector();
 
     // 1. Initialize Baseline CampaignState with sustainable reserves
-    let state = createInitialState('Landed Knight', 'Central Plains');
+    let state = createInitialState('Landed Knight', 'Central Plains', false);
     state.weeklyLedger.silverdew = 80000;
     state.weeklyLedger.food = 30000;
     state.weeklyLedger.incomeDetail.holdings = 350;
@@ -231,52 +232,62 @@ export class LongHorizonSimulationRunner {
         }
       } catch (err) {
         telemetry.recordException();
-        console.error(`[SIM-001] Erro não tratado no turno ${turn}:`, err);
+        console.error(`[SIM-001 Fatal] Erro não tratado no turno ${turn}:`, err);
+        throw new Error(`[SIM-001 Fatal] Exceção não tratada no turno ${turn}: ${(err as Error).message}`);
       }
     }
 
-    // 3. Deterministic Mechanical Replay Check (Pilar 4)
-    // Run two separate identical runs with globalRNG seeded identically
-    globalRNG.setSeed(7777);
-    let testState1 = createInitialState('Landed Knight', 'Central Plains');
-    testState1.weeklyLedger.silverdew = 5000;
-    testState1.weeklyLedger.food = 2000;
-    for (let r = 1; r <= 30; r++) {
-      if (testState1.sessionLog?.activeScene && testState1.sessionLog.activeScene.status === 'OPEN') {
-        testState1 = {
-          ...testState1,
+    // 3. Deterministic Mechanical Replay Check (Pilar 4: 1.000 Turnos Completos)
+    // Run two separate, complete 1,000-turn executions under identical seed and RNG mechanism
+    const replayTurns = totalTurns;
+    const replaySeed = seed;
+
+    globalRNG.setSeed(replaySeed);
+    let replayState1 = createInitialState('Landed Knight', 'Central Plains', false);
+    replayState1.weeklyLedger.silverdew = 80000;
+    replayState1.weeklyLedger.food = 30000;
+    replayState1.weeklyLedger.incomeDetail.holdings = 350;
+    replayState1.weeklyLedger.expenseDetail.wages = 50;
+    replayState1.holdings.type = 'Bastion';
+
+    for (let r = 1; r <= replayTurns; r++) {
+      if (replayState1.sessionLog?.activeScene && replayState1.sessionLog.activeScene.status === 'OPEN') {
+        replayState1 = {
+          ...replayState1,
           sessionLog: {
-            ...testState1.sessionLog,
-            activeScene: { ...testState1.sessionLog.activeScene, status: 'RESOLVED' }
+            ...replayState1.sessionLog,
+            activeScene: { ...replayState1.sessionLog.activeScene, status: 'RESOLVED' }
           }
         };
       }
-      testState1 = resolveWeeklyTurn(testState1).updatedState;
+      replayState1 = resolveWeeklyTurn(replayState1).updatedState;
     }
 
-    globalRNG.setSeed(7777);
-    let testState2 = createInitialState('Landed Knight', 'Central Plains');
-    testState2.weeklyLedger.silverdew = 5000;
-    testState2.weeklyLedger.food = 2000;
-    for (let r = 1; r <= 30; r++) {
-      if (testState2.sessionLog?.activeScene && testState2.sessionLog.activeScene.status === 'OPEN') {
-        testState2 = {
-          ...testState2,
+    globalRNG.setSeed(replaySeed);
+    let replayState2 = createInitialState('Landed Knight', 'Central Plains', false);
+    replayState2.weeklyLedger.silverdew = 80000;
+    replayState2.weeklyLedger.food = 30000;
+    replayState2.weeklyLedger.incomeDetail.holdings = 350;
+    replayState2.weeklyLedger.expenseDetail.wages = 50;
+    replayState2.holdings.type = 'Bastion';
+
+    for (let r = 1; r <= replayTurns; r++) {
+      if (replayState2.sessionLog?.activeScene && replayState2.sessionLog.activeScene.status === 'OPEN') {
+        replayState2 = {
+          ...replayState2,
           sessionLog: {
-            ...testState2.sessionLog,
-            activeScene: { ...testState2.sessionLog.activeScene, status: 'RESOLVED' }
+            ...replayState2.sessionLog,
+            activeScene: { ...replayState2.sessionLog.activeScene, status: 'RESOLVED' }
           }
         };
       }
-      testState2 = resolveWeeklyTurn(testState2).updatedState;
+      replayState2 = resolveWeeklyTurn(replayState2).updatedState;
     }
 
-    const parityMatch =
-      testState1.weeklyLedger.silverdew === testState2.weeklyLedger.silverdew &&
-      testState1.weeklyLedger.food === testState2.weeklyLedger.food &&
-      JSON.stringify(testState1.weeklyLedger.incomeDetail) === JSON.stringify(testState2.weeklyLedger.incomeDetail) &&
-      JSON.stringify(testState1.holdings) === JSON.stringify(testState2.holdings);
+    const snapshot1 = createCanonicalMechanicalSnapshot(replayState1);
+    const snapshot2 = createCanonicalMechanicalSnapshot(replayState2);
 
+    const parityMatch = snapshot1 === snapshot2;
     telemetry.setMechanicalReplayParity(parityMatch);
 
     const totalDurationMs = Date.now() - startTime;
@@ -286,4 +297,16 @@ export class LongHorizonSimulationRunner {
       totalDurationMs
     };
   }
+}
+
+/**
+ * Serializa o estado mecânico canônico completo de CampaignState para comparação estrita bit-a-bit,
+ * normalizando apenas metadados de sessão em tempo real não mecânicos.
+ */
+export function createCanonicalMechanicalSnapshot(state: CampaignState): string {
+  const clone = JSON.parse(JSON.stringify(state));
+  if (clone.sessionLog) {
+    delete clone.sessionLog.lastSessionDate;
+  }
+  return JSON.stringify(clone);
 }
