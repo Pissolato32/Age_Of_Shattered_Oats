@@ -14,6 +14,8 @@ Follow this procedure before considering any change completed in the project:
 5. **Implement Minimal Sufficient Change**: Fix the existing flow at its root; never add redundant layers, artificial adapters, or duplicate fields.
 6. **Execute Targeted Domain Tests**: Run unit tests for the altered domain (`tests/domain/*`).
 7. **Execute Integration Tests**: Validate subsystem chaining (`tests/integration/*`).
-8. **Execute Replay / Simulation**: Run `npm run replay:validate` or corresponding simulation per the simulation matrix.
+8. **Execute Replay / Simulation**:
+   - Run `npm run replay:validate` for mechanical engine and state changes.
+   - For changes affecting narrative fidelity, memory lifecycle, longitudinal state, or long-horizon behavior, execute the corresponding simulation defined in `aos-simulation` (e.g., `npx tsx tests/simulation/SIM001_LongHorizonNarrativeDrift.test.ts`).
 9. **Inspect Git Diff**: Ensure zero `any` types, zero redundant dependencies, and absolute adherence to mechanical silence.
 10. **Human Playtest Gate (`PLAYTEST_REQUIRED`)**: Upon reaching `TECHNICALLY_DONE`, the AI must immediately stop coding and hand over to the user for live browser playtesting (WIP=1). Non-blocking findings are deferred to the Backlog.

@@ -17,3 +17,12 @@
 4. **Preservation of Invariants in Testing**:
    - Mechanical changes must preserve all existing conservation invariants and domain business rules.
    - Tests must verify structural properties and invariants, not merely arbitrary or point-in-time outputs.
+
+5. **Narrative Authority and Mechanical Silence**:
+   - The LLM possesses zero mechanical authority and acts strictly as a sensory post-processor.
+   - Narratives must faithfully reflect the authoritative `ExecutionReport` and observer projection, never inventing mechanical facts, casualties, resources, or unearned outcomes.
+   - Absolute Mechanical Silence: Raw numbers, currencies/acronyms (`SD`, `FSU`, `AC`, `XP`), dice rolls, DCs, and internal identifiers must never leak into narrative prose.
+
+6. **Mechanical Replay Determinism vs. Narrative Surface**:
+   - Deterministic replay validation guarantees apply strictly to the **mechanical state** (`CampaignState`, resources, ledger, holdings, entities, events, memory stores, and PRNG trajectory), which must demonstrate 100% bit-by-bit reproducibility under an identical seed.
+   - Narrative text produced by LLM providers is governed by statistical stability, structural constraints, and quality evaluator thresholds, without requiring literal string identity.
